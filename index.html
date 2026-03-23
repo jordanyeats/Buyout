@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Buyout â Tech Startup Merger Strategy</title>
+<title>Buyout  -  Tech Startup Merger Strategy</title>
 <meta name="description" content="A strategy game about building, investing in, and merging tech startups.">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
@@ -21,7 +21,7 @@
 <script type="text/babel">
 const { useState, useCallback, useEffect, useRef } = React;
 
-/* BUYOUT â Paper + Ink Edition
+/* BUYOUT  -  Paper + Ink Edition
    Warm parchment base, dark ink typography, jewel-tone companies.
    Premium editorial feel. Full v1.4 engine. */
 
@@ -88,7 +88,7 @@ const CARDS=[
 ];
 function buildDeck(rng){const d=[...CARDS];const fs=["Deal closes smoothly.","Investors respond well.","Textbook acquisition."];for(let i=0;i<12;i++)d.push({id:"clean",cat:"clean",name:"Clean Acquisition",desc:"Normal merger. You get $5,000.",flav:fs[i%3],dev:false});shuf(d,rng);return d;}
 
-// ââ Engine (same as v1.4) ââ
+// -- Engine (same as v1.4) --
 const adj=(r,c)=>[[-1,0],[1,0],[0,-1],[0,1]].map(([dr,dc2])=>[r+dr,c+dc2]).filter(([nr,nc])=>nr>=0&&nr<R&&nc>=0&&nc<C);
 const adjCo=(b,r,c)=>{const s=new Set();for(const[nr,nc]of adj(r,c)){const t=b[nr][nc];if(t&&t!=="e")s.add(t);}return[...s];};
 const adjUn=(b,r,c)=>adj(r,c).filter(([nr,nc])=>b[nr][nc]==="e");
@@ -123,7 +123,7 @@ function doBuy(gs,purchases){const g=dc(gs),p=g.ps[g.ci2];for(const[n2,cnt]of Ob
 function doEnd(gs){const g=dc(gs),p=g.ps[g.ci2];while(p.hd.length<HAND&&g.pool.length)p.hd.push(g.pool.pop());if(g.endT){g.over=true;g.ph="gameover";return g;}g.turn++;g.ci2=g.turn%g.ps.length;g.ph="place";g.pRes=null;g.pTile=null;const np=g.ps[g.ci2],pl=np.hd.filter(([r,c])=>canPlay(g.bd,g.cos,r,c));if(pl.length===0&&np.hd.length>0){for(const t of np.hd)g.pool.push(t);np.hd=[];shuf(g.pool,mkR(g.seed+g.turn));while(np.hd.length<HAND&&g.pool.length)np.hd.push(g.pool.pop());}return g;}
 function doFinal(gs){const g=dc(gs);g.logs.push("--- Final Scoring ---");for(const c of Object.values(g.cos).filter(c2=>c2.st==="active"||c2.st==="safe"))payB(c,g.ps,g.logs);for(const p of g.ps){for(const[n2,cnt]of Object.entries(p.sh)){const c2=g.cos[n2];if(c2.st==="active"||c2.st==="safe"){const pr=cnt*sp(c2.sz);p.ca+=pr;g.logs.push(pn(p)+" "+(isYou(p)?"liquidate":"liquidates")+" "+cnt+" "+n2+" for "+$$(pr));}}p.sh={};}return g;}
 
-// âââââââââââââââ UI âââââââââââââââ
+// =============== UI ===============
 function Popup({popup,game,onDismiss}){
   if(!popup)return null;
   const ov={position:"fixed",top:0,left:0,right:0,bottom:0,background:"rgba(26,23,21,0.45)",backdropFilter:"blur(12px)",WebkitBackdropFilter:"blur(12px)",display:"flex",alignItems:"center",justifyContent:"center",zIndex:100,padding:20};
@@ -137,7 +137,7 @@ function Popup({popup,game,onDismiss}){
       {popup.defunct.map((dn,i)=>{const dnN=typeof dn==="string"?dn:dn.n||dn;const di=gci(dnN),co=game.cos[dnN];return (
         <div key={i} className="boPop" style={{margin:"8px 0",padding:"10px 16px",background:di.pill,border:"1px solid "+di.bg+"33",borderRadius:10,display:"flex",justifyContent:"space-between",alignItems:"center"}}>
           <span style={{color:di.ptx,fontWeight:700,fontSize:14}}>{dnN}</span>
-          <span style={{color:INK3,fontSize:12}}>Size {co.sz} Â· {$$(sp(co.sz))}/block</span>
+          <span style={{color:INK3,fontSize:12}}>Size {co.sz} - {$$(sp(co.sz))}/block</span>
         </div>
       );})}
       {popup.card && (
@@ -156,7 +156,7 @@ function Popup({popup,game,onDismiss}){
     return (<div style={ov} className="boFade"><div style={box} className="boSlide">
       <div style={{fontFamily:hd,fontSize:20,fontWeight:900,color:INK,marginBottom:8}}>Merger Complete</div>
       <div style={{fontSize:14,marginBottom:14,color:INK2}}>
-        <span style={{color:si.ptx,fontWeight:700}}>{popup.surv}</span> is now size {popup.newSz} Â· {$$(sp(popup.newSz))}/block
+        <span style={{color:si.ptx,fontWeight:700}}>{popup.surv}</span> is now size {popup.newSz} - {$$(sp(popup.newSz))}/block
       </div>
       <div style={{textAlign:"left",padding:"10px 14px",background:WARM,borderRadius:8,marginBottom:8,border:"1px solid "+BD}}>
         {popup.details.map((d,i)=> <div key={i} style={{fontSize:12,color:INK2,padding:"2px 0",fontFamily:bd}}>{d}</div>)}
@@ -281,7 +281,7 @@ function CoBar({game}){
       {active.map(c=>{const i=gci(c.n);return (
         <div key={c.n} style={{display:"inline-flex",alignItems:"center",gap:5,padding:"4px 10px",borderRadius:8,background:i.pill,border:"1px solid "+i.bg+"22",fontSize:11,fontWeight:700,color:i.ptx,fontFamily:bd}}>
           <span style={{width:10,height:10,borderRadius:3,background:i.bg,display:"inline-block"}}></span>
-          {c.n} <span style={{fontWeight:500,color:INK3}}>{c.sz} Â· {$$(sp(c.sz))}</span>{c.st==="safe"?" Safe":""}
+          {c.n} <span style={{fontWeight:500,color:INK3}}>{c.sz} - {$$(sp(c.sz))}</span>{c.st==="safe"?" Safe":""}
         </div>
       );})}
       {game.useCards && <div style={{display:"inline-flex",alignItems:"center",gap:4,padding:"4px 10px",borderRadius:8,background:WARM,border:"1px solid "+BD,fontSize:10,fontWeight:600,color:ACCENT,fontFamily:bd}}>{game.deck.length} cards</div>}
@@ -307,7 +307,7 @@ function Holdings({game}){
           return (
             <tr key={i}>
               <td style={{padding:"8px",fontWeight:isA?700:500,color:isA?INK:INK2,fontSize:12,whiteSpace:"nowrap",borderBottom:"1px solid "+BD}}>
-                {isA?"â¶ ":""}{p.nm} <span style={{fontSize:9,color:INK3,fontWeight:400}}>{p.tp==="human"?"You":p.tp}</span>
+                {isA?"> ":""}{p.nm} <span style={{fontSize:9,color:INK3,fontWeight:400}}>{p.tp==="human"?"You":p.tp}</span>
               </td>
               <td style={{textAlign:"right",padding:"8px 6px",color:GRN,fontWeight:600,fontVariantNumeric:"tabular-nums",borderBottom:"1px solid "+BD}}>{$$(p.ca)}</td>
               {active.map(c=>{const s2=p.sh[c.n]||0;const ci2=gci(c.n);return <td key={c.n} style={{textAlign:"center",padding:"8px 4px",color:s2>0?ci2.ptx:BD2,fontWeight:s2>0?800:400,borderBottom:"1px solid "+BD}}>{s2||"-"}</td>;})}
@@ -376,7 +376,7 @@ function Actions({game,onAction,sel,pState,setPS}){
     return (<div className="boSlide" style={{padding:18}}>
       <div style={{display:"flex",justifyContent:"space-between",alignItems:"baseline",marginBottom:12}}>
         <div style={{fontFamily:hd,fontSize:16,fontWeight:900,color:INK}}>Buy Blocks</div>
-        <div style={{fontSize:12,color:INK3,fontFamily:bd}}>{MBUY-tot} left Â· {$$(p.ca-cost)}</div>
+        <div style={{fontSize:12,color:INK3,fontFamily:bd}}>{MBUY-tot} left - {$$(p.ca-cost)}</div>
       </div>
       {!buyable.length?(<div style={{textAlign:"center",padding:"14px 0"}}><div style={{fontSize:13,color:INK3,marginBottom:12,fontFamily:bd}}>No blocks available this turn</div><button onClick={()=>onAction("buy",{})} style={btnS}>End Turn</button></div>):(
         <><div style={{display:"flex",gap:8,flexWrap:"wrap",marginBottom:14}}>
@@ -387,7 +387,7 @@ function Actions({game,onAction,sel,pState,setPS}){
                 <span style={{color:i.ptx,fontWeight:800,fontSize:12,fontFamily:bd}}>{b2.n}</span>
               </div>
               <div style={{color:INK2,fontSize:11,fontFamily:bd}}>{$$(b2.pr)}/block</div>
-              <div style={{color:INK3,fontSize:10,fontFamily:bd}}>${(b2.pr/BPR).toFixed(2)}/share Â· {b2.av} left</div>
+              <div style={{color:INK3,fontSize:10,fontFamily:bd}}>${(b2.pr/BPR).toFixed(2)}/share - {b2.av} left</div>
               <div style={{display:"flex",gap:4,marginTop:8,alignItems:"center"}}>
                 <button onClick={()=>setPS({...st,[b2.n]:Math.max(0,cnt-1)})} style={{width:30,height:30,borderRadius:7,border:"1px solid "+BD2,background:CARD,color:INK,cursor:"pointer",fontFamily:bd,fontWeight:700,fontSize:15,display:"flex",alignItems:"center",justifyContent:"center"}}>-</button>
                 <span style={{fontWeight:800,minWidth:18,textAlign:"center",fontSize:16,fontFamily:bd}}>{cnt}</span>
@@ -456,7 +456,7 @@ function Setup({onStart}){
   );
 }
 
-// âââââââââââââââ APP âââââââââââââââ
+// =============== APP ===============
 function App(){
   const[game,setGame]=useState(null);
   const[sel,setSel]=useState(null);
@@ -504,7 +504,7 @@ function App(){
       <Popup popup={game.popup} game={game} onDismiss={()=>act("dismiss_popup")}/>
       <div style={{display:"flex",justifyContent:"space-between",alignItems:"baseline",padding:"10px 4px 8px"}}>
         <div style={{fontFamily:hd,fontSize:20,fontWeight:900,color:INK}}>Buyout</div>
-        <div style={{fontSize:11,color:INK3,fontFamily:bd}}>Turn {game.turn+1} Â· {game.pool.length} tiles</div>
+        <div style={{fontSize:11,color:INK3,fontFamily:bd}}>Turn {game.turn+1} - {game.pool.length} tiles</div>
       </div>
       <div style={{background:CARD,borderRadius:14,padding:10,marginBottom:6,boxShadow:"0 1px 4px rgba(0,0,0,0.04)",border:"1px solid "+BD}}>
         <Board2 game={game} onTileClick={setSel} sel={sel} human={human}/>
