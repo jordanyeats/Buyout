@@ -352,14 +352,16 @@ function BuyPanel({ game, act }: { game: GameState; act: (a: Action) => void }) 
       ) : (
         <>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8, paddingBottom: 10 }}>
-            {buyable.map((b) => {
+            {listed.map((b) => {
               const cs = companyStyle(b.n);
               const cnt = basket[b.n] ?? 0;
-              const canMore = total < MAX_BUY && cnt < b.av && b.pr <= p.cash - cost;
+              const affordable = b.pr <= p.cash - cost;
+              const canMore = total < MAX_BUY && cnt < b.av && affordable;
+              const dimmed = !affordable && cnt === 0;
               return (
-                <View key={b.n} style={{ backgroundColor: cs.pill, borderWidth: 1, borderColor: BD, padding: 10, minWidth: 108 }}>
+                <View key={b.n} style={{ backgroundColor: cs.pill, borderWidth: 1, borderColor: BD, padding: 10, minWidth: 108, opacity: dimmed ? 0.35 : 1 }}>
                   <Wordmark name={b.n} size={12} />
-                  <Text style={{ fontFamily: SANS, fontSize: 10.5, color: INK2, marginTop: 2 }}>{money(b.pr)} · {b.av} left</Text>
+                  <Text style={{ fontFamily: SANS, fontSize: 10.5, color: INK2, marginTop: 2 }}>{money(b.pr)} · {dimmed ? "too rich" : `${b.av} left`}</Text>
                   <View style={{ flexDirection: "row", alignItems: "center", gap: 6, marginTop: 7 }}>
                     <Pressable onPress={() => setBasket({ ...basket, [b.n]: Math.max(0, cnt - 1) })} style={sq(false)}>
                       <Text style={{ fontFamily: SANS_BOLD, fontSize: 14, color: INK }}>−</Text>
