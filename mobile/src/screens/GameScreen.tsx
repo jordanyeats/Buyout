@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Pressable, ScrollView, Text, View, useWindowDimensions } from "react-native";
-import type { Action, GameState, Tile } from "../engine";
+import { currentActor, type Action, type GameState, type Tile } from "../engine";
 import type { AchievementDef } from "../store/stats";
 import { ACCENT, BG, INK, INK2, INK3, SANS, SANS_BLACK, SANS_SEMI, SERIF } from "../theme";
 import { Board } from "../components/Board";
@@ -19,6 +19,9 @@ export function GameScreen({ game, act, onQuit, onRestart, unlocked = [] }: {
   const { width } = useWindowDimensions();
   const wide = width >= 768; // iPad: board left, desk right
   const place = (a: Action) => { setSel(null); act(a); };
+  // "Your move" only when the human is actually the one deciding.
+  const actor = game.players[currentActor(game)];
+  const yourTurn = game.over || (actor?.kind === "human" && game.phase !== "mergerAnnounce" && game.phase !== "mergerResult");
 
   const boardCol = (
     <View style={wide ? { flex: 1.1, paddingRight: 18 } : undefined}>
@@ -36,7 +39,7 @@ export function GameScreen({ game, act, onQuit, onRestart, unlocked = [] }: {
           ))}
         </View>
       ) : null}
-      <SectionRule label="Your move" />
+      <SectionRule label={yourTurn ? "Your move" : "The floor"} />
       {game.over && game.endReason ? (
         <Text style={{ fontFamily: SANS, fontSize: 12, color: INK2, fontStyle: "italic", marginBottom: 4 }}>
           Why it ended: {game.endReason}.

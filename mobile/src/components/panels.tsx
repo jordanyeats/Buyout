@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { Pressable, ScrollView, Text, View } from "react-native";
 import {
   CONVERT_FROM, CONVERT_TO, MAX_BUY, TAX_RATE,
-  canPlay, convertCapacity, currentActor, priceOf,
+  canPlay, convertCapacity, currentActor, majorityMinority, priceOf,
   type Action, type GameState, type Tile,
 } from "../engine";
 import { ACCENT, BD, BD2, GRN, IDENT, INK, INK2, INK3, PUR, RED, SANS, SANS_BLACK, SANS_BOLD, SANS_SEMI, SERIF, money } from "../theme";
@@ -83,6 +83,9 @@ export function CoBar({ game }: { game: GameState }) {
 export function Holdings({ game }: { game: GameState }) {
   const active = Object.values(game.cos).filter((c) => c.status !== "inactive");
   const cellW = { flex: 1 } as const;
+  // Majority holders per company, computed once per render.
+  const majOf: Record<string, Set<string>> = {};
+  for (const c of active) majOf[c.name] = new Set(majorityMinority(game, c.name).maj.map((m) => m.name));
   return (
     <View>
       <View style={{ flexDirection: "row", borderBottomWidth: 1, borderBottomColor: INK, paddingBottom: 4 }}>
@@ -105,7 +108,24 @@ export function Holdings({ game }: { game: GameState }) {
             <CountUp value={p.cash} style={{ flex: 1.6, textAlign: "right", fontFamily: SANS_SEMI, fontSize: 12, color: GRN, fontVariant: ["tabular-nums"] }} />
             {active.map((c) => {
               const s = p.shares[c.name] ?? 0;
-              return <Text key={c.name} style={[cellW, { textAlign: "center", fontFamily: s ? SANS_BLACK : SANS, fontSize: 12, color: s ? companyStyle(c.name).ptx : BD2 }]}>{s || "–"}</Text>;
+              const cs = companyStyle(c.name);
+              const isMaj = s > 0 && majOf[c.name]!.has(p.name);
+              const isFounder = game.founders[c.name] === p.name;
+              if (s > 0 && (isMaj || isFounder)) {
+                return (
+                  <View key={c.name} style={[cellW, { alignItems: "center" }]}>
+                    <View style={{
+                      minWidth: 20, height: 20, paddingHorizontal: 3,
+                      alignItems: "center", justifyContent: "center",
+                      backgroundColor: isMaj ? cs.bg : "transparent",
+                      borderWidth: isMaj ? 0 : 1.5, borderColor: cs.bg,
+                    }}>
+                      <Text style={{ fontFamily: SANS_BLACK, fontSize: 11.5, color: isMaj ? cs.tx : cs.ptx }}>{s}</Text>
+                    </View>
+                  </View>
+                );
+              }
+              return <Text key={c.name} style={[cellW, { textAlign: "center", fontFamily: s ? SANS_BLACK : SANS, fontSize: 12, color: s ? cs.ptx : BD2 }]}>{s || "–"}</Text>;
             })}
             <CountUp value={worth} style={{ flex: 1.6, textAlign: "right", fontFamily: SANS_BLACK, fontSize: 12, color: INK, fontVariant: ["tabular-nums"] }} />
           </View>
@@ -117,6 +137,9 @@ export function Holdings({ game }: { game: GameState }) {
         {active.map((c) => <Text key={c.name} style={[cellW, mstyle, { textAlign: "center" }]}>{game.market[c.name]}</Text>)}
         <View style={{ flex: 1.6 }} />
       </View>
+      {active.length ? (
+        <Text style={{ textAlign: "right", fontFamily: SANS, fontSize: 9.5, color: INK3, paddingTop: 3 }}>■ majority · ▢ founded</Text>
+      ) : null}
     </View>
   );
 }
@@ -305,9 +328,11 @@ function Waiting({ text }: { text: string }) {
 function BuyPanel({ game, act }: { game: GameState; act: (a: Action) => void }) {
   const p = game.players[game.current]!;
   const [basket, setBasket] = useState<Record<string, number>>({});
-  const buyable = Object.values(game.cos)
+  const listed = Object.values(game.cos)
     .filter((c) => c.status !== "inactive" && (game.market[c.name] ?? 0) > 0 && priceOf(game, c.name) > 0)
     .map((c) => ({ n: c.name, pr: priceOf(game, c.name), av: game.market[c.name]! }));
+  const buyable = listed.filter((b) => b.pr <= p.cash);
+  const priced_out = listed.length > 0 && buyable.length === 0;
   const total = Object.values(basket).reduce((s, v) => s + v, 0);
   const cost = Object.entries(basket).reduce((s, [n, v]) => s + v * (buyable.find((b) => b.n === n)?.pr ?? 0), 0);
 
@@ -319,7 +344,9 @@ function BuyPanel({ game, act }: { game: GameState; act: (a: Action) => void }) 
       </View>
       {buyable.length === 0 ? (
         <View style={{ alignItems: "center", paddingVertical: 8 }}>
-          <Text style={{ fontFamily: SANS, fontSize: 12.5, color: INK3, marginBottom: 10 }}>Nothing on the market yet</Text>
+          <Text style={{ fontFamily: SANS, fontSize: 12.5, color: INK3, marginBottom: 10 }}>
+            {priced_out ? "You can't afford any shares right now." : "Nothing on the market yet."}
+          </Text>
           <InkButton label="End turn" onPress={() => act({ type: "buy", purchases: {} })} style={{ alignSelf: "stretch" }} />
         </View>
       ) : (
