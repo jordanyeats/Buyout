@@ -12,3 +12,8 @@ package-lock.json
 ui2.js
 ui3.js
 v3-local.html
+mobile/node_modules/
+mobile/dist/
+mobile/.expo/
+mobile/websmoke.mjs
+mobile/smoke_*.png
