@@ -1,21 +1,24 @@
 node_modules/
-vendor/
-frames/
-*.png
-*.gif
+# --- repo-root scratch files from the prototype work (scoped to root only) ---
+/vendor/
+/frames/
+/*.png
+/*.gif
+/package.json
+/package-lock.json
 v2-local.html
+v3-local.html
 shot*.mjs
 gif.mjs
 diag.mjs
-package.json
-package-lock.json
 ui2.js
 ui3.js
-v3-local.html
-mobile/node_modules/
+# --- mobile app build/scratch output ---
 mobile/dist/
 mobile/.expo/
+mobile/ios/
+mobile/android/
 mobile/websmoke.mjs
+mobile/smoke*.mjs
 mobile/smoke_*.png
-mobile/smoke2.mjs
 mobile/v4_*.png
