@@ -38,7 +38,8 @@ export function Ticker({ game }: { game: GameState }) {
 export function HandBar({ game, sel, onSelect }: { game: GameState; sel: Tile | null; onSelect: (t: Tile) => void }) {
   const humanIdx = game.players.findIndex((p) => p.kind === "human");
   if (humanIdx < 0 || game.phase !== "place" || game.current !== humanIdx) return null;
-  const hand = game.players[humanIdx]!.hand;
+  // Display sorted A1..I9 (column letter, then row); engine order untouched.
+  const hand = [...game.players[humanIdx]!.hand].sort((a, b) => a[1] - b[1] || a[0] - b[0]);
   // Rendered inside the "Your move" section (see ActionsPanel).
   return (
     <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 6, justifyContent: "center", paddingVertical: 8, alignItems: "center" }}>
