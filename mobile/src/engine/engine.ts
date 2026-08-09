@@ -11,12 +11,15 @@ import { majorityMinority, payBonuses, priceOf } from "./pricing";
 import { rngNext, shuffle } from "./rng";
 import {
   EngineError,
-  type Action, type CardDef, type GameState, type MergerDecision, type PlayerConfig, type Tile,
+  type Action, type CardDef, type GameOptions, type GameState, type MergerDecision, type PlayerConfig, type Tile,
 } from "./types";
 
 // ---------------------------------------------------------------- new game
 
-export function newGame(configs: PlayerConfig[], seed: number, useCards: boolean): GameState {
+const cloneState: <T>(o: T) => T =
+  typeof structuredClone === "function" ? structuredClone : (o) => JSON.parse(JSON.stringify(o));
+
+export function newGame(configs: PlayerConfig[], seed: number, useCards: boolean, options: GameOptions = {}): GameState {
   if (configs.length < 2 || configs.length > 6) throw new EngineError("2-6 players required");
   const blocks = BLOCKS_BY_PLAYERS[configs.length] ?? 20;
 
@@ -57,6 +60,7 @@ export function newGame(configs: PlayerConfig[], seed: number, useCards: boolean
     survivorChoice: null,
     pendingMerger: null,
     endTriggered: false,
+    options,
   };
 
   for (let r = 0; r < ROWS; r++) for (let c = 0; c < COLS; c++) g.pool.push([r, c]);
@@ -72,7 +76,7 @@ export function newGame(configs: PlayerConfig[], seed: number, useCards: boolean
   if (useCards) {
     // Deck shuffled from an independent stream so tile order and deck order are decoupled.
     const deckRng = { rngState: rngNext(seed + 7777)[1] };
-    g.deck = buildDeck(deckRng);
+    g.deck = buildDeck(deckRng, options.excludedCards ?? []);
   }
   maybeSkipPlace(g);
   return g;
@@ -148,7 +152,7 @@ function maybeSkipPlace(g: GameState): void {
 
 export function applyAction(state: GameState, action: Action): GameState {
   if (state.over) throw new EngineError("game is over");
-  const g = structuredClone(state);
+  const g = cloneState(state);
   switch (action.type) {
     case "place": return doPlace(g, action.tile);
     case "found": return doFound(g, action.company);

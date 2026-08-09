@@ -11,3 +11,5 @@ export {
   newGame, applyAction, playableTiles, currentActor, convertCapacity, checkInvariants,
 } from "./engine";
 export { aiAction } from "./ai";
+export { sharkPlace, SHARK_CONFIG } from "./shark";
+export { policyAction } from "./ai";

@@ -15,6 +15,31 @@ npx expo start
 Install **Expo Go** from the App Store on your phone, scan the QR code from the
 terminal, and play. This is the iterate-on-design loop — changes hot-reload.
 
+## Open it in Xcode (you have Xcode installed)
+
+Expo generates the native iOS project on demand — it isn't checked in. One command
+does everything (generate native project, install CocoaPods, build, launch simulator):
+
+```bash
+cd mobile
+npm install
+npx expo run:ios          # add --device to target your plugged-in iPhone
+```
+
+If CocoaPods is missing, install it first: `brew install cocoapods` (or `sudo gem install cocoapods`).
+
+After that, the native project lives at `mobile/ios/` — open
+`mobile/ios/Buyout.xcworkspace` in Xcode (the .xcworkspace, not the .xcodeproj)
+for signing settings, archive builds, and profiling. Day-to-day, you rarely need
+Xcode open: `npx expo start` + Expo Go is the faster iteration loop, and
+`npx expo run:ios` rebuilds the native shell when native deps change.
+
+**Game Center (the one roadmap item needing your Mac):** in Xcode, select the
+Buyout target → Signing & Capabilities → + Capability → Game Center, and create
+matching achievement IDs in App Store Connect. The app's local achievements
+("Honors" in The Record screen) are engine-checked and ready to mirror into
+GC achievement reports when you wire it.
+
 ## Get it on TestFlight (needs accounts)
 
 1. **Apple Developer Program** — enroll at developer.apple.com ($99/year).

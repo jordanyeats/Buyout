@@ -64,8 +64,16 @@ export function Board({ game, sel, onSelect }: {
                 )}
               </View>
             );
+            const a11y = cs
+              ? `${t} tile at ${label(r, c)}`
+              : t === SINGLE
+                ? `Unincorporated tile at ${label(r, c)}`
+                : inHand
+                  ? `Place tile ${label(r, c)}`
+                  : `Empty ${label(r, c)}`;
             return (
-              <Pressable key={c} disabled={!inHand} onPress={() => onSelect([r, c])}>
+              <Pressable key={c} disabled={!inHand} onPress={() => onSelect([r, c])}
+                accessibilityRole={inHand ? "button" : "none"} accessibilityLabel={a11y}>
                 {placed ? <StampIn>{inner}</StampIn> : inner}
               </Pressable>
             );

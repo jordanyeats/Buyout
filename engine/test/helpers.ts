@@ -69,9 +69,9 @@ export function runGame(
   seed: number,
   kinds: PlayerKind[],
   useCards: boolean,
-  opts: { checkEveryStep?: boolean; maxSteps?: number } = {},
+  opts: { checkEveryStep?: boolean; maxSteps?: number; options?: import("../src/index.js").GameOptions } = {},
 ): RunResult {
-  let g = newGame(cfg(...kinds), seed, useCards);
+  let g = newGame(cfg(...kinds), seed, useCards, opts.options);
   const actions: Action[] = [];
   const max = opts.maxSteps ?? 3000;
   let steps = 0;

@@ -7,8 +7,8 @@ import { priceOf } from "./pricing";
 import { shuffle } from "./rng";
 import type { CardDef, GameState } from "./types";
 
-export function buildDeck(g: { rngState: number }): CardDef[] {
-  const deck: CardDef[] = [...CARD_DEFS];
+export function buildDeck(g: { rngState: number }, excluded: string[] = []): CardDef[] {
+  const deck: CardDef[] = CARD_DEFS.filter((c) => !excluded.includes(c.id));
   for (let i = 0; i < CLEAN_COUNT; i++)
     deck.push({
       id: "clean", cat: "clean", name: "Clean Acquisition",

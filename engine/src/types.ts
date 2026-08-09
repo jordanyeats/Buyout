@@ -4,7 +4,7 @@ export type Tile = readonly [number, number];
 export type Cell = string | null;
 
 export type CompanyStatus = "inactive" | "active" | "safe";
-export type PlayerKind = "human" | "random" | "greedy" | "strategic";
+export type PlayerKind = "human" | "random" | "greedy" | "strategic" | "shark";
 
 export interface Company {
   name: string;
@@ -80,6 +80,11 @@ export interface PendingMerger {
   triggeredBy: string;
 }
 
+export interface GameOptions {
+  /** Card ids removed from the deck at game creation (deck settings). */
+  excludedCards?: string[];
+}
+
 export interface GameState {
   seed: number;
   rngState: number;
@@ -112,6 +117,8 @@ export interface GameState {
   survivorChoice: SurvivorChoice | null;
   pendingMerger: PendingMerger | null;
   endTriggered: boolean;
+  /** Options the game was created with (needed for exact replay). */
+  options: GameOptions;
 }
 
 export type Action =

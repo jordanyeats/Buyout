@@ -9,11 +9,16 @@ import {
   SourceSans3_400Regular, SourceSans3_600SemiBold, SourceSans3_700Bold, SourceSans3_800ExtraBold,
 } from "@expo-google-fonts/source-sans-3";
 import { useGame } from "./src/store/useGame";
+import { initSound } from "./src/store/sound";
 import { SetupScreen } from "./src/screens/SetupScreen";
 import { GameScreen } from "./src/screens/GameScreen";
+import { TutorialScreen } from "./src/screens/TutorialScreen";
+import { StatsScreen } from "./src/screens/StatsScreen";
 import { BG, INK3, SANS } from "./src/theme";
 
 export default function App() {
+  const [screen, setScreen] = React.useState<"home" | "tutorial" | "stats">("home");
+  React.useEffect(() => { initSound(); }, []);
   const [fontsLoaded] = useFonts({
     PlayfairDisplay_900Black,
     PlayfairDisplay_700Bold,
@@ -23,7 +28,7 @@ export default function App() {
     SourceSans3_700Bold,
     SourceSans3_800ExtraBold,
   });
-  const { game, restoring, hasSave, start, resume, abandon, act, quit } = useGame();
+  const { game, restoring, hasSave, start, resume, abandon, act, quit, unlocked } = useGame();
 
   if (!fontsLoaded || restoring) {
     return (
@@ -36,9 +41,19 @@ export default function App() {
   return (
     <>
       <StatusBar style="dark" />
-      {game
-        ? <GameScreen game={game} act={act} onQuit={quit} />
-        : <SetupScreen onStart={start} hasSave={hasSave} onResume={resume} onAbandon={abandon} />}
+      {game ? (
+        <GameScreen game={game} act={act} onQuit={quit} unlocked={unlocked} />
+      ) : screen === "tutorial" ? (
+        <TutorialScreen onExit={() => setScreen("home")} />
+      ) : screen === "stats" ? (
+        <StatsScreen onExit={() => setScreen("home")} />
+      ) : (
+        <SetupScreen
+          onStart={(p, c, ex) => start(p, c, { excludedCards: ex })}
+          hasSave={hasSave} onResume={resume} onAbandon={abandon}
+          onTutorial={() => setScreen("tutorial")} onStats={() => setScreen("stats")}
+        />
+      )}
     </>
   );
 }

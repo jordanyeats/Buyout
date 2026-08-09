@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { Pressable, ScrollView, Text, TextInput, View } from "react-native";
-import { COMPANIES, type PlayerConfig, type PlayerKind } from "../engine";
+import { CARD_DEFS, COMPANIES, type PlayerConfig, type PlayerKind } from "../engine";
+import { isMuted, setMuted } from "../store/sound";
 import { ACCENT, BD, BD2, BG, INK, INK2, INK3, SANS, SANS_BLACK, SANS_BOLD, SANS_SEMI, SERIF, WARM } from "../theme";
 import { InkButton, PressIn, Wordmark } from "../components/common";
 
@@ -9,13 +10,16 @@ const KINDS: { kind: PlayerKind; label: string }[] = [
   { kind: "random", label: "AI · Casual" },
   { kind: "greedy", label: "AI · Greedy" },
   { kind: "strategic", label: "AI · Sharp" },
+  { kind: "shark", label: "AI · Shark" },
 ];
 
-export function SetupScreen({ onStart, hasSave, onResume, onAbandon }: {
-  onStart: (players: PlayerConfig[], cards: boolean) => void;
+export function SetupScreen({ onStart, hasSave, onResume, onAbandon, onTutorial, onStats }: {
+  onStart: (players: PlayerConfig[], cards: boolean, excludedCards: string[]) => void;
   hasSave: boolean;
   onResume: () => void;
   onAbandon: () => void;
+  onTutorial: () => void;
+  onStats: () => void;
 }) {
   const [players, setPlayers] = useState<PlayerConfig[]>([
     { name: "You", kind: "human" },
@@ -24,6 +28,11 @@ export function SetupScreen({ onStart, hasSave, onResume, onAbandon }: {
     { name: "Rando", kind: "random" },
   ]);
   const [cards, setCards] = useState(true);
+  const [showDeck, setShowDeck] = useState(false);
+  const [excluded, setExcluded] = useState<string[]>([]);
+  const [muted, setMutedState] = useState(isMuted());
+  const toggleCard = (id: string) =>
+    setExcluded(excluded.includes(id) ? excluded.filter((x) => x !== id) : [...excluded, id]);
   const update = (i: number, patch: Partial<PlayerConfig>) =>
     setPlayers(players.map((p, j) => (j === i ? { ...p, ...patch } : p)));
 
@@ -98,12 +107,43 @@ export function SetupScreen({ onStart, hasSave, onResume, onAbandon }: {
           </View>
         </Pressable>
 
+        {cards ? (
+          <View style={{ marginBottom: 12 }}>
+            <Pressable onPress={() => setShowDeck(!showDeck)}>
+              <Text style={{ fontFamily: SANS_SEMI, fontSize: 11, color: INK3, letterSpacing: 1, textTransform: "uppercase" }}>
+                {showDeck ? "▾" : "▸"} Deck settings{excluded.length ? ` · ${excluded.length} removed` : ""}
+              </Text>
+            </Pressable>
+            {showDeck ? (
+              <View style={{ marginTop: 8, gap: 4 }}>
+                {CARD_DEFS.map((c) => {
+                  const off = excluded.includes(c.id);
+                  return (
+                    <Pressable key={c.id} onPress={() => toggleCard(c.id)} style={{ flexDirection: "row", alignItems: "center", gap: 8, paddingVertical: 4, opacity: off ? 0.4 : 1 }}>
+                      <View style={{ width: 14, height: 14, borderWidth: 1.5, borderColor: INK, backgroundColor: off ? "transparent" : INK }} />
+                      <Text style={{ fontFamily: SANS_SEMI, fontSize: 12, color: INK, flex: 1 }}>{c.name}</Text>
+                      <Text style={{ fontFamily: SANS, fontSize: 10, color: INK3 }}>{c.dev ? "devastating" : c.cat}</Text>
+                    </Pressable>
+                  );
+                })}
+              </View>
+            ) : null}
+          </View>
+        ) : null}
+
         <View style={{ flexDirection: "row", gap: 8 }}>
           {players.length < 6 ? (
             <InkButton label="+ Player" onPress={() => setPlayers([...players, { name: `P${players.length + 1}`, kind: "greedy" }])} style={{ flex: 1 }} />
           ) : null}
-          <InkButton label="Start game" primary onPress={() => onStart(players, cards)} style={{ flex: 2 }} />
+          <InkButton label="Start game" primary onPress={() => onStart(players, cards, excluded)} style={{ flex: 2 }} />
         </View>
+      </PressIn>
+      <PressIn delay={260} style={{ flexDirection: "row", justifyContent: "center", gap: 22, marginTop: 20 }}>
+        <Text onPress={onTutorial} style={{ fontFamily: SANS_SEMI, fontSize: 11.5, color: INK2, letterSpacing: 1, textTransform: "uppercase", textDecorationLine: "underline" }}>Learn the game</Text>
+        <Text onPress={onStats} style={{ fontFamily: SANS_SEMI, fontSize: 11.5, color: INK2, letterSpacing: 1, textTransform: "uppercase", textDecorationLine: "underline" }}>The record</Text>
+        <Text onPress={() => { setMuted(!muted); setMutedState(!muted); }} style={{ fontFamily: SANS_SEMI, fontSize: 11.5, color: INK2, letterSpacing: 1, textTransform: "uppercase", textDecorationLine: "underline" }}>
+          Sound {muted ? "off" : "on"}
+        </Text>
       </PressIn>
       <View style={{ height: 40 }} />
     </ScrollView>

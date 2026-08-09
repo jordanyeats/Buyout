@@ -4,8 +4,10 @@ import * as Haptics from "expo-haptics";
 import { Platform } from "react-native";
 import {
   aiAction, applyAction, currentActor, newGame,
-  type Action, type GameState, type PlayerConfig,
+  type Action, type GameOptions, type GameState, type PlayerConfig,
 } from "../engine";
+import { play } from "./sound";
+import { recordGame, type AchievementDef } from "./stats";
 
 const SAVE_KEY = "buyout.save.v1";
 
@@ -13,6 +15,7 @@ interface SaveFile {
   configs: PlayerConfig[];
   seed: number;
   useCards: boolean;
+  options?: GameOptions;
   actions: Action[];
 }
 
@@ -23,6 +26,7 @@ interface SaveFile {
  */
 export function useGame() {
   const [game, setGame] = useState<GameState | null>(null);
+  const [unlocked, setUnlocked] = useState<AchievementDef[]>([]);
   const [restoring, setRestoring] = useState(true);
   const [hasSave, setHasSave] = useState(false);
   const saveRef = useRef<SaveFile | null>(null);
@@ -49,17 +53,18 @@ export function useGame() {
     if (s) AsyncStorage.setItem(SAVE_KEY, JSON.stringify(s)).catch(() => {});
   }, []);
 
-  const start = useCallback((configs: PlayerConfig[], useCards: boolean) => {
+  const start = useCallback((configs: PlayerConfig[], useCards: boolean, options: GameOptions = {}) => {
     const seed = (Date.now() ^ (Math.random() * 0xffffffff)) | 0;
-    saveRef.current = { configs, seed, useCards, actions: [] };
+    saveRef.current = { configs, seed, useCards, options, actions: [] };
+    setUnlocked([]);
     persist();
-    setGame(newGame(configs, seed, useCards));
+    setGame(newGame(configs, seed, useCards, options));
   }, [persist]);
 
   const resume = useCallback(() => {
     const s = saveRef.current;
     if (!s) return;
-    let g = newGame(s.configs, s.seed, s.useCards);
+    let g = newGame(s.configs, s.seed, s.useCards, s.options ?? {});
     const good: Action[] = [];
     for (const a of s.actions) {
       try {
@@ -95,9 +100,14 @@ export function useGame() {
           if (next.phase === "mergerAnnounce") Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning).catch(() => {});
           if (next.phase === "gameOver") Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
         }
+        if (action.type === "place") play("thump");
+        if (next.phase === "mergerAnnounce") play("page");
+        if (prev.phase === "mergerAnnounce" && next.phase !== "mergerAnnounce") play("cash");
+        if (next.over) play("chime");
         if (next.over && saveRef.current) {
           saveRef.current = null;
           AsyncStorage.removeItem(SAVE_KEY).catch(() => {});
+          recordGame(next).then(setUnlocked).catch(() => {});
         }
         return next;
       } catch (e) {
@@ -126,5 +136,5 @@ export function useGame() {
     };
   }, [game, act]);
 
-  return { game, restoring, hasSave, start, resume, abandon, act, quit: abandon };
+  return { game, restoring, hasSave, start, resume, abandon, act, quit: abandon, unlocked };
 }
