@@ -1,5 +1,5 @@
 import React from "react";
-import { Modal, ScrollView, Text, View } from "react-native";
+import { Modal, SafeAreaView, ScrollView, Text, View } from "react-native";
 import { priceOf, type GameState } from "../engine";
 import { BD2, BG, INK, INK2, INK3, RED, SANS, SANS_BLACK, SERIF, SERIF_BOLD, money } from "../theme";
 import { InkButton, PressIn, Wordmark } from "./common";
@@ -24,7 +24,8 @@ export function FrontPage({ game, onDismiss }: { game: GameState; onDismiss: () 
 
   return (
     <Modal visible animationType="fade" onRequestClose={onDismiss}>
-      <ScrollView style={{ flex: 1, backgroundColor: BG }} contentContainerStyle={{ padding: 20, paddingTop: 54 }}>
+      <SafeAreaView style={{ flex: 1, backgroundColor: BG }}>
+      <ScrollView contentContainerStyle={{ padding: 20, paddingTop: 12 }}>
         <PressIn>
           <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "baseline", borderBottomWidth: 1, borderBottomColor: INK, paddingBottom: 4 }}>
             <Text style={{ fontFamily: SERIF, fontSize: 16, color: INK }}>The Buyout Ledger</Text>
@@ -91,6 +92,7 @@ export function FrontPage({ game, onDismiss }: { game: GameState; onDismiss: () 
           <Wordmark name={ctx.surv} size={11} />
         </View>
       </ScrollView>
+      </SafeAreaView>
     </Modal>
   );
 }

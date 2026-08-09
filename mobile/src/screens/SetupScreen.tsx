@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Pressable, ScrollView, Text, TextInput, View } from "react-native";
+import { Pressable, SafeAreaView, ScrollView, Text, TextInput, View } from "react-native";
 import { CARD_DEFS, COMPANIES, type PlayerConfig, type PlayerKind } from "../engine";
 import { isMuted, setMuted } from "../store/sound";
 import { ACCENT, BD, BD2, BG, INK, INK2, INK3, SANS, SANS_BLACK, SANS_BOLD, SANS_SEMI, SERIF, WARM } from "../theme";
@@ -37,7 +37,8 @@ export function SetupScreen({ onStart, hasSave, onResume, onAbandon, onTutorial,
     setPlayers(players.map((p, j) => (j === i ? { ...p, ...patch } : p)));
 
   return (
-    <ScrollView style={{ flex: 1, backgroundColor: BG }} contentContainerStyle={{ padding: 22, paddingTop: 64 }}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: BG }}>
+    <ScrollView contentContainerStyle={{ padding: 22, paddingTop: 18 }}>
       <PressIn style={{ alignItems: "center" }}>
         <Text style={{ fontFamily: SANS_SEMI, fontSize: 10, letterSpacing: 3.5, textTransform: "uppercase", color: INK3 }}>The Buyout Ledger presents</Text>
         <Text style={{ fontFamily: SERIF, fontSize: 46, color: INK, marginVertical: 2 }}>Buyout</Text>
@@ -150,5 +151,6 @@ export function SetupScreen({ onStart, hasSave, onResume, onAbandon, onTutorial,
       </Text>
       <View style={{ height: 40 }} />
     </ScrollView>
+    </SafeAreaView>
   );
 }

@@ -99,11 +99,11 @@ export function Holdings({ game }: { game: GameState }) {
         const isTurn = i === game.current && !game.over;
         return (
           <View key={p.name} style={{ flexDirection: "row", alignItems: "center", paddingVertical: 6, borderBottomWidth: 1, borderBottomColor: BD }}>
-            <View style={{ flex: 2, flexDirection: "row", alignItems: "baseline", gap: 4 }}>
-              <Text style={{ fontFamily: isTurn ? SANS_BLACK : SANS_SEMI, fontSize: 12, color: isTurn ? INK : INK2, borderBottomWidth: isTurn ? 2 : 0, borderBottomColor: ACCENT }}>
+            <View style={{ flex: 2 }}>
+              <Text numberOfLines={1} style={{ fontFamily: isTurn ? SANS_BLACK : SANS_SEMI, fontSize: 12, color: isTurn ? INK : INK2, borderBottomWidth: isTurn ? 2 : 0, borderBottomColor: ACCENT, alignSelf: "flex-start" }}>
                 {p.kind === "human" ? "You" : p.name}
               </Text>
-              {p.kind !== "human" ? <Text style={{ fontFamily: SANS, fontSize: 8.5, color: INK3 }}>{p.kind}</Text> : null}
+              {p.kind !== "human" ? <Text style={{ fontFamily: SANS, fontSize: 8, color: INK3, marginTop: 1 }}>{p.kind}</Text> : null}
             </View>
             <CountUp value={p.cash} style={{ flex: 1.6, textAlign: "right", fontFamily: SANS_SEMI, fontSize: 12, color: GRN, fontVariant: ["tabular-nums"] }} />
             {active.map((c) => {

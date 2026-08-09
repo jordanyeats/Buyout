@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Pressable, ScrollView, Text, View, useWindowDimensions } from "react-native";
+import { Pressable, SafeAreaView, ScrollView, Text, View, useWindowDimensions } from "react-native";
 import { currentActor, type Action, type GameState, type Tile } from "../engine";
 import type { AchievementDef } from "../store/stats";
 import { ACCENT, BG, INK, INK2, INK3, SANS, SANS_BLACK, SANS_SEMI, SERIF } from "../theme";
@@ -60,10 +60,10 @@ export function GameScreen({ game, act, onQuit, onRestart, unlocked = [] }: {
   );
 
   return (
-    <View style={{ flex: 1, backgroundColor: BG }}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: BG }}>
       {game.phase === "mergerAnnounce" ? <FrontPage game={game} onDismiss={() => act({ type: "acknowledge" })} /> : null}
       {game.phase === "mergerResult" ? <MarketWrap game={game} onDismiss={() => act({ type: "acknowledge" })} /> : null}
-      <ScrollView contentContainerStyle={{ padding: 14, paddingTop: 54 }}>
+      <ScrollView contentContainerStyle={{ padding: 14, paddingTop: 8 }}>
         <View style={{ borderBottomWidth: 1, borderBottomColor: INK, paddingBottom: 3 }}>
           <Text style={{ fontFamily: SERIF, fontSize: 18, color: INK }}>The Buyout Ledger</Text>
         </View>
@@ -82,6 +82,6 @@ export function GameScreen({ game, act, onQuit, onRestart, unlocked = [] }: {
         )}
         <View style={{ height: 40 }} />
       </ScrollView>
-    </View>
+    </SafeAreaView>
   );
 }

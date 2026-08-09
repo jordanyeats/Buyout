@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from "react";
-import { ScrollView, Text, View } from "react-native";
+import { SafeAreaView, ScrollView, Text, View } from "react-native";
 import { applyAction, type Action, type GameState, type Tile } from "../engine";
 import { ACCENT, BG, GRN, INK, INK2, INK3, SANS, SANS_BLACK, SERIF, SERIF_BOLD } from "../theme";
 import { Board } from "../components/Board";
@@ -45,10 +45,10 @@ export function TutorialScreen({ onExit }: { onExit: () => void }) {
   const humanTurnUi = useMemo(() => !!game && !game.over, [game]);
 
   return (
-    <View style={{ flex: 1, backgroundColor: BG }}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: BG }}>
       {game && game.phase === "mergerAnnounce" ? <FrontPage game={game} onDismiss={() => act({ type: "acknowledge" })} /> : null}
       {game && game.phase === "mergerResult" ? <MarketWrap game={game} onDismiss={() => act({ type: "acknowledge" })} /> : null}
-      <ScrollView contentContainerStyle={{ padding: 16, paddingTop: 54 }}>
+      <ScrollView contentContainerStyle={{ padding: 16, paddingTop: 8 }}>
         <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "baseline", borderBottomWidth: 1, borderBottomColor: INK, paddingBottom: 3 }}>
           <Text style={{ fontFamily: SERIF, fontSize: 17, color: INK }}>The Training Desk</Text>
           <Text onPress={onExit} style={{ fontFamily: SANS, fontSize: 9, color: INK3, letterSpacing: 1.5, textTransform: "uppercase" }}>Exit</Text>
@@ -90,6 +90,6 @@ export function TutorialScreen({ onExit }: { onExit: () => void }) {
         ) : null}
         <View style={{ height: 40 }} />
       </ScrollView>
-    </View>
+    </SafeAreaView>
   );
 }

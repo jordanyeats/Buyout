@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { ScrollView, Text, View } from "react-native";
+import { SafeAreaView, ScrollView, Text, View } from "react-native";
 import { ACCENT, BD, BG, GRN, INK, INK2, INK3, SANS, SANS_BLACK, SANS_SEMI, SERIF, money } from "../theme";
 import { InkButton, SectionRule } from "../components/common";
 import { ACHIEVEMENTS, loadStats, summarize, type Stats } from "../store/stats";
@@ -16,8 +16,8 @@ export function StatsScreen({ onExit }: { onExit: () => void }) {
   const s = stats ? summarize(stats) : null;
 
   return (
-    <View style={{ flex: 1, backgroundColor: BG }}>
-      <ScrollView contentContainerStyle={{ padding: 16, paddingTop: 54 }}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: BG }}>
+      <ScrollView contentContainerStyle={{ padding: 16, paddingTop: 8 }}>
         <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "baseline", borderBottomWidth: 1, borderBottomColor: INK, paddingBottom: 3 }}>
           <Text style={{ fontFamily: SERIF, fontSize: 17, color: INK }}>The Record</Text>
           <Text onPress={onExit} style={{ fontFamily: SANS, fontSize: 9, color: INK3, letterSpacing: 1.5, textTransform: "uppercase" }}>Back</Text>
@@ -73,7 +73,7 @@ export function StatsScreen({ onExit }: { onExit: () => void }) {
         <InkButton label="Back to the desk" onPress={onExit} />
         <View style={{ height: 40 }} />
       </ScrollView>
-    </View>
+    </SafeAreaView>
   );
 }
 
