@@ -1,11 +1,11 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Pressable, SafeAreaView, ScrollView, Text, View, useWindowDimensions } from "react-native";
 import { currentActor, type Action, type GameState, type Tile } from "../engine";
 import type { AchievementDef } from "../store/stats";
 import { ACCENT, BG, INK, INK2, INK3, SANS, SANS_BLACK, SANS_SEMI, SERIF } from "../theme";
 import { Board } from "../components/Board";
 import { SectionRule } from "../components/common";
-import { FrontPage, MarketWrap } from "../components/FrontPage";
+import { FinalEdition, FrontPage, MarketWrap } from "../components/FrontPage";
 import { ActionsPanel, CoBar, HandBar, Holdings, Ticker } from "../components/panels";
 
 export function GameScreen({ game, act, onQuit, onRestart, unlocked = [] }: {
@@ -16,6 +16,8 @@ export function GameScreen({ game, act, onQuit, onRestart, unlocked = [] }: {
   unlocked?: AchievementDef[];
 }) {
   const [sel, setSel] = useState<Tile | null>(null);
+  const [showFinal, setShowFinal] = useState(false);
+  useEffect(() => { if (game.over) setShowFinal(true); }, [game.over]);
   const { width } = useWindowDimensions();
   const wide = width >= 768; // iPad: board left, desk right
   const place = (a: Action) => { setSel(null); act(a); };
@@ -40,11 +42,6 @@ export function GameScreen({ game, act, onQuit, onRestart, unlocked = [] }: {
         </View>
       ) : null}
       <SectionRule label={yourTurn ? "Your move" : "The floor"} />
-      {game.over && game.endReason ? (
-        <Text style={{ fontFamily: SANS, fontSize: 12, color: INK2, fontStyle: "italic", marginBottom: 4 }}>
-          Why it ended: {game.endReason}.
-        </Text>
-      ) : null}
       <ActionsPanel game={game} sel={sel} act={place} onNewGame={onRestart} onSelect={setSel} />
       <SectionRule label="Market listings" right="shares held" />
       <Holdings game={game} />
@@ -61,6 +58,9 @@ export function GameScreen({ game, act, onQuit, onRestart, unlocked = [] }: {
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: BG }}>
+      {game.over && showFinal ? (
+        <FinalEdition game={game} unlocked={unlocked} onRestart={onRestart} onQuit={onQuit} onInspect={() => setShowFinal(false)} />
+      ) : null}
       {game.phase === "mergerAnnounce" ? <FrontPage game={game} onDismiss={() => act({ type: "acknowledge" })} /> : null}
       {game.phase === "mergerResult" ? <MarketWrap game={game} onDismiss={() => act({ type: "acknowledge" })} /> : null}
       <ScrollView contentContainerStyle={{ padding: 14, paddingTop: 8 }}>

@@ -1,8 +1,9 @@
 import React from "react";
 import { Modal, SafeAreaView, ScrollView, Text, View } from "react-native";
 import { priceOf, type GameState } from "../engine";
-import { BD2, BG, INK, INK2, INK3, RED, SANS, SANS_BLACK, SERIF, SERIF_BOLD, money } from "../theme";
-import { InkButton, PressIn, Wordmark } from "./common";
+import { ACCENT, BD, BD2, BG, GRN, INK, INK2, INK3, RED, SANS, SANS_BLACK, SANS_SEMI, SERIF, SERIF_BOLD, money } from "../theme";
+import { CountUp, InkButton, PressIn, Wordmark } from "./common";
+import type { AchievementDef } from "../store/stats";
 
 function ordinal(n: number) {
   const s = ["th", "st", "nd", "rd"], v = n % 100;
@@ -119,6 +120,86 @@ export function MarketWrap({ game, onDismiss }: { game: GameState; onDismiss: ()
           <InkButton label="Continue" onPress={onDismiss} primary style={{ marginTop: 16 }} />
         </View>
       </View>
+    </Modal>
+  );
+}
+
+
+/** The game's biggest front page: who won, and why the market closed. */
+export function FinalEdition({ game, unlocked, onRestart, onQuit, onInspect }: {
+  game: GameState;
+  unlocked: AchievementDef[];
+  onRestart: () => void;
+  onQuit: () => void;
+  onInspect: () => void;
+}) {
+  const ranked = [...game.players].sort((a, b) => b.cash - a.cash);
+  const winner = ranked[0]!;
+  const runnerUp = ranked[1];
+  const youWon = winner.kind === "human";
+  const landslide = !!runnerUp && winner.cash >= 2 * Math.max(1, runnerUp.cash);
+  const headline = youWon
+    ? landslide ? "You buy the whole board" : "You corner the market"
+    : landslide ? `${winner.name} runs away with it` : `${winner.name} takes the market`;
+  return (
+    <Modal visible animationType="fade" onRequestClose={onQuit}>
+      <SafeAreaView style={{ flex: 1, backgroundColor: BG }}>
+        <ScrollView contentContainerStyle={{ padding: 20, paddingTop: 12 }}>
+          <PressIn>
+            <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "baseline", borderBottomWidth: 1, borderBottomColor: INK, paddingBottom: 4 }}>
+              <Text style={{ fontFamily: SERIF, fontSize: 16, color: INK }}>The Buyout Ledger</Text>
+              <Text style={{ fontFamily: SANS, fontSize: 9, color: INK2, letterSpacing: 1.5, textTransform: "uppercase" }}>After {game.turn} turns</Text>
+            </View>
+            <View style={{ borderBottomWidth: 3, borderBottomColor: INK, marginTop: 2, marginBottom: 14 }} />
+          </PressIn>
+
+          <PressIn delay={80}>
+            <Text style={{ fontFamily: SANS_BLACK, fontSize: 10, letterSpacing: 3, textTransform: "uppercase", color: RED, marginBottom: 4 }}>■ Final edition ■</Text>
+            <Text style={{ fontFamily: SERIF, fontSize: 40, lineHeight: 41, color: INK, marginBottom: 8 }}>{headline}</Text>
+            <Text style={{ fontFamily: SERIF_BOLD, fontStyle: "italic", fontSize: 15, lineHeight: 21, color: INK2, marginBottom: 4 }}>
+              A fortune of {money(winner.cash)} closes the books{game.endReason ? ` — ${game.endReason}` : ""}
+            </Text>
+          </PressIn>
+
+          <PressIn delay={240} style={{ borderTopWidth: 1, borderTopColor: BD2, paddingTop: 10, marginTop: 8 }}>
+            <View style={{ borderBottomWidth: 1, borderBottomColor: INK, paddingBottom: 3, marginBottom: 6 }}>
+              <Text style={{ fontFamily: SANS_BLACK, fontSize: 9, letterSpacing: 2, textTransform: "uppercase", color: INK }}>Final standings</Text>
+            </View>
+            {ranked.map((p, i) => (
+              <View key={p.name} style={{ flexDirection: "row", alignItems: "baseline", paddingVertical: 5, borderBottomWidth: 1, borderBottomColor: BD }}>
+                <Text style={{ width: 22, fontFamily: SERIF, fontSize: 15, color: i === 0 ? INK : INK3 }}>{i + 1}.</Text>
+                <Text style={{ flex: 1, fontFamily: i === 0 ? SANS_BLACK : SANS_SEMI, fontSize: 13.5, color: i === 0 ? INK : INK2 }}>
+                  {p.kind === "human" ? "You" : p.name}
+                  {p.kind !== "human" ? <Text style={{ fontFamily: SANS, fontSize: 9, color: INK3 }}>  {p.kind}</Text> : null}
+                </Text>
+                <CountUp value={p.cash} style={{ fontFamily: i === 0 ? SANS_BLACK : SANS_SEMI, fontSize: 14.5, color: i === 0 ? GRN : INK2 }} />
+              </View>
+            ))}
+          </PressIn>
+
+          {unlocked.length > 0 ? (
+            <PressIn delay={380} style={{ marginTop: 14 }}>
+              <View style={{ borderWidth: 1, borderColor: ACCENT, padding: 12 }}>
+                <Text style={{ fontFamily: SANS_BLACK, fontSize: 9, letterSpacing: 2, textTransform: "uppercase", color: ACCENT }}>■ Honors earned</Text>
+                {unlocked.map((a) => (
+                  <Text key={a.id} style={{ fontFamily: SANS_SEMI, fontSize: 12.5, color: INK, marginTop: 4 }}>
+                    {a.name} — <Text style={{ fontFamily: SANS, color: INK2 }}>{a.desc}</Text>
+                  </Text>
+                ))}
+              </View>
+            </PressIn>
+          ) : null}
+
+          <PressIn delay={480} style={{ marginTop: 22, gap: 8 }}>
+            <InkButton label="Run it back" primary onPress={onRestart} />
+            <InkButton label="Back to the desk" onPress={onQuit} />
+            <Text onPress={onInspect} style={{ textAlign: "center", fontFamily: SANS_SEMI, fontSize: 11, color: INK3, letterSpacing: 1, textTransform: "uppercase", textDecorationLine: "underline", paddingVertical: 8 }}>
+              Inspect the final board
+            </Text>
+          </PressIn>
+          <View style={{ height: 30 }} />
+        </ScrollView>
+      </SafeAreaView>
     </Modal>
   );
 }
