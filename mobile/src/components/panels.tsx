@@ -335,12 +335,12 @@ function BuyPanel({ game, act }: { game: GameState; act: (a: Action) => void }) 
   const p = game.players[game.current]!;
   const [basket, setBasket] = useState<Record<string, number>>({});
   const listed = Object.values(game.cos)
-    .filter((c) => c.status !== "inactive" && (game.market[c.name] ?? 0) > 0 && priceOf(game, c.name) > 0)
-    .map((c) => ({ n: c.name, pr: priceOf(game, c.name), av: game.market[c.name]! }));
-  const buyable = listed.filter((b) => b.pr <= p.cash);
-  const priced_out = listed.length > 0 && buyable.length === 0;
+    .filter((c) => c.status !== "inactive" && priceOf(game, c.name) > 0)
+    .map((c) => ({ n: c.name, pr: priceOf(game, c.name), av: game.market[c.name] ?? 0 }));
+  const anyBuyable = listed.some((b) => b.av > 0 && b.pr <= p.cash);
+  const allSoldOut = listed.length > 0 && listed.every((b) => b.av === 0);
   const total = Object.values(basket).reduce((s, v) => s + v, 0);
-  const cost = Object.entries(basket).reduce((s, [n, v]) => s + v * (buyable.find((b) => b.n === n)?.pr ?? 0), 0);
+  const cost = Object.entries(basket).reduce((s, [n, v]) => s + v * (listed.find((b) => b.n === n)?.pr ?? 0), 0);
 
   return (
     <PressIn>
@@ -348,26 +348,37 @@ function BuyPanel({ game, act }: { game: GameState; act: (a: Action) => void }) 
         <Text style={{ fontFamily: SERIF, fontSize: 18, color: INK }}>Buy shares</Text>
         <Text style={{ fontFamily: SANS, fontSize: 11.5, color: INK3 }}>{MAX_BUY - total} left · {money(p.cash - cost)}</Text>
       </View>
-      {buyable.length === 0 ? (
+      {listed.length === 0 ? (
         <View style={{ alignItems: "center", paddingVertical: 8 }}>
-          <Text style={{ fontFamily: SANS, fontSize: 12.5, color: INK3, marginBottom: 10 }}>
-            {priced_out ? "You can't afford any shares right now." : "Nothing on the market yet."}
-          </Text>
+          <Text style={{ fontFamily: SANS, fontSize: 12.5, color: INK3, marginBottom: 10 }}>Nothing on the market yet.</Text>
           <InkButton label="End turn" onPress={() => act({ type: "buy", purchases: {} })} style={{ alignSelf: "stretch" }} />
         </View>
       ) : (
         <>
+          {!anyBuyable ? (
+            <Text style={{ fontFamily: SANS, fontSize: 12, color: INK3, marginBottom: 8 }}>
+              {allSoldOut ? "Every company is sold out." : "You can't afford any shares right now."}
+            </Text>
+          ) : null}
           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8, paddingBottom: 10 }}>
             {listed.map((b) => {
               const cs = companyStyle(b.n);
               const cnt = basket[b.n] ?? 0;
+              const soldOut = b.av === 0;
               const affordable = b.pr <= p.cash - cost;
-              const canMore = total < MAX_BUY && cnt < b.av && affordable;
-              const dimmed = !affordable && cnt === 0;
+              const canMore = !soldOut && total < MAX_BUY && cnt < b.av && affordable;
+              const dimmed = (soldOut || !affordable) && cnt === 0;
               return (
-                <View key={b.n} style={{ backgroundColor: cs.pill, borderWidth: 1, borderColor: BD, padding: 10, minWidth: 108, opacity: dimmed ? 0.35 : 1 }}>
+                <View key={b.n} style={{ backgroundColor: cs.pill, borderWidth: 1, borderColor: BD, padding: 10, minWidth: 108, opacity: dimmed ? 0.4 : 1 }}>
+                  {soldOut ? (
+                    <View pointerEvents="none" style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0, alignItems: "center", justifyContent: "center", zIndex: 2 }}>
+                      <View style={{ borderWidth: 1.5, borderColor: RED, paddingHorizontal: 6, paddingVertical: 2, transform: [{ rotate: "-8deg" }], backgroundColor: "rgba(250,246,240,0.85)" }}>
+                        <Text style={{ fontFamily: SANS_BLACK, fontSize: 10, letterSpacing: 2, color: RED }}>SOLD OUT</Text>
+                      </View>
+                    </View>
+                  ) : null}
                   <Wordmark name={b.n} size={12} />
-                  <Text style={{ fontFamily: SANS, fontSize: 10.5, color: INK2, marginTop: 2 }}>{money(b.pr)} · {dimmed ? "too rich" : `${b.av} left`}</Text>
+                  <Text style={{ fontFamily: SANS, fontSize: 10.5, color: INK2, marginTop: 2 }}>{money(b.pr)} · {soldOut ? "—" : !affordable && cnt === 0 ? "too rich" : `${b.av} left`}</Text>
                   <View style={{ flexDirection: "row", alignItems: "center", gap: 6, marginTop: 7 }}>
                     <Pressable onPress={() => setBasket({ ...basket, [b.n]: Math.max(0, cnt - 1) })} style={sq(false)}>
                       <Text style={{ fontFamily: SANS_BOLD, fontSize: 14, color: INK }}>−</Text>
