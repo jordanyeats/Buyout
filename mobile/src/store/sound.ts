@@ -2,14 +2,22 @@ import { Platform } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 /**
- * Fire-and-forget sound effects. Every call is guarded: a sound failure must
- * never break a game action. Muted state persists across launches.
+ * Fire-and-release sound effects. Players are created per play and released
+ * two seconds later — no idle AVPlayer sits around for the Simulator to poll
+ * (the source of FigFilePlayer log spam). Every call is guarded: a sound
+ * failure must never break a game action. Muted state persists.
  */
 type SfxName = "thump" | "page" | "cash" | "chime";
 
-let players: Partial<Record<SfxName, { seekTo: (s: number) => void; play: () => void }>> = {};
+const SOURCES: Record<SfxName, unknown> = {
+  thump: require("../../assets/sfx/thump.m4a"),
+  page: require("../../assets/sfx/page.m4a"),
+  cash: require("../../assets/sfx/cash.m4a"),
+  chime: require("../../assets/sfx/chime.m4a"),
+};
+
 let muted = false;
-let ready = false;
+let modeSet = false;
 
 const MUTE_KEY = "buyout.muted";
 
@@ -17,31 +25,25 @@ export async function initSound(): Promise<void> {
   try {
     muted = (await AsyncStorage.getItem(MUTE_KEY)) === "1";
   } catch {}
-  if (Platform.OS === "web") return; // keep web preview silent & simple
-  try {
-    const { createAudioPlayer, setAudioModeAsync } = await import("expo-audio");
-    await setAudioModeAsync({ playsInSilentMode: false });
-    players = {
-      thump: createAudioPlayer(require("../../assets/sfx/thump.m4a")),
-      page: createAudioPlayer(require("../../assets/sfx/page.m4a")),
-      cash: createAudioPlayer(require("../../assets/sfx/cash.m4a")),
-      chime: createAudioPlayer(require("../../assets/sfx/chime.m4a")),
-    };
-    ready = true;
-  } catch (e) {
-    console.warn("sound init failed (continuing silently)", e);
-  }
 }
 
 export function play(name: SfxName): void {
-  if (muted || !ready) return;
-  try {
-    const p = players[name];
-    if (p) {
-      p.seekTo(0);
+  if (muted || Platform.OS === "web") return;
+  import("expo-audio")
+    .then(async ({ createAudioPlayer, setAudioModeAsync }) => {
+      if (!modeSet) {
+        modeSet = true;
+        await setAudioModeAsync({ playsInSilentMode: false }).catch(() => {});
+      }
+      const p = createAudioPlayer(SOURCES[name] as never);
       p.play();
-    }
-  } catch {}
+      setTimeout(() => {
+        try {
+          p.release();
+        } catch {}
+      }, 2500);
+    })
+    .catch(() => {});
 }
 
 export function isMuted(): boolean {
