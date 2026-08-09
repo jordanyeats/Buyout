@@ -1,8 +1,9 @@
 import React, { useEffect, useRef, useState } from "react";
-import { Animated, Pressable, Text, View, ViewStyle, TextStyle } from "react-native";
+import { Animated, Pressable, StyleSheet, Text, View, ViewStyle, TextStyle } from "react-native";
+import { BlurView } from "expo-blur";
 import Svg, { Circle, Path, Rect } from "react-native-svg";
 import { COMPANIES } from "../engine";
-import { BD2, INK, INK2, INK3, SANS, SANS_BLACK, SANS_BOLD, money } from "../theme";
+import { BD2, INK, INK2, INK3, SANS, SANS_BLACK, SANS_BOLD, SERIF, money } from "../theme";
 
 export function companyStyle(name: string) {
   return COMPANIES.find((c) => c.name === name) ?? COMPANIES[0]!;
@@ -136,5 +137,24 @@ export function PressIn({ children, delay = 0, style }: { children: React.ReactN
     <Animated.View style={[{ opacity: v, transform: [{ translateY: v.interpolate({ inputRange: [0, 1], outputRange: [14, 0] }) }] }, style]}>
       {children}
     </Animated.View>
+  );
+}
+
+
+/** Floating translucent masthead in the current iOS glass idiom. Pin with stickyHeaderIndices. */
+export function GlassHeader({ title, right }: { title: string; right?: React.ReactNode }) {
+  return (
+    <View style={{ paddingBottom: 8 }}>
+      <BlurView
+        intensity={45}
+        tint="light"
+        style={{ borderRadius: 12, overflow: "hidden", borderWidth: StyleSheet.hairlineWidth, borderColor: "rgba(26,23,21,0.18)" }}
+      >
+        <View style={{ backgroundColor: "rgba(250,246,240,0.55)", paddingVertical: 10, paddingHorizontal: 14, flexDirection: "row", justifyContent: "space-between", alignItems: "baseline" }}>
+          <Text style={{ fontFamily: SERIF, fontSize: 17, color: INK }}>{title}</Text>
+          {right ?? null}
+        </View>
+      </BlurView>
+    </View>
   );
 }

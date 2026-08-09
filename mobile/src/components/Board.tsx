@@ -4,11 +4,6 @@ import { COLS, ROWS, SINGLE, canPlay, type GameState, type Tile } from "../engin
 import { BD2, INK, INK2, SANS_BLACK, SANS_SEMI } from "../theme";
 import { StampIn, companyStyle } from "./common";
 
-function jitter(r: number, c: number) {
-  const h = (r * 31 + c * 17 + 7) % 7;
-  return ((h % 5) - 2) * 0.4;
-}
-
 export function Board({ game, sel, onSelect }: {
   game: GameState;
   sel: Tile | null;
@@ -50,7 +45,6 @@ export function Board({ game, sel, onSelect }: {
                 backgroundColor: cs ? cs.bg : t === SINGLE ? "#6E675E" : isSel ? INK : "transparent",
                 borderWidth: isSel ? 2 : inHand ? 1.5 : placed ? 1 : 0,
                 borderColor: isSel ? INK : inHand ? INK2 : "rgba(20,16,12,0.35)",
-                transform: placed ? [{ rotate: `${jitter(r, c)}deg` }] : undefined,
               }}>
                 {placed || inHand ? (
                   <Text style={{

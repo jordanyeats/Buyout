@@ -4,7 +4,7 @@ import { currentActor, type Action, type GameState, type Tile } from "../engine"
 import type { AchievementDef } from "../store/stats";
 import { ACCENT, BG, INK, INK2, INK3, SANS, SANS_BLACK, SANS_SEMI, SERIF } from "../theme";
 import { Board } from "../components/Board";
-import { SectionRule } from "../components/common";
+import { GlassHeader, SectionRule } from "../components/common";
 import { FinalEdition, FrontPage, MarketWrap } from "../components/FrontPage";
 import { ActionsPanel, CoBar, HandBar, Holdings, Ticker } from "../components/panels";
 
@@ -63,11 +63,8 @@ export function GameScreen({ game, act, onQuit, onRestart, unlocked = [] }: {
       ) : null}
       {game.phase === "mergerAnnounce" ? <FrontPage game={game} onDismiss={() => act({ type: "acknowledge" })} /> : null}
       {game.phase === "mergerResult" ? <MarketWrap game={game} onDismiss={() => act({ type: "acknowledge" })} /> : null}
-      <ScrollView contentContainerStyle={{ padding: 14, paddingTop: 8 }}>
-        <View style={{ borderBottomWidth: 1, borderBottomColor: INK, paddingBottom: 3 }}>
-          <Text style={{ fontFamily: SERIF, fontSize: 18, color: INK }}>The Buyout Ledger</Text>
-        </View>
-        <View style={{ borderBottomWidth: 3, borderBottomColor: INK, marginTop: 2, marginBottom: 4 }} />
+      <ScrollView contentContainerStyle={{ padding: 14, paddingTop: 8 }} stickyHeaderIndices={[0]}>
+        <GlassHeader title="The Buyout Ledger" />
         <Ticker game={game} />
         {wide ? (
           <View style={{ flexDirection: "row", alignItems: "flex-start", marginTop: 8 }}>

@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { SafeAreaView, ScrollView, Text, View } from "react-native";
 import { ACCENT, BD, BG, GRN, INK, INK2, INK3, SANS, SANS_BLACK, SANS_SEMI, SERIF, money } from "../theme";
-import { InkButton, SectionRule } from "../components/common";
+import { GlassHeader, InkButton, SectionRule } from "../components/common";
 import { ACHIEVEMENTS, loadStats, summarize, type Stats } from "../store/stats";
 
 const KIND_LABEL: Record<string, string> = {
@@ -17,12 +17,10 @@ export function StatsScreen({ onExit }: { onExit: () => void }) {
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: BG }}>
-      <ScrollView contentContainerStyle={{ padding: 16, paddingTop: 8 }}>
-        <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "baseline", borderBottomWidth: 1, borderBottomColor: INK, paddingBottom: 3 }}>
-          <Text style={{ fontFamily: SERIF, fontSize: 17, color: INK }}>The Record</Text>
+      <ScrollView contentContainerStyle={{ padding: 16, paddingTop: 8 }} stickyHeaderIndices={[0]}>
+        <GlassHeader title="The Record" right={
           <Text onPress={onExit} style={{ fontFamily: SANS, fontSize: 9, color: INK3, letterSpacing: 1.5, textTransform: "uppercase" }}>Back</Text>
-        </View>
-        <View style={{ borderBottomWidth: 3, borderBottomColor: INK, marginTop: 2 }} />
+        } />
 
         {s ? (
           <>
