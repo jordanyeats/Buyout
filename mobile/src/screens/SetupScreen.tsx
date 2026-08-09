@@ -145,6 +145,9 @@ export function SetupScreen({ onStart, hasSave, onResume, onAbandon, onTutorial,
           Sound {muted ? "off" : "on"}
         </Text>
       </PressIn>
+      <Text style={{ textAlign: "center", fontFamily: SANS, fontSize: 10, color: INK3, marginTop: 26 }}>
+        v{require("../../app.json").expo.version}
+      </Text>
       <View style={{ height: 40 }} />
     </ScrollView>
   );

@@ -22,10 +22,10 @@ export async function initSound(): Promise<void> {
     const { createAudioPlayer, setAudioModeAsync } = await import("expo-audio");
     await setAudioModeAsync({ playsInSilentMode: false });
     players = {
-      thump: createAudioPlayer(require("../../assets/sfx/thump.wav")),
-      page: createAudioPlayer(require("../../assets/sfx/page.wav")),
-      cash: createAudioPlayer(require("../../assets/sfx/cash.wav")),
-      chime: createAudioPlayer(require("../../assets/sfx/chime.wav")),
+      thump: createAudioPlayer(require("../../assets/sfx/thump.m4a")),
+      page: createAudioPlayer(require("../../assets/sfx/page.m4a")),
+      cash: createAudioPlayer(require("../../assets/sfx/cash.m4a")),
+      chime: createAudioPlayer(require("../../assets/sfx/chime.m4a")),
     };
     ready = true;
   } catch (e) {

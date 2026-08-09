@@ -42,7 +42,6 @@ export function HandBar({ game, sel, onSelect }: { game: GameState; sel: Tile | 
   // Rendered inside the "Your move" section (see ActionsPanel).
   return (
     <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 6, justifyContent: "center", paddingVertical: 8, alignItems: "center" }}>
-      <Text style={{ fontFamily: SANS_BLACK, fontSize: 10, letterSpacing: 1.5, textTransform: "uppercase", color: INK3, marginRight: 2 }}>Hand</Text>
       {hand.map((t, i) => {
         const ok = canPlay(game, t[0], t[1]);
         const isSel = !!sel && sel[0] === t[0] && sel[1] === t[1];
