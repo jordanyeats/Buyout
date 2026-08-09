@@ -16,7 +16,9 @@ export function FrontPage({ game, onDismiss }: { game: GameState; onDismiss: () 
   if (!ctx) return null;
   const dn0 = ctx.defuncts[ctx.di] ?? ctx.defuncts[0]!;
   const price = priceOf(game, dn0);
-  const holders = game.players.filter((p) => (p.shares[dn0] ?? 0) > 0);
+  const holders = game.players
+    .filter((p) => (p.shares[dn0] ?? 0) > 0)
+    .sort((a, b) => (b.shares[dn0] ?? 0) - (a.shares[dn0] ?? 0)); // biggest position first
   const totalBlocks = game.players.reduce((s, p) => s + (p.shares[dn0] ?? 0), 0);
   const founder = game.founders[dn0];
   const co = game.cos[dn0]!;
