@@ -1,6 +1,7 @@
 import React from "react";
 import { Text, View } from "react-native";
 import { StatusBar } from "expo-status-bar";
+import { SafeAreaProvider } from "react-native-safe-area-context";
 import { useFonts } from "expo-font";
 import {
   PlayfairDisplay_700Bold, PlayfairDisplay_700Bold_Italic, PlayfairDisplay_900Black,
@@ -39,7 +40,7 @@ export default function App() {
   }
 
   return (
-    <>
+    <SafeAreaProvider>
       <StatusBar style="dark" />
       {game ? (
         <GameScreen game={game} act={act} onQuit={quit} onRestart={restart} unlocked={unlocked} />
@@ -54,6 +55,6 @@ export default function App() {
           onTutorial={() => setScreen("tutorial")} onStats={() => setScreen("stats")}
         />
       )}
-    </>
+    </SafeAreaProvider>
   );
 }

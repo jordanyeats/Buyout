@@ -1,5 +1,6 @@
 import React, { useState } from "react";
-import { Pressable, SafeAreaView, ScrollView, Text, TextInput, View } from "react-native";
+import { Pressable, ScrollView, Text, TextInput, View } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { CARD_DEFS, COMPANIES, type PlayerConfig, type PlayerKind } from "../engine";
 import { isMuted, setMuted } from "../store/sound";
 import { ACCENT, BD, BD2, BG, INK, INK2, INK3, SANS, SANS_BLACK, SANS_BOLD, SANS_SEMI, SERIF, WARM } from "../theme";

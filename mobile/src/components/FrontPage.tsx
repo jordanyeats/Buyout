@@ -1,5 +1,6 @@
 import React from "react";
-import { Modal, SafeAreaView, ScrollView, Text, View } from "react-native";
+import { Modal, ScrollView, Text, View } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { priceOf, type GameState } from "../engine";
 import { ACCENT, BD, BD2, BG, GRN, INK, INK2, INK3, RED, SANS, SANS_BLACK, SANS_SEMI, SERIF, SERIF_BOLD, money } from "../theme";
 import { CountUp, InkButton, PressIn, Wordmark } from "./common";

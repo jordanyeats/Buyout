@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
-import { Animated, Pressable, StyleSheet, Text, View, ViewStyle, TextStyle } from "react-native";
-import { BlurView } from "expo-blur";
+import { Animated, Pressable, Text, View, ViewStyle, TextStyle } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Svg, { Circle, Path, Rect } from "react-native-svg";
 import { COMPANIES } from "../engine";
 import { BD2, INK, INK2, INK3, SANS, SANS_BLACK, SANS_BOLD, SERIF, money } from "../theme";
@@ -155,23 +155,25 @@ export function Masthead({ title, right }: { title: string; right?: React.ReactN
 }
 
 /**
- * iOS large-title behavior: a compact translucent bar, pinned at the top,
- * that fades in as the in-flow masthead scrolls away.
+ * Solid paper strip behind the system status elements. Content scrolls under
+ * it and simply disappears; the time/battery always sit on clean paper.
  */
-export function CollapsingBar({ title, scrollY, right }: { title: string; scrollY: Animated.Value; right?: React.ReactNode }) {
-  const opacity = scrollY.interpolate({ inputRange: [24, 64], outputRange: [0, 1], extrapolate: "clamp" });
+export function StatusStrip() {
+  const insets = useSafeAreaInsets();
   return (
-    <Animated.View pointerEvents="box-none" style={{ position: "absolute", top: 0, left: 0, right: 0, zIndex: 20, opacity }}>
-      <BlurView intensity={50} tint="light">
-        <View style={{
-          backgroundColor: "rgba(250,246,240,0.6)", paddingVertical: 8, paddingHorizontal: 16,
-          flexDirection: "row", justifyContent: "space-between", alignItems: "baseline",
-          borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: "rgba(26,23,21,0.25)",
-        }}>
-          <Text style={{ fontFamily: SERIF, fontSize: 14, color: INK }}>{title}</Text>
-          {right ?? null}
-        </View>
-      </BlurView>
+    <View
+      pointerEvents="none"
+      style={{ position: "absolute", top: 0, left: 0, right: 0, height: insets.top, backgroundColor: "#FAF6F0", zIndex: 20 }}
+    />
+  );
+}
+
+/** The masthead dissolves as it rolls up toward the status zone. */
+export function FadingMasthead({ scrollY, title, right }: { scrollY: Animated.Value; title: string; right?: React.ReactNode }) {
+  const opacity = scrollY.interpolate({ inputRange: [0, 56], outputRange: [1, 0], extrapolate: "clamp" });
+  return (
+    <Animated.View style={{ opacity }}>
+      <Masthead title={title} right={right} />
     </Animated.View>
   );
 }
