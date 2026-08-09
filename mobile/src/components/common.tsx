@@ -141,20 +141,37 @@ export function PressIn({ children, delay = 0, style }: { children: React.ReactN
 }
 
 
-/** Floating translucent masthead in the current iOS glass idiom. Pin with stickyHeaderIndices. */
-export function GlassHeader({ title, right }: { title: string; right?: React.ReactNode }) {
+/** The broadsheet masthead, in flow: name over a thick-thin rule pair. Scrolls away naturally. */
+export function Masthead({ title, right }: { title: string; right?: React.ReactNode }) {
   return (
-    <View style={{ paddingBottom: 8 }}>
-      <BlurView
-        intensity={45}
-        tint="light"
-        style={{ borderRadius: 12, overflow: "hidden", borderWidth: StyleSheet.hairlineWidth, borderColor: "rgba(26,23,21,0.18)" }}
-      >
-        <View style={{ backgroundColor: "rgba(250,246,240,0.55)", paddingVertical: 10, paddingHorizontal: 14, flexDirection: "row", justifyContent: "space-between", alignItems: "baseline" }}>
-          <Text style={{ fontFamily: SERIF, fontSize: 17, color: INK }}>{title}</Text>
+    <View style={{ marginBottom: 4 }}>
+      <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "baseline", borderBottomWidth: 1, borderBottomColor: INK, paddingBottom: 3 }}>
+        <Text style={{ fontFamily: SERIF, fontSize: 18, color: INK }}>{title}</Text>
+        {right ?? null}
+      </View>
+      <View style={{ borderBottomWidth: 3, borderBottomColor: INK, marginTop: 2 }} />
+    </View>
+  );
+}
+
+/**
+ * iOS large-title behavior: a compact translucent bar, pinned at the top,
+ * that fades in as the in-flow masthead scrolls away.
+ */
+export function CollapsingBar({ title, scrollY, right }: { title: string; scrollY: Animated.Value; right?: React.ReactNode }) {
+  const opacity = scrollY.interpolate({ inputRange: [24, 64], outputRange: [0, 1], extrapolate: "clamp" });
+  return (
+    <Animated.View pointerEvents="box-none" style={{ position: "absolute", top: 0, left: 0, right: 0, zIndex: 20, opacity }}>
+      <BlurView intensity={50} tint="light">
+        <View style={{
+          backgroundColor: "rgba(250,246,240,0.6)", paddingVertical: 8, paddingHorizontal: 16,
+          flexDirection: "row", justifyContent: "space-between", alignItems: "baseline",
+          borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: "rgba(26,23,21,0.25)",
+        }}>
+          <Text style={{ fontFamily: SERIF, fontSize: 14, color: INK }}>{title}</Text>
           {right ?? null}
         </View>
       </BlurView>
-    </View>
+    </Animated.View>
   );
 }

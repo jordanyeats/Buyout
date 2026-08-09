@@ -27,6 +27,20 @@ export async function initSound(): Promise<void> {
   } catch {}
 }
 
+const localUri: Partial<Record<SfxName, string>> = {};
+
+/** Resolve to a local file once — playing from disk avoids the dev-server
+ *  HTTP streaming that makes the Simulator's media stack log complaints. */
+async function uriFor(name: SfxName): Promise<string> {
+  if (!localUri[name]) {
+    const { Asset } = await import("expo-asset");
+    const a = Asset.fromModule(SOURCES[name] as number);
+    await a.downloadAsync();
+    localUri[name] = a.localUri ?? a.uri;
+  }
+  return localUri[name]!;
+}
+
 export function play(name: SfxName): void {
   if (muted || Platform.OS === "web") return;
   import("expo-audio")
@@ -35,7 +49,7 @@ export function play(name: SfxName): void {
         modeSet = true;
         await setAudioModeAsync({ playsInSilentMode: false }).catch(() => {});
       }
-      const p = createAudioPlayer(SOURCES[name] as never);
+      const p = createAudioPlayer({ uri: await uriFor(name) });
       p.play();
       setTimeout(() => {
         try {

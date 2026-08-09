@@ -1,7 +1,7 @@
-import React, { useEffect, useState } from "react";
-import { SafeAreaView, ScrollView, Text, View } from "react-native";
+import React, { useEffect, useRef, useState } from "react";
+import { Animated, SafeAreaView, ScrollView, Text, View } from "react-native";
 import { ACCENT, BD, BG, GRN, INK, INK2, INK3, SANS, SANS_BLACK, SANS_SEMI, SERIF, money } from "../theme";
-import { GlassHeader, InkButton, SectionRule } from "../components/common";
+import { CollapsingBar, InkButton, Masthead, SectionRule } from "../components/common";
 import { ACHIEVEMENTS, loadStats, summarize, type Stats } from "../store/stats";
 
 const KIND_LABEL: Record<string, string> = {
@@ -10,6 +10,7 @@ const KIND_LABEL: Record<string, string> = {
 
 export function StatsScreen({ onExit }: { onExit: () => void }) {
   const [stats, setStats] = useState<Stats | null>(null);
+  const scrollY = useRef(new Animated.Value(0)).current;
   useEffect(() => {
     loadStats().then(setStats);
   }, []);
@@ -17,10 +18,13 @@ export function StatsScreen({ onExit }: { onExit: () => void }) {
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: BG }}>
-      <ScrollView contentContainerStyle={{ padding: 16, paddingTop: 8 }} stickyHeaderIndices={[0]}>
-        <GlassHeader title="The Record" right={
-          <Text onPress={onExit} style={{ fontFamily: SANS, fontSize: 9, color: INK3, letterSpacing: 1.5, textTransform: "uppercase" }}>Back</Text>
-        } />
+      <CollapsingBar title="The Record" scrollY={scrollY} right={<Text onPress={onExit} style={{ fontFamily: SANS, fontSize: 9, color: INK3, letterSpacing: 1.5, textTransform: "uppercase" }}>Back</Text>} />
+      <Animated.ScrollView
+        contentContainerStyle={{ padding: 16, paddingTop: 8 }}
+        onScroll={Animated.event([{ nativeEvent: { contentOffset: { y: scrollY } } }], { useNativeDriver: true })}
+        scrollEventThrottle={16}
+      >
+        <Masthead title="The Record" right={<Text onPress={onExit} style={{ fontFamily: SANS, fontSize: 9, color: INK3, letterSpacing: 1.5, textTransform: "uppercase" }}>Back</Text>} />
 
         {s ? (
           <>
@@ -70,7 +74,7 @@ export function StatsScreen({ onExit }: { onExit: () => void }) {
         <View style={{ height: 24 }} />
         <InkButton label="Back to the desk" onPress={onExit} />
         <View style={{ height: 40 }} />
-      </ScrollView>
+      </Animated.ScrollView>
     </SafeAreaView>
   );
 }

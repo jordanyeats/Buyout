@@ -1,9 +1,9 @@
-import React, { useMemo, useState } from "react";
-import { SafeAreaView, ScrollView, Text, View } from "react-native";
+import React, { useMemo, useRef, useState } from "react";
+import { Animated, SafeAreaView, ScrollView, Text, View } from "react-native";
 import { applyAction, type Action, type GameState, type Tile } from "../engine";
 import { ACCENT, BG, GRN, INK, INK2, INK3, SANS, SANS_BLACK, SERIF, SERIF_BOLD } from "../theme";
 import { Board } from "../components/Board";
-import { GlassHeader, InkButton, PressIn, SectionRule } from "../components/common";
+import { CollapsingBar, InkButton, Masthead, PressIn, SectionRule } from "../components/common";
 import { FrontPage, MarketWrap } from "../components/FrontPage";
 import { ActionsPanel, CoBar, Holdings } from "../components/panels";
 import { TUTORIAL } from "../tutorial/script";
@@ -14,6 +14,7 @@ export function TutorialScreen({ onExit }: { onExit: () => void }) {
   const step = TUTORIAL[stepIdx]!;
   const [game, setGame] = useState<GameState | null>(() => (step.build ? step.build() : null));
   const [sel, setSel] = useState<Tile | null>(null);
+  const scrollY = useRef(new Animated.Value(0)).current;
 
   const advance = () => {
     const next = stepIdx + 1;
@@ -48,10 +49,14 @@ export function TutorialScreen({ onExit }: { onExit: () => void }) {
     <SafeAreaView style={{ flex: 1, backgroundColor: BG }}>
       {game && game.phase === "mergerAnnounce" ? <FrontPage game={game} onDismiss={() => act({ type: "acknowledge" })} /> : null}
       {game && game.phase === "mergerResult" ? <MarketWrap game={game} onDismiss={() => act({ type: "acknowledge" })} /> : null}
-      <ScrollView contentContainerStyle={{ padding: 16, paddingTop: 8 }} stickyHeaderIndices={[0]}>
-        <GlassHeader title="The Training Desk" right={
-          <Text onPress={onExit} style={{ fontFamily: SANS, fontSize: 9, color: INK3, letterSpacing: 1.5, textTransform: "uppercase" }}>Exit</Text>
-        } />
+      <CollapsingBar title="The Training Desk" scrollY={scrollY} right={<Text onPress={onExit} style={{ fontFamily: SANS, fontSize: 9, color: INK3, letterSpacing: 1.5, textTransform: "uppercase" }}>Exit</Text>} />
+      <Animated.ScrollView
+        contentContainerStyle={{ padding: 16, paddingTop: 8 }}
+        onScroll={Animated.event([{ nativeEvent: { contentOffset: { y: scrollY } } }], { useNativeDriver: true })}
+        scrollEventThrottle={16}
+      >
+        <Masthead title="The Training Desk" right={<Text onPress={onExit} style={{ fontFamily: SANS, fontSize: 9, color: INK3, letterSpacing: 1.5, textTransform: "uppercase" }}>Exit</Text>} />
+        <View style={{ marginBottom: 8 }} />
 
         <PressIn key={stepIdx}>
           <View style={{ borderWidth: 1, borderColor: INK, padding: 14, marginBottom: 6 }}>
@@ -87,7 +92,7 @@ export function TutorialScreen({ onExit }: { onExit: () => void }) {
           </View>
         ) : null}
         <View style={{ height: 40 }} />
-      </ScrollView>
+      </Animated.ScrollView>
     </SafeAreaView>
   );
 }
