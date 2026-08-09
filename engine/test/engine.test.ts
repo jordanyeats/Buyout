@@ -103,7 +103,7 @@ describe("founding", () => {
     expect(s.phase).toBe("found");
     s = applyAction(s, { type: "found", company: "Flux" });
     expect(s.cos["Flux"]!.size).toBe(3);
-    expect(s.players[0]!.shares["Flux"]).toBe(2);
+    expect(s.players[0]!.shares["Flux"]).toBe(1);
     expect(s.founders["Flux"]).toBe("P1");
     expect(s.phase).toBe("buy");
   });

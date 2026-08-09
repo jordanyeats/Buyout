@@ -7,7 +7,7 @@ export const END_SIZE = 35;
 export const START_CASH = 100_000;
 export const HAND_SIZE = 4;
 export const MAX_BUY = 3;
-export const FOUNDER_BLOCKS = 2;
+export const FOUNDER_BLOCKS = 1;
 export const PRICE_BASE = 5000;
 export const PRICE_RATE = 1.15;
 export const PRICE_CAP = 100_000;
@@ -53,19 +53,19 @@ export const COMPANIES: CompanyStyle[] = [
 
 export const CARD_DEFS: CardDef[] = [
   { id: "regulatory", cat: "blocker", name: "Regulatory Review", desc: "Merger delayed one full round. Everyone may trade first.", flav: "The FTC has questions.", dev: false },
-  { id: "antitrust", cat: "blocker", name: "Antitrust Ruling", desc: "Survivor releases 3 blocks to market.", flav: "Approved with conditions.", dev: false },
+  { id: "antitrust", cat: "blocker", name: "Antitrust Ruling", desc: "Survivor releases 3 shares to market.", flav: "Approved with conditions.", dev: false },
   { id: "blocked", cat: "blocker", name: "Takeover Blocked", desc: "Merger CANCELLED. Turn ends immediately.", flav: "The board has voted no.", dev: true },
   { id: "duedil", cat: "blocker", name: "Due Diligence Failure", desc: "Defunct valued at HALF for sells.", flav: "Irregularities discovered.", dev: false },
   { id: "vc", cat: "windfall", name: "VC Injection", desc: "Every player receives $25,000.", flav: "Capital flows into the sector.", dev: false },
   { id: "ipo", cat: "windfall", name: "IPO Bonus", desc: "You receive defunct price x3 in cash.", flav: "Markets reward the dealmaker.", dev: false },
   { id: "tax", cat: "windfall", name: "Liquidation Tax", desc: "30% tax on all sell proceeds this merger.", flav: "Emergency legislation.", dev: true },
-  { id: "golden", cat: "windfall", name: "Golden Parachute", desc: "Founder gets 2 free survivor blocks.", flav: "Protection was negotiated.", dev: false },
+  { id: "golden", cat: "windfall", name: "Golden Parachute", desc: "Founder gets 2 free survivor shares.", flav: "Protection was negotiated.", dev: false },
   { id: "earnings", cat: "market", name: "Earnings Miss", desc: "A company you hold least loses 3 tiles.", flav: "Quarterly results disappoint.", dev: false },
   { id: "partner", cat: "market", name: "Strategic Partnership", desc: "Two smallest companies price together at the larger's value.", flav: "A strategic alliance.", dev: false },
   { id: "valreset", cat: "market", name: "Valuation Reset", desc: "A company's price drops permanently.", flav: "Analysts downgrade.", dev: false },
-  { id: "secondary", cat: "market", name: "Secondary Offering", desc: "4 new blocks added to a company.", flav: "New shares issued.", dev: false },
-  { id: "talent", cat: "hostile", name: "Talent Raid", desc: "Opponent sells 1 block of shared company.", flav: "Key people poached.", dev: false },
-  { id: "activist", cat: "hostile", name: "Activist Campaign", desc: "Majority pays $15K or gives you 1 block.", flav: "An activist demands change.", dev: false },
+  { id: "secondary", cat: "market", name: "Secondary Offering", desc: "4 new shares issued for a company.", flav: "New shares issued.", dev: false },
+  { id: "talent", cat: "hostile", name: "Talent Raid", desc: "Opponent sells 1 share of a company you both hold.", flav: "Key people poached.", dev: false },
+  { id: "activist", cat: "hostile", name: "Activist Campaign", desc: "Majority pays $15K or gives you 1 share.", flav: "An activist demands change.", dev: false },
   { id: "earnout", cat: "hostile", name: "Earnout Agreement", desc: "If survivor hits size 20, you get $50K.", flav: "Performance milestones.", dev: false },
 ];
 

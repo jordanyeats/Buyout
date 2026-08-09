@@ -16,7 +16,7 @@ describe("shark (simulation AI)", () => {
     handTile(g, 0, [8, 8]); // neutral placement
     const a = aiAction(g);
     expect(a.type).toBe("place");
-    expect((a as { tile: [number, number] }).tile).toEqual([8, 8]);
+    expect((a as unknown as { tile: [number, number] }).tile).toEqual([8, 8]);
   });
 
   it("is deterministic: same state → same choice", () => {

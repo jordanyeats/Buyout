@@ -30,6 +30,7 @@ export function useGame() {
   const [restoring, setRestoring] = useState(true);
   const [hasSave, setHasSave] = useState(false);
   const saveRef = useRef<SaveFile | null>(null);
+  const lastConfig = useRef<{ configs: PlayerConfig[]; useCards: boolean; options: GameOptions } | null>(null);
   const aiTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // On launch: detect a saved game.
@@ -56,6 +57,7 @@ export function useGame() {
   const start = useCallback((configs: PlayerConfig[], useCards: boolean, options: GameOptions = {}) => {
     const seed = (Date.now() ^ (Math.random() * 0xffffffff)) | 0;
     saveRef.current = { configs, seed, useCards, options, actions: [] };
+    lastConfig.current = { configs, useCards, options };
     setUnlocked([]);
     persist();
     setGame(newGame(configs, seed, useCards, options));
@@ -75,6 +77,7 @@ export function useGame() {
       }
     }
     s.actions = good;
+    lastConfig.current = { configs: s.configs, useCards: s.useCards, options: s.options ?? {} };
     persist();
     setGame(g);
   }, [persist]);
@@ -85,6 +88,20 @@ export function useGame() {
     AsyncStorage.removeItem(SAVE_KEY).catch(() => {});
     setGame(null);
   }, []);
+
+  /** Leave the table but keep the save — the main screen offers Resume. */
+  const quitToMenu = useCallback(() => {
+    setGame((g) => {
+      if (g && !g.over && saveRef.current) setHasSave(true);
+      return null;
+    });
+  }, []);
+
+  /** New game, same table: reuse the last configuration. */
+  const restart = useCallback(() => {
+    const c = lastConfig.current;
+    if (c) start(c.configs, c.useCards, c.options);
+  }, [start]);
 
   const act = useCallback((action: Action) => {
     setGame((prev) => {
@@ -136,5 +153,5 @@ export function useGame() {
     };
   }, [game, act]);
 
-  return { game, restoring, hasSave, start, resume, abandon, act, quit: abandon, unlocked };
+  return { game, restoring, hasSave, start, resume, abandon, act, quit: quitToMenu, restart, unlocked };
 }

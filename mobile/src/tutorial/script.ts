@@ -74,7 +74,7 @@ export const TUTORIAL: TutorialStep[] = [
     kicker: "Lesson two",
     headline: "Touch two tiles, found a startup",
     body:
-      "Placing next to an unincorporated tile founds a company. You choose which of the six startups it becomes — and you receive two free blocks of its stock as the founder. Place D5, then pick any company.",
+      "Placing next to an unincorporated tile founds a company. You choose which of the six startups it becomes — and you receive one free share as the founder. Place the tile touching the lone office, then pick any company.",
     build: () => {
       const g = base(["human", "strategic"], 12);
       putSingle(g, [4, 4]); // D5's neighbor
@@ -88,7 +88,7 @@ export const TUTORIAL: TutorialStep[] = [
     kicker: "Lesson three",
     headline: "Buy low, before it grows",
     body:
-      "After placing, you may buy up to three blocks per turn. Price rises steeply with company size, so early blocks are the cheap ones. Blink sits at size 2 — buy at least one block, then end your turn.",
+      "After placing, you may buy up to three shares per turn. Price rises steeply with company size, so the early shares are the cheap ones. Blink sits at size 2 — buy at least one share, then end your turn.",
     build: () => {
       const g = base(["human", "strategic"], 13);
       putCompany(g, "Blink", [[3, 3], [3, 4]]);
@@ -101,7 +101,7 @@ export const TUTORIAL: TutorialStep[] = [
     kicker: "Lesson four",
     headline: "Majority is everything",
     body:
-      "When a company is acquired, its top shareholder collects a bonus of 10× the share price; the runner-up collects 5×. Every merger is really a fight over these two seats. Holding one block more than a rival can be worth six figures. Study the listings below, then read on.",
+      "When a company is taken over, its top shareholder collects a bonus of 10× the share price; the runner-up collects 5×. Every merger is really a fight over these two seats. Holding one share more than a rival can be worth six figures. Study the listings below, then read on.",
     build: () => {
       const g = base(["human", "strategic"], 14);
       putCompany(g, "Zap", [[2, 2], [2, 3], [3, 2], [3, 3], [2, 4]]);
@@ -116,7 +116,7 @@ export const TUTORIAL: TutorialStep[] = [
     kicker: "Lesson five",
     headline: "The merger",
     body:
-      "Place a tile between two companies and the larger swallows the smaller. The front page will tell you what happened; bonuses pay out at once. You hold 4 Zap and your rival holds 2 — trigger the merger at E3 and read the news.",
+      "Place a tile between two companies and the larger absorbs the smaller. The front page will tell you what happened; bonuses pay out at once. You hold 4 Zap and your rival holds 2 — trigger the merger at E3 and read the news.",
     build: () => {
       const g = base(["human", "strategic"], 15);
       putCompany(g, "Blink", [[2, 1], [2, 2], [2, 3], [3, 1], [4, 1]]);
@@ -142,7 +142,7 @@ export const TUTORIAL: TutorialStep[] = [
     kicker: "Final lesson",
     headline: "Safety, and the closing bell",
     body:
-      "At size 25 a company is SAFE — it can never be acquired, only acquire. When any company reaches size 35, the game ends: final bonuses pay, every share liquidates, and the largest fortune wins. That's the whole game — the rest is knowing when to fight for majority and when to sell into someone else's deal. The desk is yours.",
+      "At size 25 a company is SAFE — it can never be taken over; it can only take over others. When any company reaches size 30, the ticker warns you the closing bell is near; at 35 the game ends — final bonuses pay, every share liquidates, and the largest fortune wins. That's the whole game. The desk is yours.",
     build: null,
     goal: null,
   },

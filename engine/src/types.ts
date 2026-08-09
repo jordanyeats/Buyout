@@ -117,6 +117,8 @@ export interface GameState {
   survivorChoice: SurvivorChoice | null;
   pendingMerger: PendingMerger | null;
   endTriggered: boolean;
+  /** Why the game ended (set at final scoring). */
+  endReason?: string;
   /** Options the game was created with (needed for exact replay). */
   options: GameOptions;
 }

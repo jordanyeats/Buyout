@@ -12,11 +12,25 @@ const label = (t: Tile) => String.fromCharCode(65 + t[1]) + (t[0] + 1);
 
 export function Ticker({ game }: { game: GameState }) {
   const last = game.logs[game.logs.length - 1];
-  if (!last) return null;
+  const nearEnd = Object.values(game.cos)
+    .filter((c) => c.status !== "inactive" && c.size >= 30)
+    .sort((a, b) => b.size - a.size)[0];
   return (
-    <View style={{ flexDirection: "row", alignItems: "center", gap: 8, paddingVertical: 6, borderBottomWidth: 1, borderBottomColor: BD, marginBottom: 6 }}>
-      <View style={{ width: 5, height: 5, backgroundColor: ACCENT }} />
-      <Text numberOfLines={1} style={{ flex: 1, fontFamily: SANS, fontSize: 12, color: INK2 }}>{last}</Text>
+    <View>
+      <View style={{ flexDirection: "row", alignItems: "center", gap: 8, paddingVertical: 6, borderBottomWidth: 1, borderBottomColor: BD }}>
+        <View style={{ width: 5, height: 5, backgroundColor: ACCENT }} />
+        <Text numberOfLines={1} style={{ flex: 1, fontFamily: SANS, fontSize: 12, color: INK2 }}>{last ?? "The market opens."}</Text>
+        <Text style={{ fontFamily: SANS_SEMI, fontSize: 10.5, color: INK2 }}>Turn {game.turn + 1} · {game.pool.length} tiles</Text>
+      </View>
+      {nearEnd ? (
+        <View style={{ flexDirection: "row", alignItems: "center", gap: 8, paddingVertical: 5, borderBottomWidth: 1, borderBottomColor: RED, backgroundColor: "#F9EFEF" }}>
+          <Text style={{ fontFamily: SANS_BLACK, fontSize: 10, letterSpacing: 1.5, textTransform: "uppercase", color: RED }}>■ Closing bell nears</Text>
+          <Text style={{ flex: 1, fontFamily: SANS, fontSize: 11.5, color: INK }}>
+            {nearEnd.name} at {nearEnd.size} — the game ends at 35
+          </Text>
+        </View>
+      ) : null}
+      <View style={{ marginBottom: 6 }} />
     </View>
   );
 }
@@ -25,6 +39,7 @@ export function HandBar({ game, sel, onSelect }: { game: GameState; sel: Tile | 
   const humanIdx = game.players.findIndex((p) => p.kind === "human");
   if (humanIdx < 0 || game.phase !== "place" || game.current !== humanIdx) return null;
   const hand = game.players[humanIdx]!.hand;
+  // Rendered inside the "Your move" section (see ActionsPanel).
   return (
     <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 6, justifyContent: "center", paddingVertical: 8, alignItems: "center" }}>
       <Text style={{ fontFamily: SANS_BLACK, fontSize: 10, letterSpacing: 1.5, textTransform: "uppercase", color: INK3, marginRight: 2 }}>Hand</Text>
@@ -61,11 +76,7 @@ export function CoBar({ game }: { game: GameState }) {
           </View>
         );
       })}
-      {game.useCards ? (
-        <View style={{ paddingVertical: 5, paddingHorizontal: 10, backgroundColor: "#F5F0E8", borderWidth: 1, borderColor: BD }}>
-          <Text style={{ fontFamily: SANS_BOLD, fontSize: 10, color: ACCENT }}>{game.deck.length} CARDS</Text>
-        </View>
-      ) : null}
+
     </View>
   );
 }
@@ -151,7 +162,7 @@ export function SettlementPanel({ game, act }: { game: GameState; act: (a: Actio
       <Text style={{ fontFamily: SANS_BLACK, fontSize: 9, letterSpacing: 2.5, textTransform: "uppercase", color: INK3 }}>Settlement</Text>
       <Text style={{ fontFamily: SERIF, fontSize: 19, color: INK, marginTop: 1 }}>Your {dn} position</Text>
       <Text style={{ fontFamily: SANS, fontSize: 12.5, color: INK2, marginBottom: 10 }}>
-        {held} blocks at {money(sellPrice)} each{ctx.taxActive ? " · 30% tax on sales" : ""}
+        {held} shares at {money(sellPrice)} each{ctx.taxActive ? " · 30% tax on sales" : ""}
       </Text>
       <View style={{ flexDirection: "row", gap: 6, marginBottom: 2 }}>
         <QuickBtn label="Sell all" active={sell === held} onPress={() => setAll(held, 0)} />
@@ -192,8 +203,8 @@ function QuickBtn({ label: l, active, onPress, disabled }: { label: string; acti
 }
 
 /** Phase-dependent action area under "YOUR MOVE". */
-export function ActionsPanel({ game, sel, act, onNewGame }: {
-  game: GameState; sel: Tile | null; act: (a: Action) => void; onNewGame: () => void;
+export function ActionsPanel({ game, sel, act, onNewGame, onSelect }: {
+  game: GameState; sel: Tile | null; act: (a: Action) => void; onNewGame: () => void; onSelect?: (t: Tile) => void;
 }) {
   const actorIdx = currentActor(game);
   const actor = game.players[actorIdx]!;
@@ -228,10 +239,13 @@ export function ActionsPanel({ game, sel, act, onNewGame }: {
 
   if (game.phase === "place") {
     return (
-      <View style={{ alignItems: "center", paddingVertical: 12 }}>
-        {sel
-          ? <InkButton label={`Place ${label(sel)}`} primary onPress={() => act({ type: "place", tile: sel })} style={{ alignSelf: "stretch" }} />
-          : <Text style={{ fontFamily: SANS_SEMI, fontSize: 13, color: INK3 }}>Choose a tile from your hand</Text>}
+      <View style={{ paddingVertical: 4 }}>
+        {onSelect ? <HandBar game={game} sel={sel} onSelect={onSelect} /> : null}
+        <View style={{ alignItems: "center", paddingVertical: 6 }}>
+          {sel
+            ? <InkButton label={`Place ${label(sel)}`} primary onPress={() => act({ type: "place", tile: sel })} style={{ alignSelf: "stretch" }} />
+            : <Text style={{ fontFamily: SANS_SEMI, fontSize: 13, color: INK3 }}>Choose a tile from your hand</Text>}
+        </View>
       </View>
     );
   }
@@ -301,7 +315,7 @@ function BuyPanel({ game, act }: { game: GameState; act: (a: Action) => void }) 
   return (
     <PressIn>
       <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "baseline", marginBottom: 10 }}>
-        <Text style={{ fontFamily: SERIF, fontSize: 18, color: INK }}>Buy blocks</Text>
+        <Text style={{ fontFamily: SERIF, fontSize: 18, color: INK }}>Buy shares</Text>
         <Text style={{ fontFamily: SANS, fontSize: 11.5, color: INK3 }}>{MAX_BUY - total} left · {money(p.cash - cost)}</Text>
       </View>
       {buyable.length === 0 ? (

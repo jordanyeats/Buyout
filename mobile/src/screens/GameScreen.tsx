@@ -8,10 +8,11 @@ import { SectionRule } from "../components/common";
 import { FrontPage, MarketWrap } from "../components/FrontPage";
 import { ActionsPanel, CoBar, HandBar, Holdings, Ticker } from "../components/panels";
 
-export function GameScreen({ game, act, onQuit, unlocked = [] }: {
+export function GameScreen({ game, act, onQuit, onRestart, unlocked = [] }: {
   game: GameState;
   act: (a: Action) => void;
   onQuit: () => void;
+  onRestart: () => void;
   unlocked?: AchievementDef[];
 }) {
   const [sel, setSel] = useState<Tile | null>(null);
@@ -22,7 +23,6 @@ export function GameScreen({ game, act, onQuit, unlocked = [] }: {
   const boardCol = (
     <View style={wide ? { flex: 1.1, paddingRight: 18 } : undefined}>
       <Board game={game} sel={sel} onSelect={setSel} />
-      <HandBar game={game} sel={sel} onSelect={setSel} />
       <CoBar game={game} />
     </View>
   );
@@ -37,9 +37,22 @@ export function GameScreen({ game, act, onQuit, unlocked = [] }: {
         </View>
       ) : null}
       <SectionRule label="Your move" />
-      <ActionsPanel game={game} sel={sel} act={place} onNewGame={onQuit} />
-      <SectionRule label="Market listings" right="blocks held" />
+      {game.over && game.endReason ? (
+        <Text style={{ fontFamily: SANS, fontSize: 12, color: INK2, fontStyle: "italic", marginBottom: 4 }}>
+          Why it ended: {game.endReason}.
+        </Text>
+      ) : null}
+      <ActionsPanel game={game} sel={sel} act={place} onNewGame={onRestart} onSelect={setSel} />
+      <SectionRule label="Market listings" right="shares held" />
       <Holdings game={game} />
+      <View style={{ flexDirection: "row", justifyContent: "center", gap: 26, marginTop: 22, paddingTop: 10, borderTopWidth: 1, borderTopColor: INK }}>
+        <Pressable onPress={onRestart} hitSlop={8}>
+          <Text style={{ fontFamily: SANS_SEMI, fontSize: 11, color: INK2, letterSpacing: 1.5, textTransform: "uppercase", textDecorationLine: "underline" }}>Restart</Text>
+        </Pressable>
+        <Pressable onPress={onQuit} hitSlop={8}>
+          <Text style={{ fontFamily: SANS_SEMI, fontSize: 11, color: INK2, letterSpacing: 1.5, textTransform: "uppercase", textDecorationLine: "underline" }}>Quit to main screen</Text>
+        </Pressable>
+      </View>
     </View>
   );
 
@@ -48,16 +61,8 @@ export function GameScreen({ game, act, onQuit, unlocked = [] }: {
       {game.phase === "mergerAnnounce" ? <FrontPage game={game} onDismiss={() => act({ type: "acknowledge" })} /> : null}
       {game.phase === "mergerResult" ? <MarketWrap game={game} onDismiss={() => act({ type: "acknowledge" })} /> : null}
       <ScrollView contentContainerStyle={{ padding: 14, paddingTop: 54 }}>
-        <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "baseline", borderBottomWidth: 1, borderBottomColor: INK, paddingBottom: 3 }}>
+        <View style={{ borderBottomWidth: 1, borderBottomColor: INK, paddingBottom: 3 }}>
           <Text style={{ fontFamily: SERIF, fontSize: 18, color: INK }}>The Buyout Ledger</Text>
-          <View style={{ flexDirection: "row", alignItems: "baseline", gap: 10 }}>
-            <Text style={{ fontFamily: SANS, fontSize: 9, color: INK2, letterSpacing: 1.5, textTransform: "uppercase" }}>
-              Turn {game.turn + 1} · {game.pool.length} tiles
-            </Text>
-            <Pressable onPress={onQuit} hitSlop={8}>
-              <Text style={{ fontFamily: SANS_SEMI, fontSize: 9, color: INK3, letterSpacing: 1, textTransform: "uppercase" }}>Quit</Text>
-            </Pressable>
-          </View>
         </View>
         <View style={{ borderBottomWidth: 3, borderBottomColor: INK, marginTop: 2, marginBottom: 4 }} />
         <Ticker game={game} />

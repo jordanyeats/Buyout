@@ -41,7 +41,7 @@ export function SetupScreen({ onStart, hasSave, onResume, onAbandon, onTutorial,
       <PressIn style={{ alignItems: "center" }}>
         <Text style={{ fontFamily: SANS_SEMI, fontSize: 10, letterSpacing: 3.5, textTransform: "uppercase", color: INK3 }}>The Buyout Ledger presents</Text>
         <Text style={{ fontFamily: SERIF, fontSize: 46, color: INK, marginVertical: 2 }}>Buyout</Text>
-        <Text style={{ fontFamily: SANS_SEMI, fontSize: 13, color: INK2 }}>Found. Invest. Acquire.</Text>
+        <Text style={{ fontFamily: SANS_SEMI, fontSize: 13, color: INK2 }}>Found. Invest. Merge.</Text>
       </PressIn>
       <PressIn delay={100} style={{ flexDirection: "row", flexWrap: "wrap", gap: 10, justifyContent: "center", marginVertical: 18 }}>
         {COMPANIES.map((c) => <Wordmark key={c.name} name={c.name} size={11} />)}

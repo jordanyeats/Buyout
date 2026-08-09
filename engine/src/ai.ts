@@ -1,4 +1,3 @@
-import { sharkPlace } from "./shark.js";
 import { MAX_BUY, CONVERT_FROM, CONVERT_TO, SAFE_SIZE } from "./constants.js";
 import { analyzePlacement } from "./board.js";
 import { convertCapacity, currentActor, playableTiles } from "./engine.js";
@@ -12,14 +11,7 @@ import type { Action, GameState, MergerDecision, Player } from "./types.js";
  * never consumes the game's own rng stream — same state always yields the same
  * action, which is what makes replays and simulations exact.
  */
-export function aiAction(g: GameState): Action {
-  const idx = currentActor(g);
-  const p = g.players[idx]!;
-  if (p.kind === "shark" && g.phase === "place") return sharkPlace(g, idx);
-  return policyAction(g, idx, p.kind === "shark" ? "strategic" : p.kind);
-}
-
-/** Heuristic policy for a seat, with an explicit kind (used by shark rollouts). */
+/** Heuristic policy for a seat, with an explicit kind (used by shark rollouts and aiAction). */
 export function policyAction(g: GameState, idx: number, kind: "human" | "random" | "greedy" | "strategic" | "shark"): Action {
   const p = { ...g.players[idx]!, kind: kind === "shark" ? "strategic" as const : kind };
   const rng = derivedRng(g.rngState, g.turn * 31 + phaseOrdinal(g) * 7 + idx);

@@ -5,7 +5,7 @@ import { ACCENT, BG, GRN, INK, INK2, INK3, SANS, SANS_BLACK, SERIF, SERIF_BOLD }
 import { Board } from "../components/Board";
 import { InkButton, PressIn, SectionRule } from "../components/common";
 import { FrontPage, MarketWrap } from "../components/FrontPage";
-import { ActionsPanel, CoBar, HandBar, Holdings } from "../components/panels";
+import { ActionsPanel, CoBar, Holdings } from "../components/panels";
 import { TUTORIAL } from "../tutorial/script";
 
 export function TutorialScreen({ onExit }: { onExit: () => void }) {
@@ -77,12 +77,11 @@ export function TutorialScreen({ onExit }: { onExit: () => void }) {
           <View>
             <SectionRule label="The board" />
             <Board game={game} sel={sel} onSelect={setSel} />
-            {humanTurnUi ? <HandBar game={game} sel={sel} onSelect={setSel} /> : null}
             <CoBar game={game} />
             {!done && step.goal ? (
               <>
                 <SectionRule label="Your move" />
-                <ActionsPanel game={game} sel={sel} act={act} onNewGame={onExit} />
+                <ActionsPanel game={game} sel={sel} act={act} onNewGame={onExit} onSelect={setSel} />
               </>
             ) : null}
             <SectionRule label="Market listings" />

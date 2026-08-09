@@ -19,7 +19,7 @@ export function FrontPage({ game, onDismiss }: { game: GameState; onDismiss: () 
   const totalBlocks = game.players.reduce((s, p) => s + (p.shares[dn0] ?? 0), 0);
   const founder = game.founders[dn0];
   const co = game.cos[dn0]!;
-  const para1 = `The board of ${dn0} accepted a tender offer from ${ctx.surv} at the close of the ${ordinal(game.turn + 1)} turn, ending its run as an independent concern at a market size of ${co.size}. Shareholders will be paid out at ${money(price)} a block across ${totalBlocks} outstanding block${totalBlocks === 1 ? "" : "s"}, with majority and minority bonuses settling immediately.`;
+  const para1 = `The board of ${dn0} accepted a tender offer from ${ctx.surv} at the close of the ${ordinal(game.turn + 1)} turn, ending its run as an independent concern at a market size of ${co.size}. Shareholders will be paid out at ${money(price)} a share across ${totalBlocks} outstanding share${totalBlocks === 1 ? "" : "s"}, with majority and minority bonuses settling immediately.`;
   const para2 = `${holders.length ? `${holders.length} shareholder${holders.length === 1 ? "" : "s"} now face the choice the market always asks after a deal: take the cash, convert at three-for-two, or hold defunct paper against a refounding. ` : ""}${founder ? `${founder}, who incorporated ${dn0}, was reported to be reviewing the terms. ` : ""}The deal was put in motion by ${ctx.triggeredBy}.`;
 
   return (
@@ -34,12 +34,12 @@ export function FrontPage({ game, onDismiss }: { game: GameState; onDismiss: () 
         </PressIn>
 
         <PressIn delay={80}>
-          <Text style={{ fontFamily: SANS_BLACK, fontSize: 10, letterSpacing: 2.5, textTransform: "uppercase", color: RED, marginBottom: 4 }}>Acquisition</Text>
+          <Text style={{ fontFamily: SANS_BLACK, fontSize: 10, letterSpacing: 2.5, textTransform: "uppercase", color: RED, marginBottom: 4 }}>The Takeover</Text>
           <Text style={{ fontFamily: SERIF, fontSize: 38, lineHeight: 39, color: INK, marginBottom: 8 }}>
             {ctx.surv} swallows {ctx.defuncts.join(" and ")}
           </Text>
           <Text style={{ fontFamily: SERIF_BOLD, fontStyle: "italic", fontSize: 15, color: INK2, marginBottom: 14 }}>
-            Shareholders to be paid {money(price)} a block; settlement opens at once
+            Shareholders to be paid {money(price)} a share; settlement opens at once
           </Text>
         </PressIn>
 
@@ -69,14 +69,22 @@ export function FrontPage({ game, onDismiss }: { game: GameState; onDismiss: () 
             <View key={p.name} style={{ flexDirection: "row", justifyContent: "space-between", paddingVertical: 2 }}>
               <Text style={{ fontFamily: SANS, fontSize: 12, color: INK }}>{p.kind === "human" ? "You" : p.name}</Text>
               <Text style={{ fontFamily: SANS, fontSize: 12, color: INK2, fontVariant: ["tabular-nums"] }}>
-                {p.shares[dn0]} blk · {money((p.shares[dn0] ?? 0) * price)}
+                {p.shares[dn0]} sh · {money((p.shares[dn0] ?? 0) * price)}
               </Text>
             </View>
           )) : <Text style={{ fontFamily: SANS, fontSize: 12, color: INK3, fontStyle: "italic" }}>None on record.</Text>}
         </PressIn>
 
         <PressIn delay={540} style={{ marginTop: 24 }}>
-          <InkButton label="Proceed to settlement ⟶" onPress={onDismiss} />
+          <InkButton
+            label={
+              ctx.card?.id === "blocked" ? "Continue — the deal is dead ⟶"
+              : ctx.card?.id === "regulatory" ? "Continue — the deal is delayed ⟶"
+              : ctx.card?.dev ? "Brace, then settle ⟶"
+              : "Proceed to settlement ⟶"
+            }
+            onPress={onDismiss}
+          />
         </PressIn>
         <View style={{ height: 24 }} />
         <View style={{ marginTop: 4, alignItems: "center" }}>
@@ -100,7 +108,7 @@ export function MarketWrap({ game, onDismiss }: { game: GameState; onDismiss: ()
           <Text style={{ fontFamily: SERIF, fontSize: 20, color: INK, marginTop: 3 }}>
             {ctx.surv} settles at size {game.cos[ctx.surv]!.size}
           </Text>
-          <Text style={{ fontFamily: SANS, fontSize: 12.5, color: INK2, marginBottom: 10 }}>{money(priceOf(game, ctx.surv))} a block</Text>
+          <Text style={{ fontFamily: SANS, fontSize: 12.5, color: INK2, marginBottom: 10 }}>{money(priceOf(game, ctx.surv))} a share</Text>
           <View style={{ borderTopWidth: 1, borderTopColor: BD2, paddingTop: 8 }}>
             {ctx.resultDetails.map((d, i) => (
               <Text key={i} style={{ fontFamily: SANS, fontSize: 12, lineHeight: 19, color: INK2 }}>{d}</Text>

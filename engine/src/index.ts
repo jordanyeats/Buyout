@@ -10,6 +10,6 @@ export { buildDeck, applyCardImmediate, applyEarningsMiss } from "./cards.js";
 export {
   newGame, applyAction, playableTiles, currentActor, convertCapacity, checkInvariants,
 } from "./engine.js";
-export { aiAction } from "./ai.js";
+export { aiAction } from "./brain.js";
 export { sharkPlace, SHARK_CONFIG } from "./shark.js";
 export { policyAction } from "./ai.js";

@@ -70,8 +70,9 @@ GC achievement reports when you wire it.
   questionnaire.
 - **`ITSAppUsesNonExemptEncryption` is already false** in app.json — skips the
   export-compliance question on every build.
-- **The word "Acquire" must not appear** in the app name, subtitle, keywords,
-  description, or screenshots. (See docs/ROADMAP.md, legal section.)
+- **The classic merger game's name must not appear** in the app name, subtitle,
+  keywords, description, or screenshots — nor anywhere in this repository.
+  (See docs/ROADMAP.md, legal section.)
 - **IP attorney consult** before the public listing goes live. TestFlight with a
   handful of testers is lower-stakes; public release is the line.
 

@@ -28,7 +28,7 @@ What it is *not* yet: shippable. Babel compiles in the browser on every load, Re
 | 5 | **Determinism is broken where it counts** | Shuffles are seeded, but `aiTile`, `aiBuy`, AI survivor tie-breaks, and AI founding all use `Math.random()`. Full determinism (seed → identical game) is what makes replays, regression tests, and future async multiplayer nearly free. Route everything through the seeded RNG. |
 | 6 | **Engine trusts the UI** | `doBuy` doesn't validate cash, the 3-block limit, or market availability — the UI enforces it. Fine offline; a hole the moment anything networked exists. Validation belongs in the engine. |
 | 7 | **Board doesn't fit an iPhone** | At 38px cells, column I clips off a 390pt screen (see `game_early.png`). A scrolling game board is a non-starter on phone — cells must size to fit-width. |
-| 8 | Cosmetic | Holdings table shows "You You" (name + type label). End-game lacks Acquire-style secondary end conditions (all chains safe / tiles exhausted), so games can theoretically drag past the fun. |
+| 8 | Cosmetic | Holdings table shows "You You" (name + type label). End-game lacks the classic genre's secondary end conditions (all chains safe / tiles exhausted), so games can theoretically drag past the fun. |
 
 None of these are hard fixes. All of them must precede any port, because you want to port a *correct* engine once, not debug the same bug in two languages.
 
@@ -38,14 +38,14 @@ None of these are hard fixes. All of them must precede any port, because you wan
 
 **I'm not a lawyer and this isn't legal advice — spend a few hundred dollars on an IP attorney consult before launch.** That said, here's the factual landscape:
 
-**What's on your side.** US copyright does not protect game rules or mechanics — only their specific *expression* (rule text, art, names, theme). Trademark protects the name ACQUIRE and its trade dress. You are using none of it: different name, tech-startup theme instead of hotels, original company names, original card deck, and materially different parameters (9×9 vs 9×12, six companies vs seven, 3:2 conversion vs 2:1, founder's two blocks, price cap, $100K start). The merger deck in particular changes how the game actually plays. There is a long commercial tradition of games built on the tile-place/invest/merge core.
+**What's on your side.** US copyright does not protect game rules or mechanics — only their specific *expression* (rule text, art, names, theme). Trademark protects the classic game's name (deliberately not written anywhere in this repository) and its trade dress. You are using none of it: different name, tech-startup theme instead of hotels, original company names, original card deck, and materially different parameters (9×9 vs 9×12, six companies vs seven, 3:2 conversion vs 2:1, founder's two blocks, price cap, $100K start). The merger deck in particular changes how the game actually plays. There is a long commercial tradition of games built on the tile-place/invest/merge core.
 
 **What to be careful about:**
 
-1. **Never say "Acquire" in public materials.** Not in the App Store name, subtitle, keywords, description, screenshots, press kit, or your website. "A modern take on the classic merger game" is fine; naming the trademark is how you invite a letter. (You said "modernizing Acquire" to me — that phrase must never appear in marketing.)
-2. **Watch the README and commit history.** Your current README is clean — keep it that way. If old commits or issues reference Acquire, consider whether the repo should be private before launch anyway (shipping a paid app with the full source public is its own decision).
-3. **Hasbro actively publishes Acquire** — this is not an abandoned property, so don't assume nobody's watching the category.
-4. **Diverge further where it's cheap.** Every parameter you move away from Acquire's exact values, and every original mechanic (the deck) strengthens "this is its own game." The safe-company threshold (25) and end trigger (35) already differ; good.
+1. **Never write the classic game's name in public materials.** Not in the App Store name, subtitle, keywords, description, screenshots, press kit, or your website. "A modern take on the classic merger game" is fine; naming the trademark is how you invite a letter. That phrase pattern — "modernizing [the classic]" with the name spelled out — must never appear in marketing.
+2. **Watch the README and commit history.** Your current README is clean — keep it that way. If old commits or issues reference the classic title, consider whether the repo should be private before launch anyway (shipping a paid app with the full source public is its own decision).
+3. **The classic title is actively published by a major toy company** — this is not an abandoned property, so don't assume nobody's watching the category.
+4. **Diverge further where it's cheap.** Every parameter you move away from the classic's exact values, and every original mechanic (the deck) strengthens "this is its own game." The safe-company threshold (25) and end trigger (35) already differ; good.
 5. **Screen your own name too.** Check "Buyout" on the App Store and a basic trademark search — you don't want to solve the Hasbro problem and land on someone else's mark.
 6. **Document independence.** Keep design notes showing your own iteration (your v1.4 constants, card balancing). Cheap insurance.
 
@@ -94,7 +94,7 @@ Ordered roughly by how much each matters:
 ## 6. Business shape
 
 - **Pricing: premium, $5.99–$7.99, no ads.** Board game buyers are a premium-tolerant niche and your aesthetic signals it. Ads would poison the positioning. Alternative: free with 2 AI opponents, one-time unlock for full AI roster + cards — better funnel, more support surface. Either works; ads don't.
-- **App Store checklist:** Apple Developer account ($99/yr) · privacy nutrition label (collect nothing — it's a selling point) · 4+ age rating (simulated stock trading is not "gambling") · screenshots per device class · App Preview video (your merger-card reveal animation is the money shot) · TestFlight beta with actual Acquire-genre players (find them in board game forums — carefully worded) before launch.
+- **App Store checklist:** Apple Developer account ($99/yr) · privacy nutrition label (collect nothing — it's a selling point) · 4+ age rating (simulated stock trading is not "gambling") · screenshots per device class · App Preview video (your merger-card reveal animation is the money shot) · TestFlight beta with genre veterans from board game forums (carefully worded outreach) before launch.
 - **The repo decision:** shipping a paid app whose full source is public on GitHub is a choice. Not fatal (clones require effort), but decide it deliberately; at minimum move the polished iOS code private.
 
 ---

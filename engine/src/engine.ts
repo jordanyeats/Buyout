@@ -209,7 +209,7 @@ function doPlace(g: GameState, tile: Tile): GameState {
         refreshCompany(g, surv);
         checkEarnouts(g);
         g.phase = "buy";
-        log(g, `${surv} expands to ${g.cos[surv]!.size} (protected companies cannot be acquired)`);
+        log(g, `${surv} expands to ${g.cos[surv]!.size} (protected companies cannot be taken over)`);
       } else {
         beginMerger(g, surv, defuncts, tile, p.name);
       }
@@ -256,7 +256,7 @@ function beginMerger(
     triggeredBy, resultDetails: [], afterPhase: "buy",
   };
   g.phase = "mergerAnnounce";
-  log(g, `Merger: ${surv} acquires ${sorted.join(", ")}`);
+  log(g, `Merger: ${surv} absorbs ${sorted.join(", ")}`);
 }
 
 function drawCard(g: GameState): CardDef | null {
@@ -278,7 +278,7 @@ function doChooseSurvivor(g: GameState, coName: string): GameState {
     refreshCompany(g, coName);
     checkEarnouts(g);
     g.pendingMerger = null;
-    log(g, `${coName} expands (protected companies cannot be acquired)`);
+    log(g, `${coName} expands (protected companies cannot be taken over)`);
     if (sc.fromPending) {
       g.phase = "place";
       maybeSkipPlace(g);
@@ -579,7 +579,7 @@ function beginPendingResolution(g: GameState, surv: string, defuncts: string[], 
     afterPhase: "place",
   };
   g.phase = "mergerAnnounce";
-  log(g, `Delayed merger resolves: ${surv} acquires ${touching.join(", ")}`);
+  log(g, `Delayed merger resolves: ${surv} absorbs ${touching.join(", ")}`);
 }
 
 // ---------------------------------------------------------------- buy + end turn
@@ -621,7 +621,15 @@ function endTurn(g: GameState): GameState {
   const deadBoard =
     g.pool.length === 0 &&
     g.players.every((_, i) => playableTiles(g, i).length === 0);
-  if (g.endTriggered || allSafe || deadBoard) return finalScoring(g);
+  if (g.endTriggered || allSafe || deadBoard) {
+    const biggest = active.reduce((a, b) => (b.size > a.size ? b : a), active[0] ?? { name: "?", size: 0 } as never);
+    g.endReason = g.endTriggered
+      ? `${(biggest as { name: string }).name} reached size ${END_SIZE} — the market consolidated`
+      : allSafe
+        ? "every company on the board went safe — no more takeovers possible"
+        : "no legal moves remained anywhere on the board";
+    return finalScoring(g);
+  }
 
   g.turn += 1;
   g.current = g.turn % g.players.length;

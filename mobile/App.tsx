@@ -28,7 +28,7 @@ export default function App() {
     SourceSans3_700Bold,
     SourceSans3_800ExtraBold,
   });
-  const { game, restoring, hasSave, start, resume, abandon, act, quit, unlocked } = useGame();
+  const { game, restoring, hasSave, start, resume, abandon, act, quit, restart, unlocked } = useGame();
 
   if (!fontsLoaded || restoring) {
     return (
@@ -42,7 +42,7 @@ export default function App() {
     <>
       <StatusBar style="dark" />
       {game ? (
-        <GameScreen game={game} act={act} onQuit={quit} unlocked={unlocked} />
+        <GameScreen game={game} act={act} onQuit={quit} onRestart={restart} unlocked={unlocked} />
       ) : screen === "tutorial" ? (
         <TutorialScreen onExit={() => setScreen("home")} />
       ) : screen === "stats" ? (
