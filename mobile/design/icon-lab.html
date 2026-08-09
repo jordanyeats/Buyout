@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+@font-face {
+  font-family: "Playfair";
+  src: url("../node_modules/@expo-google-fonts/playfair-display/900Black/PlayfairDisplay_900Black.ttf");
+  font-weight: 900;
+}
+@font-face {
+  font-family: "SourceSans";
+  src: url("../node_modules/@expo-google-fonts/source-sans-3/800ExtraBold/SourceSans3_800ExtraBold.ttf");
+  font-weight: 800;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { background: #666; }
+.icon { width: 1024px; height: 1024px; position: relative; overflow: hidden; }
+
+/* ---- A: The Drop Cap — ink B on parchment with the thick-thin rules ---- */
+#a { background: #FAF6F0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+#a .rules-top { position: absolute; top: 118px; left: 118px; right: 118px; }
+#a .rules-bot { position: absolute; bottom: 118px; left: 118px; right: 118px; }
+.rule-thick { height: 26px; background: #1A1715; }
+.rule-thin { height: 9px; background: #1A1715; margin-top: 14px; }
+.rule-thin-first { height: 9px; background: #1A1715; margin-bottom: 14px; }
+#a .b { font-family: Playfair; font-size: 620px; color: #1A1715; line-height: 1; margin-top: -30px; }
+
+/* ---- B: Reversed — parchment B on ink ---- */
+#b { background: #1A1715; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+#b .rules-top { position: absolute; top: 118px; left: 118px; right: 118px; }
+#b .rules-bot { position: absolute; bottom: 118px; left: 118px; right: 118px; }
+#b .rule-thick, #b .rule-thin, #b .rule-thin-first { background: #FAF6F0; }
+#b .b { font-family: Playfair; font-size: 620px; color: #FAF6F0; line-height: 1; margin-top: -30px; }
+
+/* ---- C: The Merger — two company blocks and the seam tile ---- */
+#c { background: #FAF6F0; }
+#c .blk { position: absolute; width: 300px; height: 300px; box-shadow: inset 0 14px 30px rgba(0,0,0,0.28); }
+#c .teal { background: #0E6E7C; left: 112px; top: 362px; }
+#c .gold { background: #8B6914; right: 112px; top: 362px; }
+#c .seam { position: absolute; width: 300px; height: 300px; left: 362px; top: 362px; background: #1A1715;
+  display: flex; align-items: center; justify-content: center; box-shadow: inset 0 14px 30px rgba(0,0,0,0.35); }
+#c .seam span { font-family: Playfair; font-size: 210px; color: #FAF6F0; }
+#c .dot { position: absolute; width: 14px; height: 14px; background: #D4CEC4; }
+
+/* ---- D: The Tile — one letterpress company tile, full bleed ---- */
+#d { background: #0E6E7C; display: flex; align-items: center; justify-content: center; }
+#d .inner { width: 1024px; height: 1024px; display: flex; align-items: center; justify-content: center;
+  box-shadow: inset 0 40px 90px rgba(0,0,0,0.35), inset 0 -20px 60px rgba(255,255,255,0.08); }
+#d .b { font-family: Playfair; font-size: 640px; color: #C4E8ED; }
+#d .corner { position: absolute; font-family: SourceSans; font-size: 72px; color: rgba(196,232,237,0.65); letter-spacing: 8px; }
+#d .tl { top: 70px; left: 86px; }
+#d .br { bottom: 70px; right: 86px; transform: rotate(180deg); }
+</style>
+</head>
+<body>
+<div class="icon" id="a">
+  <div class="rules-top"><div class="rule-thick"></div><div class="rule-thin"></div></div>
+  <div class="b">B</div>
+  <div class="rules-bot"><div class="rule-thin-first"></div><div class="rule-thick"></div></div>
+</div>
+<div class="icon" id="b">
+  <div class="rules-top"><div class="rule-thick"></div><div class="rule-thin"></div></div>
+  <div class="b">B</div>
+  <div class="rules-bot"><div class="rule-thin-first"></div><div class="rule-thick"></div></div>
+</div>
+<div class="icon" id="c">
+  <div class="blk teal"></div>
+  <div class="blk gold"></div>
+  <div class="seam"><span>B</span></div>
+</div>
+<div class="icon" id="d">
+  <div class="inner"><div class="b">B</div></div>
+  <div class="corner tl">B7</div>
+  <div class="corner br">B7</div>
+</div>
+<script>
+// graph-paper dots for C, skipping the blocks' zone
+const c = document.getElementById('c');
+for (let r = 0; r < 8; r++) for (let col = 0; col < 8; col++) {
+  const x = 112 + col * 114, y = 112 + r * 114;
+  if (y > 290 && y < 740) continue;
+  const d = document.createElement('div');
+  d.className = 'dot';
+  d.style.left = x + 'px';
+  d.style.top = y + 'px';
+  c.appendChild(d);
+}
+</script>
+</body>
+</html>
