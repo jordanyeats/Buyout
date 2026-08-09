@@ -1,0 +1,723 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Buyout  |  Tech Startup Merger Strategy</title>
+<meta name="description" content="A strategy game about building, investing in, and merging tech startups.">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  body { background: #FAF6F0; overflow-x: hidden; }
+  #root { min-height: 100vh; }
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.9/babel.min.js"></script>
+<script type="text/babel">
+const { useState, useCallback, useEffect, useRef } = React;
+
+/* BUYOUT  |  Paper + Ink Edition
+   Warm parchment base, dark ink typography, jewel-tone companies.
+   Premium editorial feel. Full v1.4 engine. */
+
+// Constants
+const R=9,C=9,SAFE=25,ENDSZ=35,CASH0=100000,HAND=4,MBUY=3,FBLK=2,PB=5000,PR=1.15,CAP=100000,MJ=10,MN=5,CF=3,CT=2,BPR=1000;
+const SPC={2:15,3:18,4:20,5:23,6:25};
+const COS=[
+  {n:"Blink",cd:"BL",bg:"#0E6E7C",tx:"#C4E8ED",pill:"#E6F4F6",ptx:"#0A5560"},
+  {n:"Zap",cd:"ZP",bg:"#8B6914",tx:"#F5E6C0",pill:"#FBF3E0",ptx:"#6B4F0E"},
+  {n:"Flux",cd:"FX",bg:"#7B2D8E",tx:"#E8CFF0",pill:"#F4E8F8",ptx:"#5C1D6C"},
+  {n:"Spark",cd:"SK",bg:"#9B2335",tx:"#F5CDD3",pill:"#FAE6E9",ptx:"#7A1A2A"},
+  {n:"Neon",cd:"NE",bg:"#1B6B3A",tx:"#C5E8D3",pill:"#E4F5EB",ptx:"#14522D"},
+  {n:"Pogo",cd:"PG",bg:"#3D3D99",tx:"#CDCDF5",pill:"#EAEAFB",ptx:"#2D2D75"},
+];
+const gci=n=>COS.find(c=>c.n===n)||{n,cd:"??",bg:"#777",tx:"#EEE",pill:"#F0F0F0",ptx:"#555"};
+const sp=s=>{if(s<2)return 0;return Math.min(CAP,Math.round(PB*Math.pow(PR,s)/100)*100);};
+const $$=n=>"$"+n.toLocaleString();
+const xy=(r,c)=>String.fromCharCode(65+c)+(r+1);
+// Grammar: "You buy" vs "Stratton buys"
+const isYou=p=>p.tp==="human";
+const pn=p=>isYou(p)?"You":p.nm; // display name
+const pv=(p,v3,v2)=>isYou(p)?v2:v3; // verb: 3rd person / 2nd person
+function mkR(a){return()=>{a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+function shuf(a,r){for(let i=a.length-1;i>0;i--){const j=Math.floor(r()*(i+1));[a[i],a[j]]=[a[j],a[i]];}}
+function dc(o){return JSON.parse(JSON.stringify(o));}
+
+// Inject CSS
+if(typeof document!=='undefined'){const s=document.createElement('style');s.textContent=`
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Source+Sans+3:wght@400;500;600;700;800&display=swap');
+@keyframes boPop{0%{transform:scale(0.85);opacity:0}60%{transform:scale(1.05)}100%{transform:scale(1);opacity:1}}
+@keyframes boSlide{0%{transform:translateY(16px);opacity:0}100%{transform:translateY(0);opacity:1}}
+@keyframes boFade{0%{opacity:0}100%{opacity:1}}
+@keyframes boCard{0%{transform:perspective(600px) rotateY(80deg) scale(0.9);opacity:0}60%{transform:perspective(600px) rotateY(-3deg) scale(1.01)}100%{transform:perspective(600px) rotateY(0) scale(1);opacity:1}}
+@keyframes boPulse{0%,100%{opacity:1}50%{opacity:0.4}}
+.boPop{animation:boPop .35s cubic-bezier(.34,1.56,.64,1) both}
+.boSlide{animation:boSlide .3s ease both}
+.boFade{animation:boFade .25s ease both}
+.boCard{animation:boCard .5s cubic-bezier(.34,1.56,.64,1) both}
+.boPulse{animation:boPulse 1.6s ease infinite}
+`;document.head.appendChild(s);}
+
+// Theme
+const BG="#FAF6F0",CARD="#FFFFFF",INK="#1A1715",INK2="#6B6560",INK3="#9E9790",BD="#E8E2DA",BD2="#D4CEC4",ACCENT="#8B6914",GRN="#1B6B3A",RED="#9B2335",PUR="#3D3D99",WARM="#F5F0E8";
+const hd="'Playfair Display',Georgia,serif";
+const bd="'Source Sans 3',-apple-system,'Helvetica Neue',sans-serif";
+
+// Cards
+const CARDS=[
+  {id:"regulatory",cat:"blocker",name:"Regulatory Review",desc:"Merger delayed one round.",flav:"The FTC has questions.",dev:false},
+  {id:"antitrust",cat:"blocker",name:"Antitrust Ruling",desc:"Survivor releases 3 blocks to market.",flav:"Approved with conditions.",dev:false},
+  {id:"blocked",cat:"blocker",name:"Takeover Blocked",desc:"Merger CANCELLED. Turn ends immediately.",flav:"The board has voted no.",dev:true},
+  {id:"duedil",cat:"blocker",name:"Due Diligence Failure",desc:"Defunct valued at HALF for sell/convert.",flav:"Irregularities discovered.",dev:false},
+  {id:"vc",cat:"windfall",name:"VC Injection",desc:"Every player receives $25,000.",flav:"Capital flows into the sector.",dev:false},
+  {id:"ipo",cat:"windfall",name:"IPO Bonus",desc:"You receive defunct price x3 in cash.",flav:"Markets reward the dealmaker.",dev:false},
+  {id:"tax",cat:"windfall",name:"Liquidation Tax",desc:"30% tax on all sell proceeds this merger.",flav:"Emergency legislation.",dev:true},
+  {id:"golden",cat:"windfall",name:"Golden Parachute",desc:"Founder gets 2 free survivor blocks.",flav:"Protection was negotiated.",dev:false},
+  {id:"earnings",cat:"market",name:"Earnings Miss",desc:"Pick a company | it loses 3 tiles.",flav:"Quarterly results disappoint.",dev:false},
+  {id:"partner",cat:"market",name:"Strategic Partnership",desc:"Two smallest companies ally up.",flav:"A strategic alliance.",dev:false},
+  {id:"valreset",cat:"market",name:"Valuation Reset",desc:"A company's price drops permanently.",flav:"Analysts downgrade.",dev:false},
+  {id:"secondary",cat:"market",name:"Secondary Offering",desc:"4 new blocks added to a company.",flav:"New shares issued.",dev:false},
+  {id:"talent",cat:"hostile",name:"Talent Raid",desc:"Opponent sells 1 block of shared company.",flav:"Key people poached.",dev:false},
+  {id:"activist",cat:"hostile",name:"Activist Campaign",desc:"Majority pays $15K or gives you 1 block.",flav:"An activist demands change.",dev:false},
+  {id:"earnout",cat:"hostile",name:"Earnout Agreement",desc:"If survivor hits size 20, you get $50K.",flav:"Performance milestones.",dev:false},
+];
+function buildDeck(rng){const d=[...CARDS];const fs=["Deal closes smoothly.","Investors respond well.","Textbook acquisition."];for(let i=0;i<12;i++)d.push({id:"clean",cat:"clean",name:"Clean Acquisition",desc:"Normal merger. You get $5,000.",flav:fs[i%3],dev:false});shuf(d,rng);return d;}
+
+// -- Engine (same as v1.4) --
+const adj=(r,c)=>[[-1,0],[1,0],[0,-1],[0,1]].map(([dr,dc2])=>[r+dr,c+dc2]).filter(([nr,nc])=>nr>=0&&nr<R&&nc>=0&&nc<C);
+const adjCo=(b,r,c)=>{const s=new Set();for(const[nr,nc]of adj(r,c)){const t=b[nr][nc];if(t&&t!=="e")s.add(t);}return[...s];};
+const adjUn=(b,r,c)=>adj(r,c).filter(([nr,nc])=>b[nr][nc]==="e");
+function connUn(b,r,c){const v=new Set(),q=[[r,c]];while(q.length){const[cr,cc]=q.shift();const k=cr+","+cc;if(v.has(k))continue;if(b[cr][cc]!=="e")continue;v.add(k);for(const[nr,nc]of adj(cr,cc))if(!v.has(nr+","+nc))q.push([nr,nc]);}return[...v].map(k=>k.split(",").map(Number));}
+const coT=(b,n)=>{const t=[];for(let r=0;r<R;r++)for(let c=0;c<C;c++)if(b[r][c]===n)t.push([r,c]);return t;};
+function analyze(b,cos,r,c){const ac=adjCo(b,r,c),au=adjUn(b,r,c);if(ac.length>=2){const sf=ac.filter(n=>cos[n].st==="safe"),ns=ac.filter(n=>cos[n].st!=="safe");if(sf.length>=2&&ns.length===0)return{type:"x"};if(sf.length>=2)return{type:"expand",co:sf.sort((a,b2)=>cos[b2].sz-cos[a].sz)[0]};return{type:"merger",cos:ac};}if(ac.length===1)return{type:"expand",co:ac[0]};if(au.length>0&&Object.values(cos).some(c2=>c2.st==="inactive")){const conn=new Set();conn.add(r+","+c);for(const[ar,ac2]of au)for(const t of connUn(b,ar,ac2))conn.add(t.join(","));return{type:"found",conn:[...conn].map(k=>k.split(",").map(Number))};}return{type:"none"};}
+const canPlay=(b,cos,r,c)=>analyze(b,cos,r,c).type!=="x";
+function mm(cn,ps){const h=ps.map(p=>({p,s:p.sh[cn]||0})).filter(x=>x.s>0).sort((a,b)=>b.s-a.s);if(!h.length)return{maj:[],min:[]};const ms=h[0].s;return{maj:h.filter(x=>x.s===ms).map(x=>x.p),min:(()=>{const r2=h.filter(x=>x.s<ms);return r2.length?r2.filter(x=>x.s===r2[0].s).map(x=>x.p):[];})()};}
+function payB(co,ps,logs){const pr=sp(co.sz),mb=pr*MJ,nb=pr*MN;const{maj,min}=mm(co.n,ps);if(!maj.length)return;if(maj.length===1&&min.length===0){maj[0].ca+=mb+nb;logs.push(pn(maj[0])+" "+pv(maj[0],"receives","receive")+" "+$$(mb+nb)+" for "+co.n);}else if(maj.length===1){maj[0].ca+=mb;logs.push(pn(maj[0])+" "+pv(maj[0],"receives","receive")+" "+$$(mb)+" majority for "+co.n);const s=Math.floor(nb/min.length);for(const p of min){p.ca+=s;logs.push(pn(p)+" "+pv(p,"receives","receive")+" "+$$(s)+" minority for "+co.n);}}else{const s=Math.floor((mb+nb)/maj.length);for(const p of maj){p.ca+=s;logs.push(pn(p)+" "+pv(p,"receives","receive")+" "+$$(s)+" split for "+co.n);}}}
+
+function newGame(cfgs,seed,useCards){const rng2=mkR(seed),n=cfgs.length,mx=SPC[n]||20;const pool=[];for(let i=0;i<R;i++)for(let j=0;j<C;j++)pool.push([i,j]);shuf(pool,rng2);const ps=cfgs.map(({name,type})=>({nm:name,tp:type,ca:CASH0,sh:{},hd:[]}));for(const p of ps)for(let i=0;i<HAND&&pool.length;i++)p.hd.push(pool.pop());const cos={},mkt={};for(const c of COS){cos[c.n]={n:c.n,st:"inactive",sz:0};mkt[c.n]=mx;}const deck=useCards?buildDeck(mkR(seed+7777)):[];return{bd:Array.from({length:R},()=>Array(C).fill(null)),cos,mkt,ps,pool,mx,ci2:0,turn:0,ph:"place",over:false,logs:[],seed,useCards,pRes:null,pTile:null,mq:null,endT:false,popup:null,mdpi:null,mdec:null,deck,discard:[],founders:{},valR:{},earnouts:[],partner:null,taxActive:false,halfPrice:false,cardForMerger:null};}
+
+// AI
+function aiTile(g,idx){const p=g.ps[idx],tiles=p.hd.filter(([r,c])=>canPlay(g.bd,g.cos,r,c));if(!tiles.length)return null;if(p.tp==="random")return tiles[Math.floor(Math.random()*tiles.length)];let best=tiles[0],bs=-Infinity;for(const t of tiles){const res=analyze(g.bd,g.cos,t[0],t[1]);let s=Math.random()*2;if(res.type==="found")s+=40;else if(res.type==="expand"){const my=p.sh[res.co]||0,{maj}=mm(res.co,g.ps);if(my===0)s-=5;else if(maj.some(m=>m.nm===p.nm))s+=g.cos[res.co].sz>=SAFE-3?45:20+my*2;else s+=2;}else if(res.type==="merger"){const sizes={};for(const n2 of res.cos)sizes[n2]=g.cos[n2].sz;const surv=res.cos.reduce((a,b2)=>sizes[a]>=sizes[b2]?a:b2);let ms2=5;for(const dn of res.cos.filter(n2=>n2!==surv)){const{maj}=mm(dn,g.ps);if(maj.some(m=>m.nm===p.nm))ms2+=30;else if(maj.length&&!maj.some(m=>m.nm===p.nm))ms2-=12;}if((p.sh[surv]||0)>0)ms2+=(p.sh[surv]||0)*3;s+=ms2;}if(s>bs){bs=s;best=t;}}return best;}
+function aiBuy(g,idx){const p=g.ps[idx];const buyable=Object.values(g.cos).filter(c=>(c.st==="active"||c.st==="safe")&&g.mkt[c.n]>0).map(c=>({n:c.n,pr:sp(c.sz),av:g.mkt[c.n],sz:c.sz})).filter(c=>c.pr>0&&c.pr<=p.ca);if(!buyable.length)return{};if(p.tp==="random"){const res={};let rem=Math.floor(Math.random()*(MBUY+1)),cash=p.ca;for(let i=0;i<rem;i++){const pk=buyable[Math.floor(Math.random()*buyable.length)];if(pk.pr>cash||(res[pk.n]||0)>=pk.av)continue;res[pk.n]=(res[pk.n]||0)+1;cash-=pk.pr;}return res;}const budget=p.tp==="strategic"?p.ca*0.8:p.ca;const scored=buyable.map(c=>{let s=0;const my=p.sh[c.n]||0;const{maj}=mm(c.n,g.ps);if(p.tp==="strategic"){if(maj.some(m=>m.nm===p.nm))s+=20;else if(my>0&&maj.length){const gap=(maj[0].sh[c.n]||0)-my;if(gap<=2)s+=28;else if(gap>4)s-=10;}if(!maj.length&&my===0)s+=15;if(my>0&&!maj.length)s+=18;if(c.sz<=5)s+=8;}else{s=c.sz*5;if(my>0)s+=10;}return{...c,s:s+Math.random()*3};}).sort((a,b)=>b.s-a.s);const res={};let rem=MBUY,cash=budget;for(const c of scored){if(rem<=0)break;const can=c.pr>0?Math.min(rem,c.av,Math.floor(cash/c.pr)):0;if(can>0){res[c.n]=can;cash-=can*c.pr;rem-=can;}}return res;}
+function aiMerger(g,p,dn,sn,held){const avail=g.mkt[sn]||0;const dp=g.halfPrice?Math.floor(sp(g.cos[dn].sz)/2):sp(g.cos[dn].sz);const survP=sp(g.cos[sn].sz);if(p.tp==="random"){if(avail===0){const sell=Math.floor(Math.random()*(held+1));return{sell,convert:0,hold:held-sell};}const sell=Math.floor(Math.random()*(held+1)),rem=held-sell,mc=Math.floor(rem/CF)*CF,conv=mc>0?Math.floor(Math.random()*(mc/CF+1))*CF:0;return{sell,convert:Math.min(conv,rem),hold:held-sell-Math.min(conv,rem)};}if(p.tp==="greedy")return{sell:held,convert:0,hold:0};if(avail===0)return{sell:held,convert:0,hold:0};const maxSets=Math.floor(held/CF),wouldGain=Math.min(maxSets*CT,avail),actSets=wouldGain>0?Math.floor(wouldGain/CT):0,convSh=actSets*CF,rem=held-convSh;const cvVal=CT*survP,slVal=CF*dp;let shouldConv=cvVal>=slVal;if(!shouldConv){const{maj}=mm(sn,g.ps);if(maj.length&&!maj.some(m=>m.nm===p.nm)&&(p.sh[sn]||0)+wouldGain>=(maj[0].sh[sn]||0))shouldConv=true;}if(shouldConv&&convSh>0)return{sell:rem,convert:convSh,hold:0};return{sell:held,convert:0,hold:0};}
+
+// State transitions
+function doPlace(gs,tile){const g=dc(gs),[r,c]=tile,p=g.ps[g.ci2];p.hd=p.hd.filter(([hr,hc])=>hr!==r||hc!==c);g.bd[r][c]="e";const res=analyze(g.bd,g.cos,r,c);g.pRes=res;g.pTile=tile;if(res.type==="none"){g.ph="buy";g.logs.push(pn(p)+" placed at "+xy(r,c));}else if(res.type==="expand"){g.bd[r][c]=res.co;for(const[ar,ac2]of adjUn(g.bd,r,c))for(const[tr,tc]of connUn(g.bd,ar,ac2))g.bd[tr][tc]=res.co;const ns=coT(g.bd,res.co).length;g.cos[res.co].sz=ns;if(ns>=SAFE&&g.cos[res.co].st==="active")g.cos[res.co].st="safe";if(ns>=ENDSZ)g.endT=true;chkE(g);g.ph="buy";g.logs.push(res.co+" expands to "+ns);}else if(res.type==="found"){g.ph="found";g.logs.push(pn(p)+" "+(isYou(p)?"found":"founds")+" a company");}else if(res.type==="merger"){const sizes={};for(const n2 of res.cos)sizes[n2]=g.cos[n2].sz;const mx2=Math.max(...Object.values(sizes)),tied=Object.keys(sizes).filter(n2=>sizes[n2]===mx2);if(tied.length===1){const surv=tied[0],defunct=res.cos.filter(n2=>n2!==surv).sort((a,b2)=>g.cos[b2].sz-g.cos[a].sz);g.mq={surv,defunct,di:0};g.bd[r][c]=surv;for(const[ar,ac2]of adjUn(g.bd,r,c))for(const[tr,tc]of connUn(g.bd,ar,ac2))g.bd[tr][tc]=surv;const card=drw(g);g.popup={type:"announce",surv,defunct:[...defunct],by:pn(p),card};g.ph="popup";g.logs.push("Merger: "+surv+" acquires "+defunct.join(", "));}else{g.mq={tied,all:res.cos};g.ph="merger_survivor";g.logs.push("Merger tie: "+tied.join(", "));}}return g;}
+function drw(g){if(!g.useCards||g.deck.length===0)return null;const card=g.deck.shift();g.discard.push(card);return card;}
+function doFound(gs,cn){const g=dc(gs),[r,c]=g.pTile,p=g.ps[g.ci2],res=g.pRes;for(const[tr,tc]of res.conn)g.bd[tr][tc]=cn;g.bd[r][c]=cn;const sz=coT(g.bd,cn).length;g.cos[cn].st="active";g.cos[cn].sz=sz;if(sz>=SAFE)g.cos[cn].st="safe";if(sz>=ENDSZ)g.endT=true;const gr=Math.min(FBLK,g.mkt[cn]);p.sh[cn]=(p.sh[cn]||0)+gr;g.mkt[cn]-=gr;g.founders[cn]=p.nm;g.ph="buy";g.logs.push(pn(p)+" "+(isYou(p)?"found":"founds")+" "+cn+" | "+gr+" free blocks");return g;}
+function doSurv(gs,sn){const g=dc(gs),[r,c]=g.pTile,p=g.ps[g.ci2];const defunct=g.mq.all.filter(n2=>n2!==sn).sort((a,b2)=>g.cos[b2].sz-g.cos[a].sz);g.mq={surv:sn,defunct,di:0};g.bd[r][c]=sn;for(const[ar,ac2]of adjUn(g.bd,r,c))for(const[tr,tc]of connUn(g.bd,ar,ac2))g.bd[tr][tc]=sn;const card=drw(g);g.popup={type:"announce",surv:sn,defunct:[...defunct],by:pn(p),card};g.ph="popup";return g;}
+function appCard(g,card,ti){if(!card)return"proceed";const p=g.ps[ti];if(card.id==="clean"){p.ca+=5000;return"proceed";}if(card.id==="blocked")return"cancel";if(card.id==="vc"){for(const pl of g.ps)pl.ca+=25000;return"proceed";}if(card.id==="ipo"){const dn=g.mq.defunct[g.mq.di];const dnN=typeof dn==="string"?dn:dn.n||dn;p.ca+=sp(g.cos[dnN].sz)*3;return"proceed";}if(card.id==="tax"){g.taxActive=true;return"proceed";}if(card.id==="duedil"){g.halfPrice=true;return"proceed";}if(card.id==="earnings"){const mcos=g.mq?[g.mq.surv,...(g.mq.defunct||[]).map(d=>typeof d==="string"?d:d.n)]:[];const active=Object.values(g.cos).filter(c2=>(c2.st==="active"||c2.st==="safe")&&!mcos.includes(c2.n)&&c2.sz>4);if(active.length){const target=active.reduce((a,b2)=>(p.sh[a.n]||0)<=(p.sh[b2.n]||0)?a:b2);const tiles=coT(g.bd,target.n),removable=Math.min(3,Math.max(0,tiles.length-2));if(removable>0){const edges=tiles.filter(([tr,tc])=>adj(tr,tc).some(([nr,nc])=>g.bd[nr][nc]!==target.n));for(let i=0;i<removable&&i<edges.length;i++)g.bd[edges[i][0]][edges[i][1]]="e";target.sz=Math.max(2,coT(g.bd,target.n).length);}}return"proceed";}if(card.id==="partner"){const sorted=Object.values(g.cos).filter(c2=>c2.st==="active"||c2.st==="safe").sort((a,b2)=>a.sz-b2.sz);if(sorted.length>=2)g.partner=[sorted[0].n,sorted[1].n];return"proceed";}if(card.id==="valreset"){const mcos=g.mq?[g.mq.surv,...(g.mq.defunct||[]).map(d=>typeof d==="string"?d:d.n)]:[];const active=Object.values(g.cos).filter(c2=>(c2.st==="active"||c2.st==="safe")&&!mcos.includes(c2.n));if(active.length){const t2=active.reduce((a,b2)=>(p.sh[a.n]||0)<=(p.sh[b2.n]||0)?a:b2);g.valR[t2.n]=(g.valR[t2.n]||0)-3;}return"proceed";}if(card.id==="secondary"){const active=Object.values(g.cos).filter(c2=>c2.st==="active"||c2.st==="safe");if(active.length){const t2=active.reduce((a,b2)=>(p.sh[a.n]||0)>=(p.sh[b2.n]||0)?a:b2);g.mkt[t2.n]=(g.mkt[t2.n]||0)+4;}return"proceed";}if(card.id==="talent"){for(const co of Object.values(g.cos).filter(c2=>c2.st==="active"||c2.st==="safe")){if((p.sh[co.n]||0)>0){for(const p2 of g.ps){if(p2.nm!==p.nm&&(p2.sh[co.n]||0)>0){p2.sh[co.n]-=1;if(p2.sh[co.n]<=0)delete p2.sh[co.n];p2.ca+=sp(co.sz);g.mkt[co.n]=(g.mkt[co.n]||0)+1;g.logs.push(pn(p2)+" sold 1 "+co.n+" block (talent raid)");return"proceed";}}}}return"proceed";}if(card.id==="activist"){const active=Object.values(g.cos).filter(c2=>c2.st==="active"||c2.st==="safe");if(active.length){const t2=active.reduce((a,b2)=>b2.sz>a.sz?b2:a);const{maj}=mm(t2.n,g.ps);if(maj.length&&maj[0].nm!==p.nm){if(maj[0].ca>50000)maj[0].ca-=15000;else if((maj[0].sh[t2.n]||0)>0){maj[0].sh[t2.n]-=1;if(maj[0].sh[t2.n]<=0)delete maj[0].sh[t2.n];p.sh[t2.n]=(p.sh[t2.n]||0)+1;}}}return"proceed";}if(card.id==="earnout"){g.earnouts.push({player:p.nm,company:g.mq.surv});return"proceed";}return"proceed";}
+function chkE(g){const triggered=[];for(const e of g.earnouts){const co=g.cos[e.company];if(co&&(co.st==="active"||co.st==="safe")&&co.sz>=20){const p=g.ps.find(pl=>pl.nm===e.player);if(p){p.ca+=50000;g.logs.push(pn(p)+" "+(isYou(p)?"earn":"earns")+" $50,000 (earnout)");}triggered.push(e);}}for(const e of triggered)g.earnouts=g.earnouts.filter(x=>x!==e);}
+function startDec(gs){const g=dc(gs),dn=g.mq.defunct[g.mq.di];const dnN=typeof dn==="string"?dn:dn.n||dn;payB(g.cos[dnN],g.ps,g.logs);g.mdec={};g.popup=null;const order=decOrd(g);const first=order.find(idx=>(g.ps[idx].sh[dnN]||0)>0);if(first!==undefined){g.mdpi=first;g.ph="merger_decide";}else return finDef(g);return g;}
+function decOrd(g){const o=[];for(let i=0;i<g.ps.length;i++)o.push((g.ci2+i)%g.ps.length);return o;}
+function subDec(gs,pidx,dec2){const g=dc(gs),dn=g.mq.defunct[g.mq.di];const dnN=typeof dn==="string"?dn:dn.n||dn;g.mdec[g.ps[pidx].nm]=dec2;const order=decOrd(g),curOi=order.indexOf(pidx);let next=null;for(let i=curOi+1;i<order.length;i++){const idx=order[i];if((g.ps[idx].sh[dnN]||0)>0&&!g.mdec[g.ps[idx].nm]){next=idx;break;}}if(next!==null){g.mdpi=next;g.ph="merger_decide";}else return exDec(g);return g;}
+function exDec(gs){const g=dc(gs),mq=g.mq,dn=mq.defunct[mq.di];const dnN=typeof dn==="string"?dn:dn.n||dn;const def=g.cos[dnN],sn=mq.surv;const price=g.halfPrice?Math.floor(sp(def.sz)/2):sp(def.sz);const details=[];for(const p of g.ps){const d=g.mdec[p.nm];if(!d)continue;if(d.sell>0){let proceeds=d.sell*price;if(g.taxActive){const tax=Math.floor(proceeds*0.3);proceeds-=tax;details.push(pn(p)+" taxed "+$$(tax));}p.sh[dnN]=(p.sh[dnN]||0)-d.sell;if(p.sh[dnN]<=0)delete p.sh[dnN];p.ca+=proceeds;g.mkt[dnN]=(g.mkt[dnN]||0)+d.sell;details.push(pn(p)+" sold "+d.sell+" for "+$$(proceeds));}if(d.convert>0){const sets=Math.floor(d.convert/CF),gaining=Math.min(sets*CT,g.mkt[sn]||0),used=Math.floor(gaining/CT)*CF;p.sh[dnN]=(p.sh[dnN]||0)-used;if(p.sh[dnN]<=0)delete p.sh[dnN];g.mkt[dnN]=(g.mkt[dnN]||0)+used;p.sh[sn]=(p.sh[sn]||0)+gaining;g.mkt[sn]-=gaining;details.push(pn(p)+" converted "+used+" to "+gaining+" "+sn);}if(d.hold>0)details.push(pn(p)+" held "+d.hold);}for(let r=0;r<R;r++)for(let c=0;c<C;c++)if(g.bd[r][c]===dnN)g.bd[r][c]=sn;def.st="inactive";def.sz=0;const ns=coT(g.bd,sn).length;g.cos[sn].sz=ns;if(ns>=SAFE&&g.cos[sn].st==="active")g.cos[sn].st="safe";if(ns>=ENDSZ)g.endT=true;const card=g.cardForMerger;if(card&&card.id==="antitrust"){g.mkt[sn]=(g.mkt[sn]||0)+3;details.push("3 blocks released");}if(card&&card.id==="golden"){const founder=g.founders[dnN];if(founder){const fp=g.ps.find(pl=>pl.nm===founder);const av=g.mkt[sn]||0,gr=Math.min(2,av);if(fp&&gr>0){fp.sh[sn]=(fp.sh[sn]||0)+gr;g.mkt[sn]-=gr;details.push(founder+" got "+gr+" blocks (golden parachute)");}}}chkE(g);g.logs.push(sn+" is now size "+ns);g.popup={type:"result",surv:sn,defunct:dnN,newSz:ns,details};g.ph="popup_result";g.mdpi=null;g.mdec=null;g.taxActive=false;g.halfPrice=false;return g;}
+function finDef(gs){const g=dc(gs),mq=g.mq,dn=mq.defunct[mq.di];const dnN=typeof dn==="string"?dn:dn.n||dn;const def=g.cos[dnN],sn=mq.surv;for(let r=0;r<R;r++)for(let c=0;c<C;c++)if(g.bd[r][c]===dnN)g.bd[r][c]=sn;def.st="inactive";def.sz=0;const ns=coT(g.bd,sn).length;g.cos[sn].sz=ns;if(ns>=SAFE&&g.cos[sn].st==="active")g.cos[sn].st="safe";if(ns>=ENDSZ)g.endT=true;g.popup={type:"result",surv:sn,defunct:dnN,newSz:ns,details:["No shareholders"]};g.ph="popup_result";g.mdpi=null;g.mdec=null;g.taxActive=false;g.halfPrice=false;return g;}
+function advM(gs){const g=dc(gs);g.popup=null;g.mq.di++;if(g.mq.di<g.mq.defunct.length){const dn=g.mq.defunct[g.mq.di];g.popup={type:"announce",surv:g.mq.surv,defunct:[dn],by:"continuing",card:null};g.ph="popup";}else{g.mq=null;g.cardForMerger=null;g.ph="buy";}return g;}
+function doBuy(gs,purchases){const g=dc(gs),p=g.ps[g.ci2];for(const[n2,cnt]of Object.entries(purchases)){if(cnt<=0)continue;const pr=sp(g.cos[n2].sz)*cnt;p.ca-=pr;p.sh[n2]=(p.sh[n2]||0)+cnt;g.mkt[n2]-=cnt;g.logs.push(pn(p)+" "+(isYou(p)?"buy":"buys")+" "+cnt+" "+n2);}return g;}
+function doEnd(gs){const g=dc(gs),p=g.ps[g.ci2];while(p.hd.length<HAND&&g.pool.length)p.hd.push(g.pool.pop());if(g.endT){g.over=true;g.ph="gameover";return g;}g.turn++;g.ci2=g.turn%g.ps.length;g.ph="place";g.pRes=null;g.pTile=null;const np=g.ps[g.ci2],pl=np.hd.filter(([r,c])=>canPlay(g.bd,g.cos,r,c));if(pl.length===0&&np.hd.length>0){for(const t of np.hd)g.pool.push(t);np.hd=[];shuf(g.pool,mkR(g.seed+g.turn));while(np.hd.length<HAND&&g.pool.length)np.hd.push(g.pool.pop());}return g;}
+function doFinal(gs){const g=dc(gs);g.logs.push("--- Final Scoring ---");for(const c of Object.values(g.cos).filter(c2=>c2.st==="active"||c2.st==="safe"))payB(c,g.ps,g.logs);for(const p of g.ps){for(const[n2,cnt]of Object.entries(p.sh)){const c2=g.cos[n2];if(c2.st==="active"||c2.st==="safe"){const pr=cnt*sp(c2.sz);p.ca+=pr;g.logs.push(pn(p)+" "+(isYou(p)?"liquidate":"liquidates")+" "+cnt+" "+n2+" for "+$$(pr));}}p.sh={};}return g;}
+
+// =============== UI v2: "Paper + Ink, Alive" ===============
+// Design rules: motion only on moments that matter; one animation per event;
+// ink-on-paper metaphors (stamp, press, ticker); generous whitespace; no particles.
+
+if (typeof document !== 'undefined') {
+  const s2 = document.createElement('style');
+  s2.textContent = `
+@keyframes boStamp{0%{transform:scale(1.5) rotate(-5deg);opacity:0}55%{transform:scale(.96) rotate(1deg);opacity:1}100%{transform:scale(1) rotate(0)}}
+.boStamp{animation:boStamp .3s cubic-bezier(.2,1.4,.4,1) both}
+@keyframes boFlood{0%{filter:brightness(1.6);transform:scale(.9)}100%{filter:brightness(1);transform:scale(1)}}
+.boFlood{animation:boFlood .35s ease-out both}
+@keyframes boPress{0%{opacity:0;transform:translateY(14px) scale(.985)}100%{opacity:1;transform:translateY(0) scale(1)}}
+.boPress{animation:boPress .45s cubic-bezier(.2,.9,.3,1) both}
+@keyframes boSlam{0%{opacity:0;transform:scale(1.12);letter-spacing:.06em}60%{opacity:1;transform:scale(.99)}100%{transform:scale(1)}}
+.boSlam{animation:boSlam .5s cubic-bezier(.2,1.2,.3,1) both}
+@keyframes boRise{0%{opacity:0;transform:translateY(6px)}25%{opacity:1}100%{opacity:0;transform:translateY(-16px)}}
+.boRise{animation:boRise 1.6s ease-out both}
+@keyframes boTickIn{0%{opacity:0;transform:translateY(4px)}100%{opacity:1;transform:translateY(0)}}
+.boTickIn{animation:boTickIn .3s ease both}
+@keyframes boClip{0%{opacity:0;transform:rotate(-2.5deg) translateY(10px)}100%{opacity:1;transform:rotate(-1.2deg) translateY(0)}}
+.boClip{animation:boClip .45s .5s cubic-bezier(.2,1.2,.4,1) both}
+@keyframes boUnderline{0%{transform:scaleX(0)}100%{transform:scaleX(1)}}
+.boUnderline{animation:boUnderline .4s .25s ease both;transform-origin:left}
+`;
+  document.head.appendChild(s2);
+}
+
+// Company identity: mark + tagline. One line of personality each — enough to root for.
+const IDENT = {
+  Blink: { tag: "Attention, delivered.", mark: (s, c) => <svg width={s} height={s} viewBox="0 0 12 12"><circle cx="6" cy="6" r="4.6" fill="none" stroke={c} strokeWidth="1.6"/><circle cx="6" cy="6" r="1.8" fill={c}/></svg> },
+  Zap: { tag: "Payments at light speed.", mark: (s, c) => <svg width={s} height={s} viewBox="0 0 12 12"><path d="M7 1 L3 7 H5.6 L5 11 L9 5 H6.4 Z" fill={c}/></svg> },
+  Flux: { tag: "The everything pipeline.", mark: (s, c) => <svg width={s} height={s} viewBox="0 0 12 12"><path d="M1 8 C3 4,5 4,6 6 C7 8,9 8,11 4" fill="none" stroke={c} strokeWidth="1.6" strokeLinecap="round"/></svg> },
+  Spark: { tag: "Ideas that ignite.", mark: (s, c) => <svg width={s} height={s} viewBox="0 0 12 12"><path d="M6 1 L7 5 L11 6 L7 7 L6 11 L5 7 L1 6 L5 5 Z" fill={c}/></svg> },
+  Neon: { tag: "Nightlife, organized.", mark: (s, c) => <svg width={s} height={s} viewBox="0 0 12 12"><circle cx="6" cy="6" r="4.6" fill="none" stroke={c} strokeWidth="1.4"/><circle cx="6" cy="6" r="2.4" fill="none" stroke={c} strokeWidth="1.2"/></svg> },
+  Pogo: { tag: "Bounce-back logistics.", mark: (s, c) => <svg width={s} height={s} viewBox="0 0 12 12"><rect x="2.5" y="1.5" width="7" height="2" rx="1" fill={c}/><rect x="3.5" y="5" width="5" height="2" rx="1" fill={c} opacity=".75"/><rect x="4.5" y="8.5" width="3" height="2" rx="1" fill={c} opacity=".5"/></svg> },
+};
+
+function Wordmark({ name, size = 13, light = false }) {
+  const i = gci(name);
+  const id = IDENT[name] || IDENT.Blink;
+  const col = light ? i.tx : i.ptx;
+  return (
+    <span style={{ display: "inline-flex", alignItems: "center", gap: 5, fontFamily: bd, fontWeight: 800, fontSize: size, color: col, letterSpacing: 0.2 }}>
+      {id.mark(size - 1, col)}{name}
+    </span>
+  );
+}
+
+// Cash that counts. The single most load-bearing four lines of "alive" in the app.
+function CountUp({ value, style }) {
+  const [disp, setDisp] = useState(value);
+  const prev = useRef(value);
+  useEffect(() => {
+    const from = prev.current, to = value;
+    prev.current = value;
+    if (from === to) { setDisp(to); return; }
+    const t0 = performance.now(), dur = 650;
+    let raf;
+    const step = (t) => {
+      const k = Math.min(1, (t - t0) / dur);
+      const e = 1 - Math.pow(1 - k, 3);
+      setDisp(Math.round(from + (to - from) * e));
+      if (k < 1) raf = requestAnimationFrame(step);
+    };
+    raf = requestAnimationFrame(step);
+    return () => cancelAnimationFrame(raf);
+  }, [value]);
+  return <span style={style}>{"$" + disp.toLocaleString()}</span>;
+}
+
+// One-line ticker under the header: the latest market event, nothing else.
+function Ticker({ logs }) {
+  const last = logs[logs.length - 1];
+  if (!last) return null;
+  return (
+    <div key={logs.length} className="boTickIn" style={{ display: "flex", alignItems: "center", gap: 8, padding: "4px 6px 8px", fontFamily: bd, fontSize: 11.5, color: INK2, borderBottom: "1px solid " + BD, marginBottom: 8 }}>
+      <span style={{ width: 5, height: 5, borderRadius: 5, background: ACCENT, flexShrink: 0 }} />
+      <span style={{ whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{last}</span>
+    </div>
+  );
+}
+
+// ---- THE FRONT PAGE: mergers arrive as news, not as dialogs ----
+function FrontPage({ popup, game, onDismiss }) {
+  const si = gci(popup.surv);
+  const defunctNames = popup.defunct.map((d) => (typeof d === "string" ? d : d.n || d));
+  const dn0 = defunctNames[0];
+  const dPrice = $$(sp(game.cos[dn0].sz));
+  const totalBlocks = game.ps.reduce((s, p) => s + (p.sh[dn0] || 0), 0) + 0;
+  return (
+    <div style={{ position: "fixed", inset: 0, background: BG, zIndex: 200, overflowY: "auto", display: "flex", flexDirection: "column", alignItems: "center", padding: "26px 22px" }} className="boFade">
+      <div style={{ width: "100%", maxWidth: 420, textAlign: "center" }}>
+        <div className="boPress" style={{ fontFamily: bd, fontSize: 10, fontWeight: 700, letterSpacing: 3.5, color: INK3, textTransform: "uppercase" }}>The Buyout Ledger</div>
+        <div className="boPress" style={{ fontFamily: bd, fontSize: 9.5, color: INK3, marginTop: 3 }}>Mergers &amp; Acquisitions Desk · Turn {game.turn + 1}</div>
+        <div style={{ borderTop: "2.5px solid " + INK, borderBottom: "1px solid " + INK, height: 4, margin: "10px 0 20px" }} className="boPress" />
+
+        <div className="boSlam" style={{ fontFamily: hd, fontWeight: 900, fontSize: 42, lineHeight: 1.02, color: INK, textTransform: "uppercase", letterSpacing: -0.5, animationDelay: ".12s" }}>
+          {popup.surv}<br />
+          <span style={{ fontSize: 20, fontWeight: 700, fontStyle: "italic", textTransform: "none", letterSpacing: 0 }}>acquires</span><br />
+          {defunctNames.join(" & ")}
+        </div>
+        <div className="boUnderline" style={{ height: 2, background: si.bg, width: 72, margin: "14px auto 0" }} />
+
+        <div className="boPress" style={{ animationDelay: ".3s", fontFamily: bd, fontSize: 13.5, color: INK2, marginTop: 14, lineHeight: 1.55 }}>
+          {defunctNames.map((dn) => {
+            const co = game.cos[dn];
+            return <div key={dn}><Wordmark name={dn} size={13} /> <span style={{ color: INK3 }}>— size {co.sz}, shareholders paid out at <b style={{ color: INK }}>{$$(sp(co.sz))}</b> a block</span></div>;
+          })}
+          <div style={{ marginTop: 6, fontSize: 11.5, color: INK3 }}>Deal triggered by {popup.by}</div>
+        </div>
+
+        {popup.card && (
+          <div className="boClip" style={{ margin: "22px auto 0", maxWidth: 320, background: popup.card.dev ? "#FDF4F4" : "#FCFAF5", border: "1px solid " + (popup.card.dev ? "#E3B1B1" : BD2), boxShadow: "0 3px 14px rgba(26,23,21,.08)", padding: "14px 16px", textAlign: "left" }}>
+            <div style={{ fontFamily: bd, fontSize: 9, fontWeight: 800, letterSpacing: 2.5, color: popup.card.dev ? RED : ACCENT, textTransform: "uppercase" }}>Special report</div>
+            <div style={{ fontFamily: hd, fontSize: 17, fontWeight: 900, color: INK, margin: "3px 0 2px" }}>{popup.card.name}</div>
+            <div style={{ fontFamily: bd, fontSize: 11, fontStyle: "italic", color: INK3 }}>{popup.card.flav}</div>
+            <div style={{ fontFamily: bd, fontSize: 12.5, color: INK, marginTop: 6 }}>{popup.card.desc}</div>
+          </div>
+        )}
+
+        <button onClick={onDismiss} className="boPress" style={{ animationDelay: ".55s", marginTop: 26, padding: "14px 42px", background: INK, color: BG, border: "none", borderRadius: 10, fontFamily: bd, fontWeight: 700, fontSize: 14, letterSpacing: .4, cursor: "pointer" }}>
+        Continue to settlement</button>
+      </div>
+    </div>
+  );
+}
+
+// Post-merger result: a compact "market wrap" column, not another modal wall.
+function MarketWrap({ popup, game, onDismiss }) {
+  const si = gci(popup.surv);
+  return (
+    <div style={{ position: "fixed", inset: 0, background: "rgba(26,23,21,.4)", backdropFilter: "blur(10px)", WebkitBackdropFilter: "blur(10px)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 150, padding: 20 }} className="boFade">
+      <div className="boPress" style={{ background: CARD, border: "1px solid " + BD, borderTop: "3px solid " + si.bg, maxWidth: 360, width: "100%", padding: "20px 22px", boxShadow: "0 24px 70px rgba(0,0,0,.16)" }}>
+        <div style={{ fontFamily: bd, fontSize: 9, fontWeight: 800, letterSpacing: 2.5, color: INK3, textTransform: "uppercase" }}>Market wrap</div>
+        <div style={{ fontFamily: hd, fontSize: 20, fontWeight: 900, color: INK, margin: "4px 0 2px" }}>
+          {popup.surv} settles at size {popup.newSz}
+        </div>
+        <div style={{ fontFamily: bd, fontSize: 12.5, color: INK2, marginBottom: 12 }}>{$$(sp(popup.newSz))} a block</div>
+        <div style={{ borderTop: "1px solid " + BD, paddingTop: 10 }}>
+          {popup.details.map((d, i) => (
+            <div key={i} style={{ fontFamily: bd, fontSize: 12, color: INK2, padding: "2.5px 0" }}>{d}</div>
+          ))}
+        </div>
+        <button onClick={onDismiss} style={{ marginTop: 16, width: "100%", padding: "12px", background: INK, color: BG, border: "none", borderRadius: 9, fontFamily: bd, fontWeight: 700, fontSize: 13.5, cursor: "pointer" }}>Continue</button>
+      </div>
+    </div>
+  );
+}
+
+// ---- Board: tiles stamp, mergers flood, and it fits the screen ----
+function Board2({ game, onTileClick, sel, human }) {
+  const pSet = human && game.ph === "place" ? new Set(human.hd.filter(([r, c]) => canPlay(game.bd, game.cos, r, c)).map(([r, c]) => r + "," + c)) : new Set();
+  const vw = Math.min(typeof window !== "undefined" ? window.innerWidth : 540, 540);
+  const cell = Math.min(40, Math.floor((vw - 66) / C)); // fit-to-width: no clipped columns
+  const prevRef = useRef(null);
+  const changed = {};
+  if (prevRef.current) {
+    let i = 0;
+    for (let r = 0; r < R; r++) for (let c = 0; c < C; c++) {
+      const now = game.bd[r][c];
+      if (now && prevRef.current[r][c] !== now) changed[r + "," + c] = i++;
+    }
+  }
+  useEffect(() => { prevRef.current = game.bd.map((row) => [...row]); });
+  const many = Object.keys(changed).length > 1;
+  return (
+    <div style={{ padding: "4px 0", display: "flex", justifyContent: "center" }}>
+      <div>
+        <div style={{ display: "flex", marginLeft: 18 }}>
+          {Array.from({ length: C }, (_, c) => <div key={c} style={{ width: cell, textAlign: "center", fontSize: 9.5, color: INK3, fontWeight: 600, fontFamily: bd }}>{String.fromCharCode(65 + c)}</div>)}
+        </div>
+        {Array.from({ length: R }, (_, r) => (
+          <div key={r} style={{ display: "flex", alignItems: "center" }}>
+            <div style={{ width: 18, textAlign: "center", fontSize: 9.5, color: INK3, fontWeight: 600, fontFamily: bd }}>{r + 1}</div>
+            {Array.from({ length: C }, (_, c) => {
+              const t = game.bd[r][c], k = r + "," + c, inH = pSet.has(k), isSel = sel && sel[0] === r && sel[1] === c;
+              const co2 = t && t !== "e" ? gci(t) : null;
+              const isNew = k in changed;
+              const cls = isNew ? (many ? "boFlood" : "boStamp") : "";
+              return (
+                <div key={c} onClick={() => inH && onTileClick([r, c])} className={cls} style={{
+                  width: cell - 3, height: cell - 3, margin: 1.5, borderRadius: 6,
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                  fontSize: 9, fontWeight: 800, letterSpacing: .4, fontFamily: bd,
+                  cursor: inH ? "pointer" : "default", userSelect: "none",
+                  animationDelay: isNew && many ? (changed[k] * 40) + "ms" : "0ms",
+                  background: co2 ? co2.bg : t === "e" ? "#8A837A" : inH ? (isSel ? INK : "#E4EBF1") : "#EDE9E2",
+                  border: isSel ? "2.5px solid " + INK : inH ? "1.5px solid #94B4C8" : "1px solid " + (co2 ? "rgba(0,0,0,.18)" : BD),
+                  color: co2 ? co2.tx : inH ? (isSel ? BG : "#3B6FA0") : "transparent",
+                  boxShadow: co2 ? "0 1.5px 3px rgba(0,0,0,.14)" : "none",
+                  transition: "background .25s ease",
+                }}>{co2 ? co2.cd : inH ? xy(r, c) : ""}</div>
+              );
+            })}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function HandBar({ game, sel, onSelect }) {
+  const human = game.ps.find((p) => p.tp === "human");
+  if (!human || game.ph !== "place") return null;
+  const pSet = new Set(human.hd.filter(([r, c]) => canPlay(game.bd, game.cos, r, c)).map(([r, c]) => r + "," + c));
+  return (
+    <div style={{ display: "flex", gap: 6, padding: "10px 4px 2px", alignItems: "center", justifyContent: "center" }}>
+      <span style={{ fontSize: 10.5, color: INK3, fontWeight: 600, fontFamily: bd, letterSpacing: 1, textTransform: "uppercase", marginRight: 2 }}>Hand</span>
+      {human.hd.map(([r, c], i) => {
+        const isP = pSet.has(r + "," + c), isSel = sel && sel[0] === r && sel[1] === c;
+        return (
+          <button key={i} onClick={() => isP && onSelect([r, c])} style={{
+            padding: "7px 13px", borderRadius: 8, fontFamily: bd, fontSize: 12.5, fontWeight: 700,
+            cursor: isP ? "pointer" : "default",
+            background: isSel ? INK : isP ? CARD : "#EDE9E2",
+            color: isSel ? BG : isP ? INK : INK3,
+            border: isSel ? "2px solid " + INK : "1.5px solid " + (isP ? BD2 : BD),
+            opacity: isP ? 1 : .45, transition: "all .15s",
+          }}>{xy(r, c)}</button>
+        );
+      })}
+    </div>
+  );
+}
+
+function CoBar({ game }) {
+  const active = Object.values(game.cos).filter((c) => c.st !== "inactive");
+  if (!active.length && !game.useCards) return null;
+  return (
+    <div style={{ display: "flex", gap: 6, flexWrap: "wrap", justifyContent: "center", padding: "8px 0 2px" }}>
+      {active.map((c) => {
+        const i = gci(c.n);
+        return (
+          <div key={c.n} style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "5px 10px", borderRadius: 8, background: i.pill, border: "1px solid " + i.bg + "22" }}>
+            <Wordmark name={c.n} size={11.5} />
+            <span style={{ fontFamily: bd, fontSize: 10.5, color: INK3, fontWeight: 600 }}>{c.sz} · {$$(sp(c.sz))}{c.st === "safe" ? " · SAFE" : ""}</span>
+          </div>
+        );
+      })}
+      {game.useCards && <div style={{ display: "inline-flex", alignItems: "center", padding: "5px 10px", borderRadius: 8, background: WARM, border: "1px solid " + BD, fontFamily: bd, fontSize: 10, fontWeight: 700, color: ACCENT }}>{game.deck.length} CARDS</div>}
+    </div>
+  );
+}
+
+// Player row with counting cash and a floating +gain chip. One row = one player.
+function PlayerRow({ p, active, cols, game }) {
+  const nw = p.ca + cols.reduce((s, c) => s + (p.sh[c.n] || 0) * sp(c.sz), 0);
+  const prevCash = useRef(p.ca);
+  const [gain, setGain] = useState(null);
+  useEffect(() => {
+    const d = p.ca - prevCash.current;
+    prevCash.current = p.ca;
+    if (d > 0) { setGain({ amt: d, id: Date.now() }); }
+  }, [p.ca]);
+  return (
+    <tr>
+      <td style={{ padding: "9px 8px", fontFamily: bd, fontSize: 12.5, whiteSpace: "nowrap", borderBottom: "1px solid " + BD, position: "relative" }}>
+        <span style={{ fontWeight: active ? 800 : 500, color: active ? INK : INK2, borderBottom: active ? "2px solid " + ACCENT : "none", paddingBottom: 1 }}>
+          {p.tp === "human" ? "You" : p.nm}
+        </span>
+        {p.tp !== "human" && <span style={{ fontSize: 9, color: INK3, marginLeft: 5 }}>{p.tp}</span>}
+      </td>
+      <td style={{ textAlign: "right", padding: "9px 6px", fontFamily: bd, fontWeight: 600, color: GRN, fontVariantNumeric: "tabular-nums", borderBottom: "1px solid " + BD, position: "relative" }}>
+        <CountUp value={p.ca} />
+        {gain && <span key={gain.id} className="boRise" style={{ position: "absolute", right: 6, top: -8, fontSize: 10.5, fontWeight: 800, color: GRN }}>+{$$(gain.amt)}</span>}
+      </td>
+      {cols.map((c) => {
+        const s2 = p.sh[c.n] || 0, ci2 = gci(c.n);
+        return <td key={c.n} style={{ textAlign: "center", padding: "9px 4px", fontFamily: bd, color: s2 > 0 ? ci2.ptx : BD2, fontWeight: s2 > 0 ? 800 : 400, borderBottom: "1px solid " + BD, fontSize: 12 }}>{s2 || "–"}</td>;
+      })}
+      <td style={{ textAlign: "right", padding: "9px 6px", fontFamily: bd, fontWeight: 800, fontVariantNumeric: "tabular-nums", borderBottom: "1px solid " + BD, color: INK, fontSize: 12.5 }}>
+        <CountUp value={nw} />
+      </td>
+    </tr>
+  );
+}
+
+function Holdings({ game }) {
+  const active = Object.values(game.cos).filter((c) => c.st === "active" || c.st === "safe");
+  return (
+    <table style={{ width: "100%", borderCollapse: "separate", borderSpacing: 0 }}>
+      <thead><tr>
+        {["Player", "Cash"].map((h, i) => <th key={h} style={{ textAlign: i ? "right" : "left", padding: "7px 8px", color: INK3, fontWeight: 700, fontSize: 9.5, letterSpacing: 1.2, textTransform: "uppercase", fontFamily: bd, borderBottom: "2px solid " + BD2 }}>{h}</th>)}
+        {active.map((c) => <th key={c.n} style={{ textAlign: "center", padding: "7px 4px", borderBottom: "2px solid " + BD2 }}><Wordmark name={c.n} size={10} /></th>)}
+        <th style={{ textAlign: "right", padding: "7px 8px", color: INK3, fontWeight: 700, fontSize: 9.5, letterSpacing: 1.2, textTransform: "uppercase", fontFamily: bd, borderBottom: "2px solid " + BD2 }}>Worth</th>
+      </tr></thead>
+      <tbody>
+        {game.ps.map((p, i) => <PlayerRow key={i} p={p} active={i === game.ci2 && !game.over} cols={active} game={game} />)}
+      </tbody>
+      <tfoot><tr>
+        <td style={{ padding: "6px 8px", color: INK3, fontSize: 9.5, fontFamily: bd }}>Market</td><td />
+        {active.map((c) => <td key={c.n} style={{ textAlign: "center", padding: "6px 4px", color: INK3, fontSize: 10, fontFamily: bd }}>{game.mkt[c.n]}</td>)}
+        <td />
+      </tr></tfoot>
+    </table>
+  );
+}
+
+function MergerPanel({ game, held, dn, sn, onConfirm }) {
+  const defP = game.halfPrice ? Math.floor(sp(game.cos[dn].sz) / 2) : sp(game.cos[dn].sz), survP = sp(game.cos[sn].sz), avail = game.mkt[sn] || 0, maxCS = Math.floor(held / CF) * CF;
+  const si = gci(sn), canConv = avail > 0 && maxCS > 0;
+  const [sell, setSell] = useState(0); const [conv, setConv] = useState(0); const [holdS, setHold] = useState(held);
+  const cSets = Math.floor(conv / CF), cGain = Math.min(cSets * CT, avail), cVal = cGain * survP, sVal = sell * defP, tax = game.taxActive ? Math.floor(sVal * 0.3) : 0, net = sVal - tax;
+  const aS = (d) => { const ns = Math.max(0, sell + d); if (ns + conv > held) return; setHold(held - ns - conv); setSell(ns); };
+  const aC = (d) => { if (!canConv) return; const step = d > 0 ? CF : -CF; let nc = Math.max(0, conv + step); nc = Math.min(nc, maxCS, held - sell); nc = Math.floor(nc / CF) * CF; setHold(held - sell - nc); setConv(nc); };
+  const aH = (d) => { const nh = Math.max(0, holdS + d); if (nh + conv > held) return; setSell(held - nh - conv); setHold(nh); };
+  const valid = sell + conv + holdS === held;
+  const pmS = { width: 33, height: 33, borderRadius: 8, border: "1px solid " + BD2, background: CARD, color: INK, cursor: "pointer", fontFamily: bd, fontWeight: 700, fontSize: 15 };
+  const rowS = { display: "flex", alignItems: "center", gap: 10, padding: "13px 0", borderBottom: "1px solid " + BD };
+  const qS = { padding: "7px 13px", borderRadius: 8, fontWeight: 700, cursor: "pointer", fontFamily: bd, fontSize: 11.5, border: "1px solid " + BD };
+  return (
+    <div className="boPress" style={{ padding: 18 }}>
+      <div style={{ fontFamily: bd, fontSize: 9, fontWeight: 800, letterSpacing: 2.5, color: INK3, textTransform: "uppercase" }}>Settlement</div>
+      <div style={{ fontFamily: hd, fontSize: 19, fontWeight: 900, color: INK, margin: "2px 0 2px" }}>Your {dn} position</div>
+      <div style={{ fontSize: 12.5, color: INK2, marginBottom: 12, fontFamily: bd }}>{held} blocks at {$$(defP)} each{game.taxActive ? " · 30% tax on sales" : ""}</div>
+      <div style={{ display: "flex", gap: 6, marginBottom: 4 }}>
+        <button onClick={() => { setSell(held); setConv(0); setHold(0); }} style={{ ...qS, background: sell === held ? GRN + "14" : CARD, color: sell === held ? GRN : INK2 }}>Sell all</button>
+        <button onClick={() => { if (!canConv) return; const mc = Math.min(maxCS, held); setConv(mc); setSell(0); setHold(held - mc); }} style={{ ...qS, background: conv > 0 ? si.pill : CARD, color: conv > 0 ? si.ptx : INK2, opacity: canConv ? 1 : .35 }}>Convert all</button>
+        <button onClick={() => { setSell(0); setConv(0); setHold(held); }} style={{ ...qS, background: holdS === held ? PUR + "14" : CARD, color: holdS === held ? PUR : INK2 }}>Hold all</button>
+      </div>
+      <div style={rowS}>
+        <div style={{ flex: 1 }}><div style={{ fontSize: 13.5, fontWeight: 700, color: GRN, fontFamily: bd }}>Sell</div><div style={{ fontSize: 10.5, color: INK3, fontFamily: bd }}>cash now</div></div>
+        <div style={{ display: "flex", alignItems: "center", gap: 6 }}><button onClick={() => aS(-1)} style={pmS}>–</button><span style={{ fontWeight: 800, fontSize: 17, minWidth: 22, textAlign: "center", fontFamily: bd }}>{sell}</span><button onClick={() => aS(1)} style={pmS}>+</button></div>
+        <div style={{ minWidth: 82, textAlign: "right", fontFamily: bd }}><div style={{ fontWeight: 700, color: GRN, fontSize: 13.5 }}>{$$(net)}</div>{tax > 0 && <div style={{ fontSize: 9.5, color: RED }}>−{$$(tax)} tax</div>}</div>
+      </div>
+      <div style={{ ...rowS, opacity: canConv ? 1 : .3 }}>
+        <div style={{ flex: 1 }}><div style={{ fontSize: 13.5, fontWeight: 700, color: canConv ? si.ptx : INK3, fontFamily: bd }}>Convert 3 : 2</div><div style={{ fontSize: 10.5, color: INK3, fontFamily: bd }}>{canConv ? "into " + sn + " at " + $$(survP) : "none available"}</div></div>
+        {canConv ? <><div style={{ display: "flex", alignItems: "center", gap: 6 }}><button onClick={() => aC(-1)} style={pmS}>−3</button><span style={{ fontWeight: 800, fontSize: 17, minWidth: 22, textAlign: "center", fontFamily: bd }}>{conv}</span><button onClick={() => aC(1)} style={pmS}>+3</button></div>
+          <div style={{ minWidth: 82, textAlign: "right", fontFamily: bd }}><div style={{ fontWeight: 700, color: si.ptx, fontSize: 13.5 }}>{cGain} {sn}</div><div style={{ fontSize: 9.5, color: INK3 }}>≈ {$$(cVal)}</div></div></> : <div style={{ fontFamily: bd, fontSize: 11, color: INK3, fontStyle: "italic" }}>—</div>}
+      </div>
+      <div style={rowS}>
+        <div style={{ flex: 1 }}><div style={{ fontSize: 13.5, fontWeight: 700, color: PUR, fontFamily: bd }}>Hold</div><div style={{ fontSize: 10.5, color: INK3, fontFamily: bd }}>bet on a comeback</div></div>
+        <div style={{ display: "flex", alignItems: "center", gap: 6 }}><button onClick={() => aH(-1)} style={pmS}>–</button><span style={{ fontWeight: 800, fontSize: 17, minWidth: 22, textAlign: "center", fontFamily: bd, color: holdS > 0 ? PUR : INK3 }}>{holdS}</span><button onClick={() => aH(1)} style={pmS}>+</button></div>
+        <div style={{ minWidth: 82, textAlign: "right", fontFamily: bd, color: INK3, fontSize: 13 }}>$0</div>
+      </div>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginTop: 14, fontFamily: bd }}>
+        <span style={{ fontSize: 11, color: INK3, fontWeight: 700, letterSpacing: 1.2, textTransform: "uppercase" }}>Total value</span>
+        <CountUp value={net + cVal} style={{ fontSize: 19, fontWeight: 800, color: INK, fontFamily: bd }} />
+      </div>
+      {valid && <button onClick={() => onConfirm({ sell, convert: conv, hold: holdS })} className="boPop" style={{ marginTop: 12, width: "100%", padding: 14, background: INK, color: BG, border: "none", borderRadius: 10, fontWeight: 700, fontFamily: bd, fontSize: 14.5, cursor: "pointer" }}>Confirm settlement</button>}
+    </div>
+  );
+}
+
+function Actions({ game, onAction, sel, pState, setPS }) {
+  const p = game.ps[game.ci2], isH = p.tp === "human";
+  const btnP = { padding: "13px 28px", background: INK, color: BG, border: "none", borderRadius: 10, fontWeight: 700, cursor: "pointer", fontFamily: bd, fontSize: 14 };
+  const btnS = { padding: "13px 28px", background: WARM, color: INK, border: "1px solid " + BD, borderRadius: 10, fontWeight: 600, cursor: "pointer", fontFamily: bd, fontSize: 14 };
+
+  if (game.ph === "gameover") {
+    const ranked = [...game.ps].sort((a, b2) => b2.ca - a.ca);
+    return (<div className="boPress" style={{ textAlign: "center", padding: 26 }}>
+      <div style={{ fontFamily: bd, fontSize: 9, fontWeight: 800, letterSpacing: 3, color: INK3, textTransform: "uppercase" }}>Final edition</div>
+      <div style={{ fontFamily: hd, fontSize: 30, fontWeight: 900, color: INK, margin: "4px 0" }}>{ranked[0].tp === "human" ? "You win" : ranked[0].nm + " wins"}</div>
+      <CountUp value={ranked[0].ca} style={{ fontSize: 21, fontWeight: 800, color: GRN, fontFamily: bd }} />
+      <div style={{ marginTop: 12 }}>
+        {ranked.slice(1).map((p2, i) => <div key={i} style={{ fontSize: 12.5, color: INK2, padding: "2px 0", fontFamily: bd }}>{i + 2}. {p2.tp === "human" ? "You" : p2.nm} — {$$(p2.ca)}</div>)}
+      </div>
+      <button onClick={() => onAction("restart")} style={{ ...btnP, marginTop: 18 }}>New game</button>
+    </div>);
+  }
+  if (game.ph === "merger_decide" && game.mdpi !== null) {
+    const decider = game.ps[game.mdpi], dn = game.mq.defunct[game.mq.di]; const dnN = typeof dn === "string" ? dn : dn.n || dn;
+    if (decider.tp === "human" && (decider.sh[dnN] || 0) > 0) return <MergerPanel game={game} held={decider.sh[dnN]} dn={dnN} sn={game.mq.surv} onConfirm={(d) => onAction("merger_player_decide", { idx: game.mdpi, dec: d })} />;
+    return <div className="boPulse" style={{ textAlign: "center", padding: 20, color: INK3, fontSize: 13, fontFamily: bd }}>{decider.nm} weighs the offer…</div>;
+  }
+  if (game.ph === "popup" || game.ph === "popup_result") return <div style={{ textAlign: "center", padding: 16, color: INK3, fontSize: 13, fontFamily: bd }}>The presses are running…</div>;
+  if (!isH) return <div className="boPulse" style={{ textAlign: "center", padding: 16, color: INK3, fontSize: 13, fontFamily: bd }}>{p.nm} studies the board…</div>;
+
+  if (game.ph === "place") {
+    return (<div className="boPress" style={{ padding: 16, textAlign: "center" }}>
+      {sel
+        ? <button onClick={() => onAction("place", sel)} className="boPop" style={btnP}>Place {xy(sel[0], sel[1])}</button>
+        : <div style={{ fontSize: 13, fontWeight: 600, color: INK3, fontFamily: bd, padding: "6px 0" }}>Choose a tile from your hand</div>}
+    </div>);
+  }
+  if (game.ph === "found") {
+    const inactive = Object.values(game.cos).filter((c2) => c2.st === "inactive");
+    return (<div className="boPress" style={{ padding: 18, textAlign: "center" }}>
+      <div style={{ fontFamily: bd, fontSize: 9, fontWeight: 800, letterSpacing: 2.5, color: INK3, textTransform: "uppercase", marginBottom: 2 }}>Incorporation papers</div>
+      <div style={{ fontFamily: hd, fontSize: 18, fontWeight: 900, color: INK, marginBottom: 12 }}>Found a startup</div>
+      <div style={{ display: "flex", gap: 8, flexWrap: "wrap", justifyContent: "center" }}>
+        {inactive.map((c2) => {
+          const i = gci(c2.n); const id = IDENT[c2.n];
+          return (
+            <button key={c2.n} onClick={() => onAction("found", c2.n)} className="boPop" style={{ padding: "10px 14px", background: i.bg, color: i.tx, border: "none", borderRadius: 10, cursor: "pointer", textAlign: "left" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 6, fontFamily: bd, fontWeight: 800, fontSize: 13 }}>{id.mark(12, i.tx)}{c2.n}</div>
+              <div style={{ fontFamily: bd, fontSize: 9.5, opacity: .85, marginTop: 2 }}>{id.tag}</div>
+            </button>
+          );
+        })}
+      </div>
+    </div>);
+  }
+  if (game.ph === "merger_survivor") {
+    return (<div className="boPress" style={{ padding: 18, textAlign: "center" }}>
+      <div style={{ fontFamily: hd, fontSize: 17, fontWeight: 900, color: RED, marginBottom: 10 }}>Dead heat — choose the survivor</div>
+      <div style={{ display: "flex", gap: 8, justifyContent: "center" }}>
+        {game.mq.tied.map((n2) => { const i = gci(n2); return <button key={n2} onClick={() => onAction("merger_survivor", n2)} style={{ padding: "10px 18px", background: i.bg, color: i.tx, border: "none", borderRadius: 10, fontWeight: 800, cursor: "pointer", fontFamily: bd, fontSize: 13 }}>{n2} ({game.cos[n2].sz})</button>; })}
+      </div>
+    </div>);
+  }
+  if (game.ph === "buy") {
+    const buyable = Object.values(game.cos).filter((c2) => (c2.st === "active" || c2.st === "safe") && game.mkt[c2.n] > 0 && sp(c2.sz) > 0).map((c2) => ({ n: c2.n, pr: sp(c2.sz), av: game.mkt[c2.n] }));
+    const st = pState || {}; const tot = Object.values(st).reduce((s, v) => s + v, 0); const cost = Object.entries(st).reduce((s, [n2, cnt]) => s + cnt * (buyable.find((b2) => b2.n === n2)?.pr || 0), 0);
+    return (<div className="boPress" style={{ padding: 18 }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 12 }}>
+        <div style={{ fontFamily: hd, fontSize: 17, fontWeight: 900, color: INK }}>Buy blocks</div>
+        <div style={{ fontSize: 11.5, color: INK3, fontFamily: bd }}>{MBUY - tot} left · <CountUp value={p.ca - cost} style={{ fontWeight: 700, color: INK2 }} /></div>
+      </div>
+      {!buyable.length ? (
+        <div style={{ textAlign: "center", padding: "8px 0" }}><div style={{ fontSize: 12.5, color: INK3, marginBottom: 12, fontFamily: bd }}>Nothing on the market yet</div><button onClick={() => onAction("buy", {})} style={btnS}>End turn</button></div>
+      ) : (
+        <>
+          <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 14 }}>
+            {buyable.map((b2) => {
+              const i = gci(b2.n), cnt = st[b2.n] || 0, canMore = tot < MBUY && cnt < b2.av && b2.pr <= (p.ca - cost);
+              return (<div key={b2.n} style={{ background: i.pill, border: "1px solid " + i.bg + "22", borderRadius: 10, padding: "9px 11px", minWidth: 96 }}>
+                <Wordmark name={b2.n} size={12} />
+                <div style={{ color: INK2, fontSize: 10.5, fontFamily: bd, marginTop: 2 }}>{$$(b2.pr)} · {b2.av} left</div>
+                <div style={{ display: "flex", gap: 4, marginTop: 7, alignItems: "center" }}>
+                  <button onClick={() => setPS({ ...st, [b2.n]: Math.max(0, cnt - 1) })} style={{ width: 29, height: 29, borderRadius: 7, border: "1px solid " + BD2, background: CARD, color: INK, cursor: "pointer", fontFamily: bd, fontWeight: 700 }}>–</button>
+                  <span style={{ fontWeight: 800, minWidth: 17, textAlign: "center", fontSize: 15, fontFamily: bd }}>{cnt}</span>
+                  <button onClick={() => canMore && setPS({ ...st, [b2.n]: cnt + 1 })} style={{ width: 29, height: 29, borderRadius: 7, border: "1px solid " + (canMore ? i.bg : BD2), background: canMore ? i.bg : CARD, color: canMore ? i.tx : BD2, cursor: canMore ? "pointer" : "default", fontFamily: bd, fontWeight: 700, opacity: canMore ? 1 : .4 }}>+</button>
+                </div>
+              </div>);
+            })}
+          </div>
+          <div style={{ display: "flex", gap: 8 }}>
+            {tot > 0 && <button onClick={() => onAction("buy", st)} style={{ ...btnP, flex: 1 }}>Buy {tot} · {$$(cost)}</button>}
+            <button onClick={() => onAction("buy", {})} style={{ ...btnS, flex: tot > 0 ? 0 : 1 }}>{tot > 0 ? "Skip" : "End turn"}</button>
+          </div>
+        </>
+      )}
+    </div>);
+  }
+  return null;
+}
+
+function GameLog({ logs, show, onToggle }) {
+  const ref = useRef(null);
+  useEffect(() => { if (ref.current) ref.current.scrollTop = ref.current.scrollHeight; }, [logs]);
+  return (<div>
+    <button onClick={onToggle} style={{ width: "100%", padding: "9px 14px", background: "none", border: "none", cursor: "pointer", fontFamily: bd, fontSize: 10.5, color: INK3, fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", display: "flex", justifyContent: "space-between" }}>
+      <span>Ledger</span><span>{show ? "hide" : "show"}</span>
+    </button>
+    {show && <div ref={ref} style={{ maxHeight: 140, overflowY: "auto", padding: "0 14px 12px", fontSize: 11, lineHeight: 1.8, fontFamily: bd, color: INK3 }}>
+      {logs.slice(-25).map((l, i) => <div key={i}>{l}</div>)}
+    </div>}
+  </div>);
+}
+
+// Demo state: jump straight into a merger so the showcase moment is one tap away.
+function buildDemo() {
+  const g = newGame([{ name: "You", type: "human" }, { name: "Stratton", type: "strategic" }, { name: "Gregor", type: "greedy" }, { name: "Rando", type: "random" }], Date.now(), true);
+  const paint = (name, cells) => {
+    for (const [r, c] of cells) {
+      g.pool = g.pool.filter((t) => !(t[0] === r && t[1] === c));
+      for (const p of g.ps) p.hd = p.hd.filter((t) => !(t[0] === r && t[1] === c));
+      g.bd[r][c] = name;
+    }
+    g.cos[name].st = "active"; g.cos[name].sz = cells.length;
+  };
+  paint("Blink", [[2, 2], [3, 2], [4, 2], [3, 3], [4, 3], [3, 4], [2, 3]]);
+  paint("Zap", [[1, 5], [2, 5], [2, 6], [1, 6]]);
+  paint("Neon", [[7, 0], [7, 1], [8, 1]]);
+  const seam = [3, 5];
+  g.pool = g.pool.filter((t) => !(t[0] === seam[0] && t[1] === seam[1]));
+  for (const p of g.ps) p.hd = p.hd.filter((t) => !(t[0] === seam[0] && t[1] === seam[1]));
+  g.ps[0].hd = [seam, ...g.ps[0].hd.slice(0, 3)];
+  g.ps[0].sh = { Zap: 5, Blink: 2 }; g.ps[1].sh = { Zap: 3, Blink: 4 }; g.ps[2].sh = { Neon: 2 };
+  g.mkt.Zap -= 8; g.mkt.Blink -= 6; g.mkt.Neon -= 2;
+  g.founders.Zap = "Gregor"; g.turn = 13; g.ci2 = 0; g.ph = "place";
+  const golden = CARDS.find((c) => c.id === "golden");
+  g.deck = [golden, ...g.deck];
+  return doPlace(g, seam);
+}
+
+function Setup({ onStart, onDemo }) {
+  const [ps, setPs] = useState([{ name: "You", type: "human" }, { name: "Stratton", type: "strategic" }, { name: "Gregor", type: "greedy" }, { name: "Rando", type: "random" }]);
+  const [cards, setCards] = useState(true);
+  const up = (i, k, v) => { const n = [...ps]; n[i] = { ...n[i], [k]: v }; setPs(n); };
+  const inp = { width: "100%", padding: "10px 12px", borderRadius: 8, border: "1.5px solid " + BD2, background: CARD, color: INK, fontFamily: bd, fontSize: 14, outline: "none" };
+  return (
+    <div style={{ fontFamily: bd, background: BG, color: INK, minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", padding: 20 }}>
+      <div style={{ width: "100%", maxWidth: 400 }}>
+        <div className="boPress" style={{ textAlign: "center", marginBottom: 8 }}>
+          <div style={{ fontFamily: bd, fontSize: 9.5, fontWeight: 700, letterSpacing: 3.5, color: INK3, textTransform: "uppercase" }}>The Buyout Ledger presents</div>
+          <div style={{ fontFamily: hd, fontSize: 44, fontWeight: 900, color: INK, letterSpacing: -1, margin: "2px 0" }}>Buyout</div>
+          <div style={{ fontSize: 13, color: INK2, fontWeight: 500 }}>Found. Invest. Acquire.</div>
+        </div>
+        <div className="boPress" style={{ display: "flex", justifyContent: "center", gap: 10, flexWrap: "wrap", margin: "10px 0 20px", animationDelay: ".1s" }}>
+          {COS.map((c) => <Wordmark key={c.n} name={c.n} size={11} />)}
+        </div>
+        <div className="boPress" style={{ background: CARD, borderRadius: 14, padding: 22, boxShadow: "0 2px 12px rgba(0,0,0,0.06)", border: "1px solid " + BD, animationDelay: ".18s" }}>
+          <div style={{ fontSize: 10, fontWeight: 800, color: INK3, marginBottom: 14, textTransform: "uppercase", letterSpacing: 2 }}>Players</div>
+          {ps.map((p, i) => (
+            <div key={i} style={{ display: "flex", gap: 8, marginBottom: 8 }}>
+              <input value={p.name} onChange={(e) => up(i, "name", e.target.value)} style={{ ...inp, flex: 1 }} placeholder="Name" />
+              <select value={p.type} onChange={(e) => up(i, "type", e.target.value)} style={{ ...inp, flex: 1 }}>
+                <option value="human">Human</option><option value="random">AI: Random</option><option value="greedy">AI: Greedy</option><option value="strategic">AI: Strategic</option>
+              </select>
+              {ps.length > 2 && <button onClick={() => setPs(ps.filter((_, j) => j !== i))} style={{ width: 40, borderRadius: 8, border: "1px solid " + BD, background: CARD, color: INK3, cursor: "pointer", fontFamily: bd, fontSize: 16 }}>×</button>}
+            </div>
+          ))}
+          <label style={{ display: "flex", alignItems: "center", gap: 10, margin: "14px 0", cursor: "pointer", padding: "11px 13px", background: cards ? WARM : CARD, borderRadius: 10, border: "1px solid " + (cards ? ACCENT + "33" : BD) }}>
+            <input type="checkbox" checked={cards} onChange={(e) => setCards(e.target.checked)} style={{ width: 18, height: 18, accentColor: ACCENT }} />
+            <div><div style={{ fontSize: 13, fontWeight: 700, color: INK }}>Merger cards</div><div style={{ fontSize: 10.5, color: INK3 }}>27-card deck drawn when deals close</div></div>
+          </label>
+          <div style={{ display: "flex", gap: 8 }}>
+            {ps.length < 6 && <button onClick={() => setPs([...ps, { name: "P" + (ps.length + 1), type: "greedy" }])} style={{ flex: 1, padding: 12, background: WARM, color: INK, border: "1px solid " + BD, borderRadius: 10, fontWeight: 600, cursor: "pointer", fontFamily: bd, fontSize: 14 }}>+ Player</button>}
+            <button onClick={() => onStart(ps, cards)} style={{ flex: 2, padding: 12, background: INK, color: BG, border: "none", borderRadius: 10, fontWeight: 700, cursor: "pointer", fontFamily: bd, fontSize: 15 }}>Start game</button>
+          </div>
+        </div>
+        <button onClick={onDemo} className="boPress" style={{ animationDelay: ".28s", display: "block", margin: "14px auto 0", padding: "10px 20px", background: "none", border: "1px dashed " + BD2, borderRadius: 10, color: INK2, fontFamily: bd, fontSize: 12, fontWeight: 600, cursor: "pointer" }}>
+          ▶ Preview the merger moment
+        </button>
+      </div>
+    </div>
+  );
+}
+
+// =============== APP ===============
+function App() {
+  const [game, setGame] = useState(null);
+  const [sel, setSel] = useState(null);
+  const [ps, setPs] = useState(null);
+  const [showLog, setShowLog] = useState(false);
+  const aiRef = useRef(null);
+  const start = useCallback((players, cards) => { setGame(newGame(players, Date.now(), cards)); setSel(null); setPs(null); }, []);
+  const demo = useCallback(() => { setGame(buildDemo()); setSel(null); setPs(null); }, []);
+  const act = useCallback((action, data) => {
+    if (!game) return; let g = game;
+    if (action === "restart") { setGame(null); return; }
+    if (action === "place") { g = doPlace(g, data); setSel(null); setPs(null); }
+    else if (action === "found") { g = doFound(g, data); setPs(null); }
+    else if (action === "merger_survivor") { g = doSurv(g, data); }
+    else if (action === "dismiss_popup") { if (g.ph === "popup") { const card = g.popup?.card || null; g.cardForMerger = card; const res = appCard(g, card, g.ci2); if (res === "cancel") { g.mq = null; g.popup = null; g.ph = "place"; g = doEnd(g); } else g = startDec(g); setPs(null); } else if (g.ph === "popup_result") g = advM(g); }
+    else if (action === "merger_player_decide") { g = subDec(g, data.idx, data.dec); setPs(null); }
+    else if (action === "buy") { const f = {}; for (const [k, v] of Object.entries(data)) if (v > 0) f[k] = v; if (Object.keys(f).length > 0) g = doBuy(g, f); g = doEnd(g); setPs(null); if (g.over) g = doFinal(g); }
+    setGame({ ...g });
+  }, [game]);
+  useEffect(() => {
+    if (!game || game.over) return;
+    if (game.popup && (game.ph === "popup" || game.ph === "popup_result")) return;
+    if (game.ph === "merger_decide" && game.mdpi !== null) {
+      const decider = game.ps[game.mdpi];
+      if (decider.tp !== "human") {
+        aiRef.current = setTimeout(() => { const dn = game.mq.defunct[game.mq.di]; const dnN = typeof dn === "string" ? dn : dn.n || dn; const held = decider.sh[dnN] || 0; if (held > 0) { const d = aiMerger(game, decider, dnN, game.mq.surv, held); act("merger_player_decide", { idx: game.mdpi, dec: d }); } else { setGame({ ...subDec(dc(game), game.mdpi, { sell: 0, convert: 0, hold: 0 }) }); } }, 1000 + Math.floor(Math.random() * 2200));
+        return () => clearTimeout(aiRef.current);
+      } return;
+    }
+    const p = game.ps[game.ci2]; if (p.tp === "human") return;
+    aiRef.current = setTimeout(() => {
+      let g = game;
+      if (g.ph === "place") { const tile = aiTile(g, g.ci2); if (!tile) { g = doEnd(g); setGame({ ...g }); return; } g = doPlace(g, tile); }
+      if (g.ph === "found") { const inactive = Object.values(g.cos).filter((c2) => c2.st === "inactive"); if (inactive.length) g = doFound(g, inactive[Math.floor(Math.random() * inactive.length)].n); }
+      if (g.ph === "merger_survivor" && g.mq?.tied) { const p2 = g.ps[g.ci2]; const best = g.mq.tied.sort((a, b2) => (p2.sh[b2] || 0) - (p2.sh[a] || 0))[0]; g = doSurv(g, best); }
+      if (g.ph === "buy") { const purchases = aiBuy(g, g.ci2); const f2 = {}; for (const [k, v] of Object.entries(purchases)) if (v > 0) f2[k] = v; if (Object.keys(f2).length > 0) g = doBuy(g, f2); g = doEnd(g); if (g.over) g = doFinal(g); }
+      setGame({ ...g });
+    }, 900 + Math.floor(Math.random() * 2200));
+    return () => clearTimeout(aiRef.current);
+  }, [game, act]);
+
+  if (!game) return <Setup onStart={start} onDemo={demo} />;
+  const human = game.ps.find((p) => p.tp === "human");
+  return (
+    <div style={{ fontFamily: bd, background: BG, color: INK, minHeight: "100vh", padding: "8px 10px env(safe-area-inset-bottom)", maxWidth: 540, margin: "0 auto", boxSizing: "border-box" }}>
+      {game.popup && game.popup.type === "announce" && <FrontPage popup={game.popup} game={game} onDismiss={() => act("dismiss_popup")} />}
+      {game.popup && game.popup.type === "result" && <MarketWrap popup={game.popup} game={game} onDismiss={() => act("dismiss_popup")} />}
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", padding: "8px 4px 6px" }}>
+        <div style={{ fontFamily: hd, fontSize: 21, fontWeight: 900, color: INK }}>Buyout</div>
+        <div style={{ fontSize: 10.5, color: INK3, fontFamily: bd }}>Turn {game.turn + 1} · {game.pool.length} tiles left</div>
+      </div>
+      <Ticker logs={game.logs} />
+      <div style={{ background: CARD, borderRadius: 14, padding: "8px 6px", marginBottom: 8, border: "1px solid " + BD }}>
+        <Board2 game={game} onTileClick={setSel} sel={sel} human={human} />
+        <HandBar game={game} sel={sel} onSelect={setSel} />
+        <CoBar game={game} />
+      </div>
+      <div style={{ background: CARD, borderRadius: 14, marginBottom: 8, border: "1px solid " + BD, overflow: "hidden" }}>
+        <Actions game={game} onAction={act} sel={sel} pState={ps} setPS={setPs} />
+      </div>
+      <div style={{ background: CARD, borderRadius: 14, padding: "2px 8px", marginBottom: 8, border: "1px solid " + BD }}>
+        <Holdings game={game} />
+      </div>
+      <div style={{ background: CARD, borderRadius: 14, border: "1px solid " + BD, overflow: "hidden" }}>
+        <GameLog logs={game.logs} show={showLog} onToggle={() => setShowLog(!showLog)} />
+      </div>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(React.createElement(App));
+
+</script>
+</body>
+</html>

@@ -1,0 +1,12 @@
+node_modules/
+vendor/
+frames/
+*.png
+*.gif
+v2-local.html
+shot*.mjs
+gif.mjs
+diag.mjs
+package.json
+package-lock.json
+ui2.js
