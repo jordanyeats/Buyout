@@ -96,17 +96,17 @@ export function InkButton({ label, onPress, primary = false, disabled = false, s
 }
 
 /** Small +/- stepper used in the settlement desk. */
-export function Stepper({ value, onDelta, step = 1, color = INK }: { value: number; onDelta: (d: number) => void; step?: number; color?: string }) {
+export function Stepper({ value, onDelta, step = 1, color = INK, disabled = false }: { value: number; onDelta: (d: number) => void; step?: number; color?: string; disabled?: boolean }) {
   const btn = (label: string, d: number) => (
-    <Pressable onPress={() => onDelta(d)} style={({ pressed }) => ({
+    <Pressable disabled={disabled} onPress={() => onDelta(d)} style={({ pressed }) => ({
       width: 34, height: 34, borderWidth: 1, borderColor: BD2, alignItems: "center", justifyContent: "center",
-      backgroundColor: pressed ? "#EFEAE2" : "#FFFFFF",
+      backgroundColor: pressed && !disabled ? "#EFEAE2" : "#FFFFFF",
     })}>
       <Text style={{ fontFamily: SANS_BOLD, fontSize: 15, color: INK }}>{label}</Text>
     </Pressable>
   );
   return (
-    <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+    <View style={{ flexDirection: "row", alignItems: "center", gap: 8, opacity: disabled ? 0.35 : 1 }}>
       {btn(step > 1 ? `−${step}` : "−", -step)}
       <Text style={{ fontFamily: SANS_BLACK, fontSize: 17, minWidth: 24, textAlign: "center", color }}>{value}</Text>
       {btn(step > 1 ? `+${step}` : "+", step)}

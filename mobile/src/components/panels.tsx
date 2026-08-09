@@ -169,8 +169,8 @@ export function SettlementPanel({ game, act }: { game: GameState; act: (a: Actio
   const adjSell = (d: number) => { const n = Math.max(0, Math.min(held - conv, sell + d)); setSell(n); };
   const adjConv = (d: number) => { const n = Math.max(0, Math.min(maxConv, held - sell, conv + d)); setConv(Math.floor(n / CONVERT_FROM) * CONVERT_FROM); };
 
-  const row = (title: string, sub: string, color: string, control: React.ReactNode, value: React.ReactNode) => (
-    <View style={{ flexDirection: "row", alignItems: "center", paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: BD }}>
+  const row = (title: string, sub: string, color: string, control: React.ReactNode, value: React.ReactNode, disabled = false) => (
+    <View style={{ flexDirection: "row", alignItems: "center", paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: BD, opacity: disabled ? 0.4 : 1 }}>
       <View style={{ flex: 1 }}>
         <Text style={{ fontFamily: SANS_BOLD, fontSize: 13.5, color }}>{title}</Text>
         <Text style={{ fontFamily: SANS, fontSize: 10.5, color: INK3 }}>{sub}</Text>
@@ -199,8 +199,11 @@ export function SettlementPanel({ game, act }: { game: GameState; act: (a: Actio
           {tax > 0 ? <Text style={{ fontFamily: SANS, fontSize: 9.5, color: RED }}>−{money(tax)} tax</Text> : null}
         </View>)}
       {row(`Convert ${CONVERT_FROM} : ${CONVERT_TO}`, maxConv > 0 ? `into ${ctx.surv} at ${money(survPrice)}` : "none available", maxConv > 0 ? companyStyle(ctx.surv).ptx : INK3,
-        <Stepper value={conv} onDelta={adjConv} step={CONVERT_FROM} />,
-        <Text style={{ fontFamily: SANS_BOLD, fontSize: 13.5, color: companyStyle(ctx.surv).ptx }}>{gain} {ctx.surv}</Text>)}
+        <Stepper value={conv} onDelta={adjConv} step={CONVERT_FROM} disabled={maxConv === 0} />,
+        maxConv > 0
+          ? <Text style={{ fontFamily: SANS_BOLD, fontSize: 13.5, color: companyStyle(ctx.surv).ptx }}>{gain} {ctx.surv}</Text>
+          : <Text style={{ fontFamily: SANS_SEMI, fontSize: 13, color: INK3 }}>—</Text>,
+        maxConv === 0)}
       {row("Hold", "bet on a comeback", PUR,
         <Text style={{ fontFamily: SANS_BLACK, fontSize: 17, minWidth: 24, textAlign: "center", color: hold > 0 ? PUR : INK3 }}>{hold}</Text>,
         <Text style={{ fontFamily: SANS_SEMI, fontSize: 13, color: INK3 }}>$0</Text>)}
@@ -217,10 +220,12 @@ export function SettlementPanel({ game, act }: { game: GameState; act: (a: Actio
 function QuickBtn({ label: l, active, onPress, disabled }: { label: string; active: boolean; onPress: () => void; disabled?: boolean }) {
   return (
     <Pressable onPress={onPress} disabled={disabled} style={{
-      paddingVertical: 7, paddingHorizontal: 13, borderWidth: 1,
-      borderColor: active ? INK : BD, backgroundColor: active ? "#EFEAE2" : "transparent", opacity: disabled ? 0.35 : 1,
+      paddingVertical: 7, paddingHorizontal: 13, borderWidth: 1.5,
+      borderColor: disabled ? BD : INK,
+      backgroundColor: active ? INK : "transparent",
+      opacity: disabled ? 0.35 : 1,
     }}>
-      <Text style={{ fontFamily: SANS_BOLD, fontSize: 11.5, color: active ? INK : INK2 }}>{l}</Text>
+      <Text style={{ fontFamily: SANS_BOLD, fontSize: 11.5, color: active ? "#FAF6F0" : disabled ? INK3 : INK }}>{l}</Text>
     </Pressable>
   );
 }
