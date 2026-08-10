@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Pressable, ScrollView, Text, TextInput, View } from "react-native";
+import { Modal, Pressable, ScrollView, Text, TextInput, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { CARD_DEFS, COMPANIES, type PlayerConfig, type PlayerKind } from "../engine";
 import { isMuted, setMuted } from "../store/sound";
@@ -32,6 +32,7 @@ export function SetupScreen({ onStart, hasSave, onResume, onAbandon, onTutorial,
   const [showDeck, setShowDeck] = useState(false);
   const [excluded, setExcluded] = useState<string[]>([]);
   const [muted, setMutedState] = useState(isMuted());
+  const [showPrivacy, setShowPrivacy] = useState(false);
   const toggleCard = (id: string) =>
     setExcluded(excluded.includes(id) ? excluded.filter((x) => x !== id) : [...excluded, id]);
   const update = (i: number, patch: Partial<PlayerConfig>) =>
@@ -147,9 +148,33 @@ export function SetupScreen({ onStart, hasSave, onResume, onAbandon, onTutorial,
           Sound {muted ? "off" : "on"}
         </Text>
       </PressIn>
-      <Text style={{ textAlign: "center", fontFamily: SANS, fontSize: 10, color: INK3, marginTop: 26 }}>
+      <Text
+        onPress={() => setShowPrivacy(true)}
+        style={{ textAlign: "center", fontFamily: SANS_SEMI, fontSize: 10.5, color: INK3, letterSpacing: 1, textTransform: "uppercase", textDecorationLine: "underline", marginTop: 24 }}
+      >
+        Privacy — the fine print
+      </Text>
+      <Text style={{ textAlign: "center", fontFamily: SANS, fontSize: 10, color: INK3, marginTop: 10 }}>
         v{require("../../app.json").expo.version}
       </Text>
+
+      <Modal visible={showPrivacy} animationType="fade" onRequestClose={() => setShowPrivacy(false)}>
+        <ScrollView style={{ flex: 1, backgroundColor: BG }} contentContainerStyle={{ padding: 24, paddingTop: 70 }}>
+          <Text style={{ fontFamily: SANS_BLACK, fontSize: 9, letterSpacing: 2.5, textTransform: "uppercase", color: ACCENT }}>■ The fine print</Text>
+          <Text style={{ fontFamily: SERIF, fontSize: 30, color: INK, marginVertical: 8 }}>Privacy</Text>
+          <View style={{ borderTopWidth: 2.5, borderTopColor: INK }} />
+          <View style={{ borderTopWidth: 1, borderTopColor: INK, marginTop: 2, marginBottom: 14 }} />
+          <Text style={{ fontFamily: SANS, fontSize: 14, lineHeight: 22, color: INK2 }}>
+            Buyout keeps everything on your device. Game saves, statistics, honors, and any player names you type are stored locally and never leave this phone.{"\n\n"}
+            Nothing is collected. Nothing is transmitted. There are no accounts, no analytics, no advertising, no tracking, and no third-party data services. The game is fully playable offline.{"\n\n"}
+            Deleting the app deletes all of its data.{"\n\n"}
+            Questions: jordan.yeats@gmail.com
+          </Text>
+          <View style={{ height: 24 }} />
+          <InkButton primary label="Back to the desk" onPress={() => setShowPrivacy(false)} />
+          <View style={{ height: 40 }} />
+        </ScrollView>
+      </Modal>
       <View style={{ height: 40 }} />
     </ScrollView>
     </SafeAreaView>
