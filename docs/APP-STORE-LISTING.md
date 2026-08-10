@@ -1,0 +1,115 @@
+# App Store Listing — Buyout 1.0.0
+
+Paste-ready copy for App Store Connect. Character limits verified.
+No references to any other board game, per naming rules.
+
+---
+
+## App name (28/30 chars)
+
+```
+Buyout: Found. Invest. Merge
+```
+
+If Apple reports the name as taken, fallback: `Buyout — The Merger Game` (24).
+
+## Subtitle (30/30 chars)
+
+```
+Strategy board game of mergers
+```
+
+## Promo text (166/170 chars) — editable anytime without review
+
+```
+Place tiles, found startups, and outfox the Shark in a paper-and-ink
+boardroom. Every merger makes the front page. Fully offline — no ads,
+no purchases, no accounts.
+```
+
+## Keywords (97/100 chars) — no need to repeat name/subtitle words
+
+```
+tile,stocks,shares,acquisition,tycoon,economy,finance,empire,offline,solo,ai,newspaper,broadsheet
+```
+
+## Description (~2,300/4,000 chars)
+
+```
+The market opens with an empty grid. By the closing bell, every tile on
+the board belongs to somebody — and the largest fortune wins.
+
+Buyout is a strategy board game about building companies and taking them
+over, told as a broadsheet newspaper. Place a tile, found a startup, and
+buy shares while they're cheap. When two companies touch, the bigger one
+swallows the smaller — and the front page tells the story: who got paid,
+who got wiped out, and who saw it coming.
+
+EVERY SHARE IS A FIGHT FOR THE BONUS
+When a company is taken over, its top shareholder collects a majority
+bonus and the runner-up collects a smaller one. Hold a company alone and
+you collect both. Every merger is really a fight over those seats —
+holding one share more than a rival can be worth six figures.
+
+SELL, CONVERT, OR HOLD YOUR NERVE
+After every takeover, your defunct shares must go somewhere. Take the
+cash. Convert into the survivor and stay in the majority race. Or hold
+worthless paper, betting the name gets refounded. The market always asks;
+you always have to answer.
+
+THE MERGER DECK
+Twenty-seven cards can turn a clean deal sideways: regulators delay it,
+boards block it, golden parachutes open, activist investors come calling.
+Tune the deck in settings — or turn it off for a pure game.
+
+FOUR KINDS OF RIVAL
+From the casual desk to the Shark — an AI that simulates thousands of
+futures before it moves. Play solo against up to five rivals in any mix.
+
+LEARN IT IN SEVEN LESSONS
+An interactive tutorial teaches the whole game — placement, founding,
+majorities, mergers, settlement, and the closing bell — in a few minutes.
+
+THE LEDGER KEEPS SCORE
+Career stats, win rates against every kind of rival, and a page of honors
+to earn. Best finishes are remembered.
+
+MADE LIKE A NEWSPAPER
+Playfair headlines, ink rules, and graph paper. Designed for iPhone and
+iPad — the iPad gets a full two-column trading desk.
+
+NO NONSENSE
+Fully offline. No ads. No in-app purchases. No accounts. No tracking.
+Your saves, stats, and player names never leave your device. Free.
+
+The desk is yours.
+```
+
+## What's New (1.0.0)
+
+```
+First edition. Six startups, twenty-seven merger cards, four kinds of AI
+rival, a seven-lesson tutorial, career stats and honors — printed on the
+finest graph paper.
+```
+
+---
+
+## ASC field checklist
+
+| Field | Value |
+|---|---|
+| Category | Games → Board (secondary: Strategy) |
+| Price | Free |
+| Age rating questionnaire | No to all sensitive items; no gambling/contests; no UGC → expect 4+ |
+| App Privacy | "Data Not Collected" |
+| Privacy Policy URL | https://jordanyeats.github.io/Buyout/privacy.html |
+| Support URL | https://jordanyeats.github.io/Buyout/support.html |
+| Copyright | © 2026 Jordan Yeats |
+| Content rights | Does not contain third-party content |
+| Review notes | paste from docs/APP-REVIEW-NOTES.md |
+
+## Screenshots (in mobile/design/shots/ after pull)
+
+- iPhone 6.9"/6.7" (1290×2796): `panel-1.png` … `panel-6.png` — upload in that order
+- iPad 13"/12.9" (2048×2732): `ipad-panel-1.png` … `ipad-panel-4.png`

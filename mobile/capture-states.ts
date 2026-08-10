@@ -136,4 +136,18 @@ export const CAPTURES: Record<string, () => GameState> = {
     const announced = applyAction(g, { type: "place", tile: [4, 4] });
     return applyAction(announced, { type: "acknowledge" });
   },
+
+  // 5 — final edition: the game is over and you won.
+  final: () => {
+    const g = midGame(25);
+    g.over = true;
+    g.winner = "You";
+    g.endReason = "Pogo reached the closing bell";
+    g.players[0]!.cash = 512300;
+    g.players[1]!.cash = 287100;
+    g.players[2]!.cash = 341900;
+    g.players[3]!.cash = 154800;
+    g.turn = 47;
+    return g;
+  },
 };
