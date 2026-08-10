@@ -7,8 +7,11 @@ import * as GC from "../../modules/buyout-game-center";
 /** Leaderboard IDs — must match App Store Connect (see docs/GAMECENTER-SETUP.md). */
 export const LB_BEST_FORTUNE = "buyout.fortune.best";
 export const LB_CAREER_WINS = "buyout.wins.career";
-/** Achievement IDs are "buyout.honor.<statsId>" for each of the 8 honors. */
-export const achievementId = (statsId: string) => `buyout.honor.${statsId}`;
+/**
+ * Achievement IDs are "buyout.honor.<statsId>" with hyphens flattened to
+ * underscores — App Store Connect allows only [A-Za-z0-9._] in GC ids.
+ */
+export const achievementId = (statsId: string) => `buyout.honor.${statsId.replace(/-/g, "_")}`;
 
 let signedIn = false;
 const listeners = new Set<() => void>();
