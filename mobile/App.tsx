@@ -11,6 +11,7 @@ import {
 } from "@expo-google-fonts/source-sans-3";
 import { useGame } from "./src/store/useGame";
 import { initSound } from "./src/store/sound";
+import { initMonetize, maybeShowInterstitial } from "./src/store/monetize";
 import { HomeScreen } from "./src/screens/HomeScreen";
 import { SetupScreen } from "./src/screens/SetupScreen";
 import { SettingsScreen } from "./src/screens/SettingsScreen";
@@ -21,7 +22,7 @@ import { BG, INK3, SANS } from "./src/theme";
 
 export default function App() {
   const [screen, setScreen] = React.useState<"home" | "setup" | "settings" | "tutorial" | "stats">("home");
-  React.useEffect(() => { initSound(); }, []);
+  React.useEffect(() => { initSound(); initMonetize(); }, []);
   const [fontsLoaded] = useFonts({
     PlayfairDisplay_900Black,
     PlayfairDisplay_700Bold,
@@ -45,7 +46,13 @@ export default function App() {
     <SafeAreaProvider>
       <StatusBar style="dark" />
       {game ? (
-        <GameScreen game={game} act={act} onQuit={() => { quit(); setScreen("home"); }} onRestart={restart} unlocked={unlocked} />
+        <GameScreen
+          game={game}
+          act={act}
+          onQuit={() => { const over = game.over; quit(); setScreen("home"); if (over) maybeShowInterstitial(); }}
+          onRestart={() => { const over = game.over; restart(); if (over) maybeShowInterstitial(); }}
+          unlocked={unlocked}
+        />
       ) : screen === "tutorial" ? (
         <TutorialScreen onExit={() => setScreen("home")} />
       ) : screen === "stats" ? (
