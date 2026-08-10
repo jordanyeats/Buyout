@@ -6,8 +6,8 @@ Do none of it while 1.0 is live-as-submitted; do all of it in one pass.
 ## Jordan — accounts & console
 
 - [ ] AdMob (admob.google.com): create app "Buyout" (iOS) → copy the **App ID**
-      (`ca-app-pub-…~…`) and create two ad units: **Banner** (home) and
-      **Interstitial** (game end). Send all three IDs to Claude.
+      (`ca-app-pub-…~…`) and create one ad unit: **Interstitial** (game end).
+      Send both IDs to Claude.
 - [ ] App Store Connect → Features → In-App Purchases: create **Non-Consumable**
       - Product ID: `com.jordanyeats.buyout.removeads`
       - Reference name: Remove Ads
@@ -25,9 +25,7 @@ Do none of it while 1.0 is live-as-submitted; do all of it in one pass.
 
 - [x] react-native-google-mobile-ads config plugin (currently **Google test
       App IDs** — swap `androidAppId`/`iosAppId` in app.json)
-- [x] Banner on home (broadsheet "Advertisement" slot) — swap
-      `TestIds.ADAPTIVE_BANNER` in `src/components/AdSlot.tsx`
-- [x] Interstitial at game end — never the first game of a session, ≥8 min
+- [x] Interstitial at game end (no banners anywhere, per Jordan) — never the first game of a session, ≥8 min
       apart — swap `TestIds.INTERSTITIAL` in `src/store/monetize.ts`
 - [x] UMP consent → ATT prompt → SDK init ordering
 - [x] Remove Ads purchase + Restore in Settings (expo-iap), price from store

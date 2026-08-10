@@ -4,7 +4,6 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { COMPANIES } from "../engine";
 import { ACCENT, BG, INK, INK2, INK3, SANS, SANS_BLACK, SANS_SEMI, SERIF } from "../theme";
 import { InkButton, PressIn, Wordmark } from "../components/common";
-import { AdSlot } from "../components/AdSlot";
 
 export function HomeScreen({ hasSave, onResume, onDiscard, onNewGame, onSettings, onTutorial, onStats }: {
   hasSave: boolean;
@@ -64,7 +63,6 @@ export function HomeScreen({ hasSave, onResume, onDiscard, onNewGame, onSettings
         <Text style={{ textAlign: "center", fontFamily: SANS, fontSize: 10, color: INK3, marginTop: 28 }}>
           v{require("../../app.json").expo.version}
         </Text>
-        <AdSlot />
       </ScrollView>
     </SafeAreaView>
   );
