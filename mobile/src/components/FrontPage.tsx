@@ -24,7 +24,7 @@ export function FrontPage({ game, onDismiss }: { game: GameState; onDismiss: () 
   const founder = game.founders[dn0];
   const co = game.cos[dn0]!;
   const para1 = `The board of ${dn0} accepted a tender offer from ${ctx.surv} at the close of the ${ordinal(game.turn + 1)} turn, ending its run as an independent concern at a market size of ${co.size}. Shareholders will be paid out at ${money(price)} a share across ${totalBlocks} outstanding share${totalBlocks === 1 ? "" : "s"}, with majority and minority bonuses settling immediately.`;
-  const para2 = `${holders.length ? `${holders.length} shareholder${holders.length === 1 ? "" : "s"} now face the choice the market always asks after a deal: take the cash, convert at three-for-two, or hold defunct paper against a refounding. ` : ""}${founder ? `${founder}, who incorporated ${dn0}, was reported to be reviewing the terms. ` : ""}The deal was put in motion by ${ctx.triggeredBy}.`;
+  const para2 = `${holders.length ? `${holders.length} shareholder${holders.length === 1 ? "" : "s"} now face the choice the market always asks after a deal: take the cash, convert at three-for-two, or hold defunct paper against a refounding. ` : ""}${founder ? (founder === "You" ? `You, who incorporated ${dn0}, were reported to be reviewing the terms. ` : `${founder}, who incorporated ${dn0}, was reported to be reviewing the terms. `) : ""}${ctx.triggeredBy === "You" ? "You put the deal in motion." : `The deal was put in motion by ${ctx.triggeredBy}.`}`;
 
   return (
     <Modal visible animationType="fade" onRequestClose={onDismiss}>

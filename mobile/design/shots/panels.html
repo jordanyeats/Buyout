@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+  @font-face {
+    font-family: "Playfair";
+    src: url("../../node_modules/@expo-google-fonts/playfair-display/900Black/PlayfairDisplay_900Black.ttf");
+    font-weight: 900;
+  }
+  @font-face {
+    font-family: "Playfair";
+    src: url("../../node_modules/@expo-google-fonts/playfair-display/700Bold_Italic/PlayfairDisplay_700Bold_Italic.ttf");
+    font-weight: 700; font-style: italic;
+  }
+  @font-face {
+    font-family: "SourceSans";
+    src: url("../../node_modules/@expo-google-fonts/source-sans-3/800ExtraBold/SourceSans3_800ExtraBold.ttf");
+    font-weight: 800;
+  }
+  @font-face {
+    font-family: "SourceSans";
+    src: url("../../node_modules/@expo-google-fonts/source-sans-3/600SemiBold/SourceSans3_600SemiBold.ttf");
+    font-weight: 600;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: #222; }
+
+  .panel {
+    width: 1290px; height: 2796px;
+    position: relative; overflow: hidden;
+    margin: 40px auto;
+  }
+  /* print-depth vignette, like the app icon */
+  .panel::after {
+    content: ""; position: absolute; inset: 0; pointer-events: none;
+    box-shadow: inset 0 60px 140px rgba(0,0,0,0.30), inset 0 -30px 90px rgba(255,255,255,0.06);
+  }
+
+  .head { position: absolute; top: 0; left: 0; right: 0; padding: 130px 90px 0; text-align: center; z-index: 2; }
+  .kicker {
+    font-family: "SourceSans"; font-weight: 800; font-size: 34px;
+    letter-spacing: 12px; text-transform: uppercase; opacity: 0.75;
+  }
+  .headline {
+    font-family: "Playfair"; font-weight: 900; font-size: 128px;
+    line-height: 1.06; margin-top: 34px; letter-spacing: -1px;
+  }
+  .rule { margin: 56px auto 0; width: 460px; }
+  .rule .thick { height: 7px; }
+  .rule .thin { height: 2.5px; margin-top: 7px; }
+
+  /* device */
+  .device {
+    position: absolute; left: 50%; transform: translateX(-50%);
+    top: 700px; width: 1030px;
+    border-radius: 150px;
+    padding: 24px;
+    background: #14120F;
+    box-shadow: 0 70px 140px rgba(0,0,0,0.45), 0 20px 50px rgba(0,0,0,0.35);
+  }
+  .screen {
+    border-radius: 128px;
+    overflow: hidden; position: relative;
+    background: #FAF6F0;
+  }
+  .statusbar {
+    height: 134px; background: #FAF6F0;
+    display: flex; align-items: flex-end; justify-content: space-between;
+    padding: 0 105px 8px;
+    position: relative;
+  }
+  .sb-time { font-family: "SourceSans"; font-weight: 800; font-size: 39px; color: #1A1715; }
+  .sb-icons { display: flex; align-items: center; gap: 14px; }
+  .island {
+    position: absolute; top: 26px; left: 50%; transform: translateX(-50%);
+    width: 292px; height: 86px; border-radius: 48px; background: #14120F;
+  }
+  .screen img { display: block; width: 100%; }
+
+  /* per-panel colorways */
+  .pogo  { background: #3D3D99; } .pogo  .kicker, .pogo  .headline { color: #CDCDF5; } .pogo  .rule div { background: #CDCDF5; }
+  .blink { background: #0E6E7C; } .blink .kicker, .blink .headline { color: #C4E8ED; } .blink .rule div { background: #C4E8ED; }
+  .spark { background: #9B2335; } .spark .kicker, .spark .headline { color: #F5CDD3; } .spark .rule div { background: #F5CDD3; }
+  .neon  { background: #1B6B3A; } .neon  .kicker, .neon  .headline { color: #C5E8D3; } .neon  .rule div { background: #C5E8D3; }
+  .inkp  { background: #1A1715; } .inkp  .kicker, .inkp  .headline { color: #FAF6F0; } .inkp  .rule div { background: #FAF6F0; }
+</style>
+</head>
+<body>
+
+<div class="panel pogo" id="p1">
+  <div class="head">
+    <div class="kicker">The Buyout Ledger</div>
+    <div class="headline">Found. Invest.<br>Merge.</div>
+    <div class="rule"><div class="thick"></div><div class="thin"></div></div>
+  </div>
+  <div class="device"><div class="screen">
+    <div class="statusbar"><span class="sb-time">9:41</span><span class="island"></span><span class="sb-icons" id="icons1"></span></div>
+    <img src="cap-board.png">
+  </div></div>
+</div>
+
+<div class="panel spark" id="p2">
+  <div class="head">
+    <div class="kicker">The Takeover</div>
+    <div class="headline">Every merger makes the front page</div>
+    <div class="rule"><div class="thick"></div><div class="thin"></div></div>
+  </div>
+  <div class="device"><div class="screen">
+    <div class="statusbar"><span class="sb-time">9:41</span><span class="island"></span><span class="sb-icons" id="icons2"></span></div>
+    <img src="cap-merger.png">
+  </div></div>
+</div>
+
+<div class="panel blink" id="p3">
+  <div class="head">
+    <div class="kicker">The Trading Desk</div>
+    <div class="headline">Buy low,<br>before it grows</div>
+    <div class="rule"><div class="thick"></div><div class="thin"></div></div>
+  </div>
+  <div class="device"><div class="screen">
+    <div class="statusbar"><span class="sb-time">9:41</span><span class="island"></span><span class="sb-icons" id="icons3"></span></div>
+    <img src="cap-buy.png">
+  </div></div>
+</div>
+
+<div class="panel neon" id="p4">
+  <div class="head">
+    <div class="kicker">The Settlement</div>
+    <div class="headline">Sell, convert, or hold your nerve</div>
+    <div class="rule"><div class="thick"></div><div class="thin"></div></div>
+  </div>
+  <div class="device"><div class="screen">
+    <div class="statusbar"><span class="sb-time">9:41</span><span class="island"></span><span class="sb-icons" id="icons4"></span></div>
+    <img src="cap-settle.png">
+  </div></div>
+</div>
+
+<script>
+  // iOS-style status icons (signal, wifi, battery) in ink
+  const svg = `
+  <svg width="46" height="32" viewBox="0 0 23 16" fill="#1A1715" xmlns="http://www.w3.org/2000/svg">
+    <rect x="0" y="10" width="4" height="6" rx="1"/><rect x="6" y="7" width="4" height="9" rx="1"/>
+    <rect x="12" y="4" width="4" height="12" rx="1"/><rect x="18" y="1" width="4" height="15" rx="1"/>
+  </svg>
+  <svg width="44" height="32" viewBox="0 0 22 16" fill="#1A1715" xmlns="http://www.w3.org/2000/svg">
+    <path d="M11 13.5 L13.6 10.6 A4 4 0 0 0 8.4 10.6 Z"/>
+    <path d="M6.2 8.2 A7 7 0 0 1 15.8 8.2 L14.2 6.5 A5 5 0 0 0 7.8 6.5 Z" opacity="0.95"/>
+    <path d="M3.8 5.6 A10.5 10.5 0 0 1 18.2 5.6 L16.6 3.9 A8.5 8.5 0 0 0 5.4 3.9 Z" opacity="0.95"/>
+  </svg>
+  <svg width="54" height="32" viewBox="0 0 27 16" xmlns="http://www.w3.org/2000/svg">
+    <rect x="0.75" y="2.75" width="21.5" height="10.5" rx="3" fill="none" stroke="#1A1715" stroke-opacity="0.45" stroke-width="1.5"/>
+    <rect x="2.5" y="4.5" width="15" height="7" rx="1.6" fill="#1A1715"/>
+    <path d="M24.5 5.5 a3 3 0 0 1 0 5 Z" fill="#1A1715" fill-opacity="0.45"/>
+  </svg>`;
+  for (const el of document.querySelectorAll(".sb-icons")) el.innerHTML = svg;
+</script>
+</body>
+</html>
