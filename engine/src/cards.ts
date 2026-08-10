@@ -12,7 +12,7 @@ export function buildDeck(g: { rngState: number }, excluded: string[] = []): Car
   for (let i = 0; i < CLEAN_COUNT; i++)
     deck.push({
       id: "clean", cat: "clean", name: "Clean Acquisition",
-      desc: `Normal merger. You get $${CLEAN_CARD_CASH.toLocaleString()}.`,
+      desc: `Normal merger. The dealmaker receives $${CLEAN_CARD_CASH.toLocaleString()}.`,
       flav: CLEAN_FLAVORS[i % CLEAN_FLAVORS.length]!, dev: false,
     });
   shuffle(g, deck);

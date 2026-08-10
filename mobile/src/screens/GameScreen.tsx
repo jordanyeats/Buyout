@@ -1,11 +1,10 @@
-import React, { useEffect, useRef, useState } from "react";
-import { Animated, Pressable, ScrollView, Text, View, useWindowDimensions } from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
+import React, { useEffect, useState } from "react";
+import { Pressable, Text, View, useWindowDimensions } from "react-native";
 import { currentActor, type Action, type GameState, type Tile } from "../engine";
 import type { AchievementDef } from "../store/stats";
 import { ACCENT, BG, INK, INK2, INK3, SANS, SANS_BLACK, SANS_SEMI, SERIF } from "../theme";
 import { Board } from "../components/Board";
-import { FadingMasthead, SectionRule, StatusStrip } from "../components/common";
+import { LedgerPage, SectionRule } from "../components/common";
 import { FinalEdition, FrontPage, MarketWrap } from "../components/FrontPage";
 import { ActionsPanel, CoBar, HandBar, Holdings, Ticker } from "../components/panels";
 
@@ -17,8 +16,6 @@ export function GameScreen({ game, act, onQuit, onRestart, unlocked = [] }: {
   unlocked?: AchievementDef[];
 }) {
   const [sel, setSel] = useState<Tile | null>(null);
-  const scrollY = useRef(new Animated.Value(0)).current;
-  const insets = useSafeAreaInsets();
   const [showFinal, setShowFinal] = useState(false);
   useEffect(() => { if (game.over) setShowFinal(true); }, [game.over]);
   const { width } = useWindowDimensions();
@@ -66,13 +63,7 @@ export function GameScreen({ game, act, onQuit, onRestart, unlocked = [] }: {
       ) : null}
       {game.phase === "mergerAnnounce" ? <FrontPage game={game} onDismiss={() => act({ type: "acknowledge" })} /> : null}
       {game.phase === "mergerResult" ? <MarketWrap game={game} onDismiss={() => act({ type: "acknowledge" })} /> : null}
-      <StatusStrip />
-      <Animated.ScrollView
-        contentContainerStyle={{ padding: 14, paddingTop: insets.top + 6 }}
-        onScroll={Animated.event([{ nativeEvent: { contentOffset: { y: scrollY } } }], { useNativeDriver: true })}
-        scrollEventThrottle={16}
-      >
-        <FadingMasthead scrollY={scrollY} title="The Buyout Ledger" />
+      <LedgerPage title="The Buyout Ledger" padding={14}>
         <Ticker game={game} />
         {wide ? (
           <View style={{ flexDirection: "row", alignItems: "flex-start", marginTop: 8 }}>
@@ -86,7 +77,7 @@ export function GameScreen({ game, act, onQuit, onRestart, unlocked = [] }: {
           </>
         )}
         <View style={{ height: 40 }} />
-      </Animated.ScrollView>
+      </LedgerPage>
     </View>
   );
 }

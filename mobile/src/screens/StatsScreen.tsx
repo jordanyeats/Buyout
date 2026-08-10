@@ -1,8 +1,7 @@
-import React, { useEffect, useRef, useState } from "react";
-import { Animated, ScrollView, Text, View } from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
+import React, { useEffect, useState } from "react";
+import { Text, View } from "react-native";
 import { ACCENT, BD, BG, GRN, INK, INK2, INK3, SANS, SANS_BLACK, SANS_SEMI, SERIF, money } from "../theme";
-import { FadingMasthead, InkButton, SectionRule, StatusStrip } from "../components/common";
+import { InkButton, LedgerPage, SectionRule } from "../components/common";
 import { ACHIEVEMENTS, loadStats, summarize, type Stats } from "../store/stats";
 
 const KIND_LABEL: Record<string, string> = {
@@ -11,8 +10,6 @@ const KIND_LABEL: Record<string, string> = {
 
 export function StatsScreen({ onExit }: { onExit: () => void }) {
   const [stats, setStats] = useState<Stats | null>(null);
-  const scrollY = useRef(new Animated.Value(0)).current;
-  const insets = useSafeAreaInsets();
   useEffect(() => {
     loadStats().then(setStats);
   }, []);
@@ -20,13 +17,7 @@ export function StatsScreen({ onExit }: { onExit: () => void }) {
 
   return (
     <View style={{ flex: 1, backgroundColor: BG }}>
-      <StatusStrip />
-      <Animated.ScrollView
-        contentContainerStyle={{ padding: 16, paddingTop: insets.top + 6 }}
-        onScroll={Animated.event([{ nativeEvent: { contentOffset: { y: scrollY } } }], { useNativeDriver: true })}
-        scrollEventThrottle={16}
-      >
-        <FadingMasthead scrollY={scrollY} title="The Record" right={<Text onPress={onExit} style={{ fontFamily: SANS, fontSize: 9, color: INK3, letterSpacing: 1.5, textTransform: "uppercase" }}>Back</Text>} />
+      <LedgerPage title="The Record" right={<Text onPress={onExit} style={{ fontFamily: SANS, fontSize: 9, color: INK3, letterSpacing: 1.5, textTransform: "uppercase" }}>Back</Text>}>
 
         {s ? (
           <>
@@ -76,7 +67,7 @@ export function StatsScreen({ onExit }: { onExit: () => void }) {
         <View style={{ height: 24 }} />
         <InkButton label="Back to the desk" onPress={onExit} />
         <View style={{ height: 40 }} />
-      </Animated.ScrollView>
+      </LedgerPage>
     </View>
   );
 }

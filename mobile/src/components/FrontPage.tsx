@@ -1,9 +1,9 @@
-import React, { useRef } from "react";
-import { Animated, Modal, Text, View } from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { priceOf, type GameState } from "../engine";
+import React from "react";
+import { Modal, Text, View } from "react-native";
+import { SafeAreaProvider } from "react-native-safe-area-context";
+import { MAJORITY_MULT, MINORITY_MULT, majorityMinority, priceOf, type GameState, type Player } from "../engine";
 import { ACCENT, BD, BD2, BG, GRN, INK, INK2, INK3, RED, SANS, SANS_BLACK, SANS_SEMI, SERIF, SERIF_BOLD, money } from "../theme";
-import { CountUp, FadingMasthead, InkButton, PressIn, StatusStrip, Wordmark } from "./common";
+import { CountUp, InkButton, LedgerPage, PressIn, Wordmark } from "./common";
 import type { AchievementDef } from "../store/stats";
 
 function ordinal(n: number) {
@@ -12,9 +12,9 @@ function ordinal(n: number) {
 }
 
 /** Mergers arrive as a broadsheet front page, not a dialog. */
+const displayName = (p: Player) => (p.kind === "human" ? "You" : p.name);
+
 export function FrontPage({ game, onDismiss }: { game: GameState; onDismiss: () => void }) {
-  const scrollY = useRef(new Animated.Value(0)).current;
-  const insets = useSafeAreaInsets();
   const ctx = game.mergerCtx;
   if (!ctx) return null;
   const dn0 = ctx.defuncts[ctx.di] ?? ctx.defuncts[0]!;
@@ -26,22 +26,31 @@ export function FrontPage({ game, onDismiss }: { game: GameState; onDismiss: () 
   const founder = game.founders[dn0];
   const co = game.cos[dn0]!;
   const para1 = `The board of ${dn0} accepted a tender offer from ${ctx.surv} at the close of the ${ordinal(game.turn + 1)} turn, ending its run as an independent concern at a market size of ${co.size}. Shareholders will be paid out at ${money(price)} a share across ${totalBlocks} outstanding share${totalBlocks === 1 ? "" : "s"}, with majority and minority bonuses settling immediately.`;
-  const para2 = `${holders.length ? `${holders.length} shareholder${holders.length === 1 ? "" : "s"} now face the choice the market always asks after a deal: take the cash, convert at three-for-two, or hold defunct paper against a refounding. ` : ""}${founder ? (founder === "You" ? `You, who incorporated ${dn0}, were reported to be reviewing the terms. ` : `${founder}, who incorporated ${dn0}, was reported to be reviewing the terms. `) : ""}${ctx.triggeredBy === "You" ? "You put the deal in motion." : `The deal was put in motion by ${ctx.triggeredBy}.`}`;
+  const para2 = `${holders.length ? `${holders.length} shareholder${holders.length === 1 ? " now faces" : "s now face"} the choice the market always asks after a deal: take the cash, convert at three-for-two, or hold defunct paper against a refounding. ` : ""}${founder ? (founder === "You" ? `You, who incorporated ${dn0}, were reported to be reviewing the terms. ` : `${founder}, who incorporated ${dn0}, was reported to be reviewing the terms. `) : ""}${ctx.triggeredBy === "You" ? "You put the deal in motion." : `The deal was put in motion by ${ctx.triggeredBy}.`}`;
+
+  // Bonus outlook for the positions box.
+  const { maj, min } = majorityMinority(game, dn0);
+  const majB = price * MAJORITY_MULT;
+  const minB = price * MINORITY_MULT;
+  let bonusNote: string | null = null;
+  if (maj.length === 1 && min.length === 0 && holders.length) {
+    const n = displayName(maj[0]!);
+    bonusNote = `${n} hold${n === "You" ? "" : "s"} ${dn0} alone — the ${money(majB)} majority and ${money(minB)} minority bonuses both go to ${n === "You" ? "you" : n}: ${money(majB + minB)}.`;
+  } else if (maj.length === 1) {
+    const n = displayName(maj[0]!);
+    bonusNote = `${n === "You" ? "You collect" : `${n} collects`} the ${money(majB)} majority bonus; the ${money(minB)} minority bonus goes to ${min.map(displayName).join(" and ")}.`;
+  } else if (maj.length > 1) {
+    bonusNote = `Majority is tied — ${maj.map(displayName).join(" and ")} split ${money(majB + minB)}.`;
+  }
 
   return (
     <Modal visible animationType="fade" onRequestClose={onDismiss}>
-      <View style={{ flex: 1, backgroundColor: BG }}>
-      <StatusStrip />
-      <Animated.ScrollView
-        contentContainerStyle={{ padding: 20, paddingTop: insets.top + 6 }}
-        onScroll={Animated.event([{ nativeEvent: { contentOffset: { y: scrollY } } }], { useNativeDriver: true })}
-        scrollEventThrottle={16}
+      <SafeAreaProvider>
+      <LedgerPage
+        title="The Buyout Ledger"
+        padding={20}
+        right={<Text style={{ fontFamily: SANS, fontSize: 9, color: INK3, letterSpacing: 1.5, textTransform: "uppercase" }}>Turn {game.turn + 1} · M&A Desk</Text>}
       >
-        <FadingMasthead
-          scrollY={scrollY}
-          title="The Buyout Ledger"
-          right={<Text style={{ fontFamily: SANS, fontSize: 9, color: INK3, letterSpacing: 1.5, textTransform: "uppercase" }}>Turn {game.turn + 1} · M&A Desk</Text>}
-        />
         <View style={{ marginBottom: 10 }} />
 
         <PressIn delay={80}>
@@ -63,7 +72,9 @@ export function FrontPage({ game, onDismiss }: { game: GameState; onDismiss: () 
           <PressIn delay={380} style={{ marginTop: 18 }}>
             <View style={{ borderWidth: 1, borderColor: INK, padding: 13, backgroundColor: ctx.card.dev ? "#F9EFEF" : "transparent" }}>
               <View style={{ borderBottomWidth: 1, borderBottomColor: INK, paddingBottom: 4, marginBottom: 7 }}>
-                <Text style={{ fontFamily: SANS_BLACK, fontSize: 9, letterSpacing: 2, textTransform: "uppercase", color: ctx.card.dev ? RED : INK }}>■ Special report</Text>
+                <Text style={{ fontFamily: SANS_BLACK, fontSize: 9, letterSpacing: 2, textTransform: "uppercase", color: ctx.card.dev ? RED : INK }}>
+                  ■ Special report · drawn by {ctx.triggeredBy === "You" ? "you" : ctx.triggeredBy}
+                </Text>
               </View>
               <Text style={{ fontFamily: SERIF, fontSize: 17, color: INK }}>{ctx.card.name}</Text>
               <Text style={{ fontFamily: SERIF_BOLD, fontStyle: "italic", fontSize: 11, color: INK2, marginVertical: 3 }}>{ctx.card.flav}</Text>
@@ -84,6 +95,11 @@ export function FrontPage({ game, onDismiss }: { game: GameState; onDismiss: () 
               </Text>
             </View>
           )) : <Text style={{ fontFamily: SANS, fontSize: 12, color: INK3, fontStyle: "italic" }}>None on record.</Text>}
+          {bonusNote ? (
+            <Text style={{ fontFamily: SERIF_BOLD, fontStyle: "italic", fontSize: 12, lineHeight: 18, color: INK2, marginTop: 8, borderTopWidth: 1, borderTopColor: BD2, paddingTop: 7 }}>
+              {bonusNote}
+            </Text>
+          ) : null}
         </PressIn>
 
         <PressIn delay={540} style={{ marginTop: 24 }}>
@@ -102,8 +118,8 @@ export function FrontPage({ game, onDismiss }: { game: GameState; onDismiss: () 
           <Wordmark name={ctx.surv} size={11} />
         </View>
         <View style={{ height: 30 }} />
-      </Animated.ScrollView>
-      </View>
+      </LedgerPage>
+      </SafeAreaProvider>
     </Modal>
   );
 }
@@ -143,8 +159,6 @@ export function FinalEdition({ game, unlocked, onRestart, onQuit, onInspect }: {
   onQuit: () => void;
   onInspect: () => void;
 }) {
-  const scrollY = useRef(new Animated.Value(0)).current;
-  const insets = useSafeAreaInsets();
   const ranked = [...game.players].sort((a, b) => b.cash - a.cash);
   const winner = ranked[0]!;
   const runnerUp = ranked[1];
@@ -155,18 +169,12 @@ export function FinalEdition({ game, unlocked, onRestart, onQuit, onInspect }: {
     : landslide ? `${winner.name} runs away with it` : `${winner.name} takes the market`;
   return (
     <Modal visible animationType="fade" onRequestClose={onQuit}>
-      <View style={{ flex: 1, backgroundColor: BG }}>
-        <StatusStrip />
-        <Animated.ScrollView
-          contentContainerStyle={{ padding: 20, paddingTop: insets.top + 6 }}
-          onScroll={Animated.event([{ nativeEvent: { contentOffset: { y: scrollY } } }], { useNativeDriver: true })}
-          scrollEventThrottle={16}
+      <SafeAreaProvider>
+        <LedgerPage
+          title="The Buyout Ledger"
+          padding={20}
+          right={<Text style={{ fontFamily: SANS, fontSize: 9, color: INK3, letterSpacing: 1.5, textTransform: "uppercase" }}>After {game.turn} turns</Text>}
         >
-          <FadingMasthead
-            scrollY={scrollY}
-            title="The Buyout Ledger"
-            right={<Text style={{ fontFamily: SANS, fontSize: 9, color: INK3, letterSpacing: 1.5, textTransform: "uppercase" }}>After {game.turn} turns</Text>}
-          />
           <View style={{ marginBottom: 8 }} />
 
           <PressIn delay={80}>
@@ -214,8 +222,8 @@ export function FinalEdition({ game, unlocked, onRestart, onQuit, onInspect }: {
             </Text>
           </PressIn>
           <View style={{ height: 30 }} />
-        </Animated.ScrollView>
-      </View>
+        </LedgerPage>
+      </SafeAreaProvider>
     </Modal>
   );
 }

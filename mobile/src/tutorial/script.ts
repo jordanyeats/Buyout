@@ -101,7 +101,7 @@ export const TUTORIAL: TutorialStep[] = [
     kicker: "Lesson four",
     headline: "Majority is everything",
     body:
-      "When a company is taken over, its top shareholder collects a bonus of 10× the share price; the runner-up collects 5×. Every merger is really a fight over these two seats. Holding one share more than a rival can be worth six figures. In the market listings, a filled square marks a company where you hold majority; an outlined square marks one you founded. Study the listings below — you outhold your rival in Zap — then read on.",
+      "When a company is taken over, its top shareholder collects a bonus of 10× the share price; the runner-up collects 5×. An investor who holds a company alone collects both. Every merger is really a fight over these two seats. Holding one share more than a rival can be worth six figures. In the market listings, a filled square marks a company where you hold majority; an outlined square marks one you founded. Study the listings below — you outhold your rival in Zap — then read on.",
     build: () => {
       const g = base(["human", "strategic"], 14);
       putCompany(g, "Zap", [[2, 2], [2, 3], [3, 2], [3, 3], [2, 4]]);

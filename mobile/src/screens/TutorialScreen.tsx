@@ -1,10 +1,9 @@
-import React, { useMemo, useRef, useState } from "react";
-import { Animated, ScrollView, Text, View } from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
+import React, { useState } from "react";
+import { Text, View } from "react-native";
 import { applyAction, type Action, type GameState, type Tile } from "../engine";
 import { ACCENT, BG, GRN, INK, INK2, INK3, SANS, SANS_BLACK, SERIF, SERIF_BOLD } from "../theme";
 import { Board } from "../components/Board";
-import { FadingMasthead, InkButton, PressIn, SectionRule, StatusStrip } from "../components/common";
+import { InkButton, LedgerPage, PressIn, SectionRule } from "../components/common";
 import { FrontPage, MarketWrap } from "../components/FrontPage";
 import { ActionsPanel, CoBar, Holdings } from "../components/panels";
 import { TUTORIAL } from "../tutorial/script";
@@ -15,8 +14,6 @@ export function TutorialScreen({ onExit }: { onExit: () => void }) {
   const step = TUTORIAL[stepIdx]!;
   const [game, setGame] = useState<GameState | null>(() => (step.build ? step.build() : null));
   const [sel, setSel] = useState<Tile | null>(null);
-  const scrollY = useRef(new Animated.Value(0)).current;
-  const insets = useSafeAreaInsets();
 
   const advance = () => {
     const next = stepIdx + 1;
@@ -45,19 +42,12 @@ export function TutorialScreen({ onExit }: { onExit: () => void }) {
   };
 
   const showBoard = !!game && step.goal !== null || (!!game && step.build !== null);
-  const humanTurnUi = useMemo(() => !!game && !game.over, [game]);
 
   return (
     <View style={{ flex: 1, backgroundColor: BG }}>
       {game && game.phase === "mergerAnnounce" ? <FrontPage game={game} onDismiss={() => act({ type: "acknowledge" })} /> : null}
       {game && game.phase === "mergerResult" ? <MarketWrap game={game} onDismiss={() => act({ type: "acknowledge" })} /> : null}
-      <StatusStrip />
-      <Animated.ScrollView
-        contentContainerStyle={{ padding: 16, paddingTop: insets.top + 6 }}
-        onScroll={Animated.event([{ nativeEvent: { contentOffset: { y: scrollY } } }], { useNativeDriver: true })}
-        scrollEventThrottle={16}
-      >
-        <FadingMasthead scrollY={scrollY} title="The Training Desk" right={<Text onPress={onExit} style={{ fontFamily: SANS, fontSize: 9, color: INK3, letterSpacing: 1.5, textTransform: "uppercase" }}>Exit</Text>} />
+      <LedgerPage title="The Training Desk" right={<Text onPress={onExit} style={{ fontFamily: SANS, fontSize: 9, color: INK3, letterSpacing: 1.5, textTransform: "uppercase" }}>Exit</Text>}>
         <View style={{ marginBottom: 8 }} />
 
         <PressIn key={stepIdx}>
@@ -94,7 +84,7 @@ export function TutorialScreen({ onExit }: { onExit: () => void }) {
           </View>
         ) : null}
         <View style={{ height: 40 }} />
-      </Animated.ScrollView>
+      </LedgerPage>
     </View>
   );
 }

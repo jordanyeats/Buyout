@@ -3,7 +3,7 @@ import { Animated, Pressable, Text, View, ViewStyle, TextStyle } from "react-nat
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Svg, { Circle, Path, Rect } from "react-native-svg";
 import { COMPANIES } from "../engine";
-import { BD2, INK, INK2, INK3, SANS, SANS_BLACK, SANS_BOLD, SERIF, money } from "../theme";
+import { BD2, BG, INK, INK2, INK3, SANS, SANS_BLACK, SANS_BOLD, SERIF, money } from "../theme";
 
 export function companyStyle(name: string) {
   return COMPANIES.find((c) => c.name === name) ?? COMPANIES[0]!;
@@ -175,5 +175,35 @@ export function FadingMasthead({ scrollY, title, right }: { scrollY: Animated.Va
     <Animated.View style={{ opacity }}>
       <Masthead title={title} right={right} />
     </Animated.View>
+  );
+}
+
+/**
+ * THE one page scaffold. Every full-screen page — game, tutorial, stats,
+ * merger front pages — renders through this: solid paper strip under the
+ * system clock, masthead that fades as it rolls up, scrolling ink column.
+ * Full-screen Modals must wrap this in their own SafeAreaProvider so the
+ * insets are measured for the modal's window.
+ */
+export function LedgerPage({ title, right, padding = 16, children }: {
+  title: string;
+  right?: React.ReactNode;
+  padding?: number;
+  children?: React.ReactNode;
+}) {
+  const scrollY = useRef(new Animated.Value(0)).current;
+  const insets = useSafeAreaInsets();
+  return (
+    <View style={{ flex: 1, backgroundColor: BG }}>
+      <StatusStrip />
+      <Animated.ScrollView
+        contentContainerStyle={{ padding, paddingTop: insets.top + 6 }}
+        onScroll={Animated.event([{ nativeEvent: { contentOffset: { y: scrollY } } }], { useNativeDriver: true })}
+        scrollEventThrottle={16}
+      >
+        <FadingMasthead scrollY={scrollY} title={title} right={right} />
+        {children}
+      </Animated.ScrollView>
+    </View>
   );
 }
