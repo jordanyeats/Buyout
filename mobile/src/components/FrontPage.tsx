@@ -1,9 +1,9 @@
-import React from "react";
-import { Modal, ScrollView, Text, View } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import React, { useRef } from "react";
+import { Animated, Modal, Text, View } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { priceOf, type GameState } from "../engine";
 import { ACCENT, BD, BD2, BG, GRN, INK, INK2, INK3, RED, SANS, SANS_BLACK, SANS_SEMI, SERIF, SERIF_BOLD, money } from "../theme";
-import { CountUp, InkButton, PressIn, Wordmark } from "./common";
+import { CountUp, FadingMasthead, InkButton, PressIn, StatusStrip, Wordmark } from "./common";
 import type { AchievementDef } from "../store/stats";
 
 function ordinal(n: number) {
@@ -13,6 +13,8 @@ function ordinal(n: number) {
 
 /** Mergers arrive as a broadsheet front page, not a dialog. */
 export function FrontPage({ game, onDismiss }: { game: GameState; onDismiss: () => void }) {
+  const scrollY = useRef(new Animated.Value(0)).current;
+  const insets = useSafeAreaInsets();
   const ctx = game.mergerCtx;
   if (!ctx) return null;
   const dn0 = ctx.defuncts[ctx.di] ?? ctx.defuncts[0]!;
@@ -28,15 +30,19 @@ export function FrontPage({ game, onDismiss }: { game: GameState; onDismiss: () 
 
   return (
     <Modal visible animationType="fade" onRequestClose={onDismiss}>
-      <SafeAreaView style={{ flex: 1, backgroundColor: BG }}>
-      <ScrollView contentContainerStyle={{ padding: 20, paddingTop: 12 }}>
-        <PressIn>
-          <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "baseline", borderBottomWidth: 1, borderBottomColor: INK, paddingBottom: 4 }}>
-            <Text style={{ fontFamily: SERIF, fontSize: 16, color: INK }}>The Buyout Ledger</Text>
-            <Text style={{ fontFamily: SANS, fontSize: 9, color: INK2, letterSpacing: 1.5, textTransform: "uppercase" }}>Turn {game.turn + 1} · M&A Desk</Text>
-          </View>
-          <View style={{ borderBottomWidth: 3, borderBottomColor: INK, marginTop: 2, marginBottom: 16 }} />
-        </PressIn>
+      <View style={{ flex: 1, backgroundColor: BG }}>
+      <StatusStrip />
+      <Animated.ScrollView
+        contentContainerStyle={{ padding: 20, paddingTop: insets.top + 6 }}
+        onScroll={Animated.event([{ nativeEvent: { contentOffset: { y: scrollY } } }], { useNativeDriver: true })}
+        scrollEventThrottle={16}
+      >
+        <FadingMasthead
+          scrollY={scrollY}
+          title="The Buyout Ledger"
+          right={<Text style={{ fontFamily: SANS, fontSize: 9, color: INK3, letterSpacing: 1.5, textTransform: "uppercase" }}>Turn {game.turn + 1} · M&A Desk</Text>}
+        />
+        <View style={{ marginBottom: 10 }} />
 
         <PressIn delay={80}>
           <Text style={{ fontFamily: SANS_BLACK, fontSize: 10, letterSpacing: 2.5, textTransform: "uppercase", color: RED, marginBottom: 4 }}>The Takeover</Text>
@@ -95,8 +101,9 @@ export function FrontPage({ game, onDismiss }: { game: GameState; onDismiss: () 
         <View style={{ marginTop: 4, alignItems: "center" }}>
           <Wordmark name={ctx.surv} size={11} />
         </View>
-      </ScrollView>
-      </SafeAreaView>
+        <View style={{ height: 30 }} />
+      </Animated.ScrollView>
+      </View>
     </Modal>
   );
 }
@@ -136,6 +143,8 @@ export function FinalEdition({ game, unlocked, onRestart, onQuit, onInspect }: {
   onQuit: () => void;
   onInspect: () => void;
 }) {
+  const scrollY = useRef(new Animated.Value(0)).current;
+  const insets = useSafeAreaInsets();
   const ranked = [...game.players].sort((a, b) => b.cash - a.cash);
   const winner = ranked[0]!;
   const runnerUp = ranked[1];
@@ -146,15 +155,19 @@ export function FinalEdition({ game, unlocked, onRestart, onQuit, onInspect }: {
     : landslide ? `${winner.name} runs away with it` : `${winner.name} takes the market`;
   return (
     <Modal visible animationType="fade" onRequestClose={onQuit}>
-      <SafeAreaView style={{ flex: 1, backgroundColor: BG }}>
-        <ScrollView contentContainerStyle={{ padding: 20, paddingTop: 12 }}>
-          <PressIn>
-            <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "baseline", borderBottomWidth: 1, borderBottomColor: INK, paddingBottom: 4 }}>
-              <Text style={{ fontFamily: SERIF, fontSize: 16, color: INK }}>The Buyout Ledger</Text>
-              <Text style={{ fontFamily: SANS, fontSize: 9, color: INK2, letterSpacing: 1.5, textTransform: "uppercase" }}>After {game.turn} turns</Text>
-            </View>
-            <View style={{ borderBottomWidth: 3, borderBottomColor: INK, marginTop: 2, marginBottom: 14 }} />
-          </PressIn>
+      <View style={{ flex: 1, backgroundColor: BG }}>
+        <StatusStrip />
+        <Animated.ScrollView
+          contentContainerStyle={{ padding: 20, paddingTop: insets.top + 6 }}
+          onScroll={Animated.event([{ nativeEvent: { contentOffset: { y: scrollY } } }], { useNativeDriver: true })}
+          scrollEventThrottle={16}
+        >
+          <FadingMasthead
+            scrollY={scrollY}
+            title="The Buyout Ledger"
+            right={<Text style={{ fontFamily: SANS, fontSize: 9, color: INK3, letterSpacing: 1.5, textTransform: "uppercase" }}>After {game.turn} turns</Text>}
+          />
+          <View style={{ marginBottom: 8 }} />
 
           <PressIn delay={80}>
             <Text style={{ fontFamily: SANS_BLACK, fontSize: 10, letterSpacing: 3, textTransform: "uppercase", color: RED, marginBottom: 4 }}>■ Final edition ■</Text>
@@ -201,8 +214,8 @@ export function FinalEdition({ game, unlocked, onRestart, onQuit, onInspect }: {
             </Text>
           </PressIn>
           <View style={{ height: 30 }} />
-        </ScrollView>
-      </SafeAreaView>
+        </Animated.ScrollView>
+      </View>
     </Modal>
   );
 }
