@@ -12,6 +12,7 @@ import {
 import { useGame } from "./src/store/useGame";
 import { initSound } from "./src/store/sound";
 import { initMonetize, maybeShowInterstitial } from "./src/store/monetize";
+import { gcAuthenticate } from "./src/store/gamecenter";
 import { HomeScreen } from "./src/screens/HomeScreen";
 import { SetupScreen } from "./src/screens/SetupScreen";
 import { SettingsScreen } from "./src/screens/SettingsScreen";
@@ -22,7 +23,7 @@ import { BG, INK3, SANS } from "./src/theme";
 
 export default function App() {
   const [screen, setScreen] = React.useState<"home" | "setup" | "settings" | "tutorial" | "stats">("home");
-  React.useEffect(() => { initSound(); initMonetize(); }, []);
+  React.useEffect(() => { initSound(); initMonetize(); gcAuthenticate(); }, []);
   const [fontsLoaded] = useFonts({
     PlayfairDisplay_900Black,
     PlayfairDisplay_700Bold,

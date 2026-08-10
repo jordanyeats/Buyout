@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Alert, Platform, Pressable, Text, View } from "react-native";
 import { isMuted, setMuted } from "../store/sound";
 import { buyRemoveAds, getRemoveAdsPrice, isAdFree, onMonetizeChange, restorePurchases } from "../store/monetize";
+import { gcAlias, gcAuthenticate, gcShowLeaderboards, gcSignedIn, onGameCenterChange } from "../store/gamecenter";
 import { ACCENT, BD, BG, GRN, INK, INK2, INK3, SANS, SANS_BLACK, SANS_SEMI, SERIF } from "../theme";
 import { InkButton, LedgerPage, SectionRule } from "../components/common";
 
@@ -10,7 +11,9 @@ export function SettingsScreen({ onExit }: { onExit: () => void }) {
   const [adFree, setAdFree] = useState(isAdFree());
   const [price, setPrice] = useState(getRemoveAdsPrice());
   const [busy, setBusy] = useState(false);
+  const [gc, setGc] = useState(gcSignedIn());
   useEffect(() => onMonetizeChange(() => { setAdFree(isAdFree()); setPrice(getRemoveAdsPrice()); }), []);
+  useEffect(() => onGameCenterChange(() => setGc(gcSignedIn())), []);
 
   const say = (title: string, msg: string) => {
     if (Platform.OS === "web") console.log(title, msg);
@@ -64,6 +67,23 @@ export function SettingsScreen({ onExit }: { onExit: () => void }) {
         <Text style={{ fontFamily: SANS, fontSize: 11, color: INK3, marginTop: 10, fontStyle: "italic" }}>
           Merger-deck settings live on the new-game desk, per game.
         </Text>
+
+        <SectionRule label="Game Center" />
+        {gc ? (
+          <View style={{ paddingVertical: 6 }}>
+            <Text style={{ fontFamily: SANS_SEMI, fontSize: 13, color: GRN, marginBottom: 10 }}>
+              ■ Signed in{gcAlias() ? ` as ${gcAlias()}` : ""} — fortunes and honors post automatically.
+            </Text>
+            <InkButton label="View leaderboards" onPress={() => { void gcShowLeaderboards(); }} />
+          </View>
+        ) : (
+          <View style={{ paddingVertical: 6 }}>
+            <Text style={{ fontFamily: SANS, fontSize: 12.5, lineHeight: 19, color: INK2, marginBottom: 10 }}>
+              Sign in to post your best fortune and career wins to the leaderboards, and your honors as achievements.
+            </Text>
+            <InkButton label="Sign in to Game Center" onPress={() => { void gcAuthenticate(); }} />
+          </View>
+        )}
 
         <SectionRule label="Advertising" />
         {adFree ? (

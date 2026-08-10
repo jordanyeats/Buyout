@@ -8,6 +8,7 @@ import {
 } from "../engine";
 import { play } from "./sound";
 import { recordGame, type AchievementDef } from "./stats";
+import { reportGameOver } from "./gamecenter";
 
 const SAVE_KEY = "buyout.save.v1";
 
@@ -124,7 +125,12 @@ export function useGame() {
         if (next.over && saveRef.current) {
           saveRef.current = null;
           AsyncStorage.removeItem(SAVE_KEY).catch(() => {});
-          recordGame(next).then(setUnlocked).catch(() => {});
+          recordGame(next)
+            .then((got) => {
+              setUnlocked(got);
+              void reportGameOver(next, got);
+            })
+            .catch(() => {});
         }
         return next;
       } catch (e) {
