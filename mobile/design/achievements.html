@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+  @font-face {
+    font-family: "Playfair";
+    src: url("../node_modules/@expo-google-fonts/playfair-display/900Black/PlayfairDisplay_900Black.ttf");
+    font-weight: 900;
+  }
+  @font-face {
+    font-family: "SourceSans";
+    src: url("../node_modules/@expo-google-fonts/source-sans-3/800ExtraBold/SourceSans3_800ExtraBold.ttf");
+    font-weight: 800;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: #333; }
+  .tile {
+    width: 512px; height: 512px; position: relative; overflow: hidden;
+    margin: 20px auto;
+    box-shadow: inset 0 20px 45px rgba(0,0,0,0.35), inset 0 -10px 30px rgba(255,255,255,0.08);
+    display: flex; align-items: center; justify-content: center;
+  }
+  .glyph { font-family: "Playfair"; font-weight: 900; font-size: 260px; line-height: 1; }
+  .glyph.small { font-size: 190px; }
+  .corner {
+    position: absolute; font-family: "SourceSans"; font-weight: 800;
+    font-size: 34px; letter-spacing: 4px; opacity: 0.55;
+  }
+  .tl { top: 26px; left: 30px; }
+  .br { bottom: 26px; right: 30px; transform: rotate(180deg); }
+</style>
+</head>
+<body>
+
+<!-- victor · Closing Bell -->
+<div class="tile" id="victor" style="background:#3D3D99">
+  <span class="glyph" style="color:#CDCDF5">★</span>
+  <span class="corner tl" style="color:#CDCDF5">B1</span><span class="corner br" style="color:#CDCDF5">B1</span>
+</div>
+
+<!-- tycoon -->
+<div class="tile" id="tycoon" style="background:#8B6914">
+  <span class="glyph" style="color:#F5E6C0">$</span>
+  <span class="corner tl" style="color:#F5E6C0">B2</span><span class="corner br" style="color:#F5E6C0">B2</span>
+</div>
+
+<!-- landslide -->
+<div class="tile" id="landslide" style="background:#9B2335">
+  <span class="glyph small" style="color:#F5CDD3">×2</span>
+  <span class="corner tl" style="color:#F5CDD3">B3</span><span class="corner br" style="color:#F5CDD3">B3</span>
+</div>
+
+<!-- shark-slayer -->
+<div class="tile" id="shark-slayer" style="background:#0E6E7C">
+  <svg width="290" height="290" viewBox="0 0 100 100">
+    <path d="M30 72 C34 46 44 26 64 20 C58 34 60 44 58 54 C57 62 60 68 66 72 Z" fill="#C4E8ED"/>
+    <rect x="14" y="76" width="72" height="4" fill="#C4E8ED" opacity="0.65"/>
+  </svg>
+  <span class="corner tl" style="color:#C4E8ED">B4</span><span class="corner br" style="color:#C4E8ED">B4</span>
+</div>
+
+<!-- serial-founder -->
+<div class="tile" id="serial-founder" style="background:#7B2D8E">
+  <span class="glyph small" style="color:#E8CFF0">IV</span>
+  <span class="corner tl" style="color:#E8CFF0">B5</span><span class="corner br" style="color:#E8CFF0">B5</span>
+</div>
+
+<!-- card-shark -->
+<div class="tile" id="card-shark" style="background:#1B6B3A">
+  <span class="glyph" style="color:#C5E8D3">♠</span>
+  <span class="corner tl" style="color:#C5E8D3">B6</span><span class="corner br" style="color:#C5E8D3">B6</span>
+</div>
+
+<!-- purist -->
+<div class="tile" id="purist" style="background:#FAF6F0">
+  <span class="glyph" style="color:#1A1715">○</span>
+  <span class="corner tl" style="color:#1A1715">B7</span><span class="corner br" style="color:#1A1715">B7</span>
+</div>
+
+<!-- full-table -->
+<div class="tile" id="full-table" style="background:#1A1715">
+  <span class="glyph small" style="color:#FAF6F0">VI</span>
+  <span class="corner tl" style="color:#FAF6F0">B8</span><span class="corner br" style="color:#FAF6F0">B8</span>
+</div>
+
+</body>
+</html>
