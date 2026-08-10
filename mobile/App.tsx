@@ -11,14 +11,16 @@ import {
 } from "@expo-google-fonts/source-sans-3";
 import { useGame } from "./src/store/useGame";
 import { initSound } from "./src/store/sound";
+import { HomeScreen } from "./src/screens/HomeScreen";
 import { SetupScreen } from "./src/screens/SetupScreen";
+import { SettingsScreen } from "./src/screens/SettingsScreen";
 import { GameScreen } from "./src/screens/GameScreen";
 import { TutorialScreen } from "./src/screens/TutorialScreen";
 import { StatsScreen } from "./src/screens/StatsScreen";
 import { BG, INK3, SANS } from "./src/theme";
 
 export default function App() {
-  const [screen, setScreen] = React.useState<"home" | "tutorial" | "stats">("home");
+  const [screen, setScreen] = React.useState<"home" | "setup" | "settings" | "tutorial" | "stats">("home");
   React.useEffect(() => { initSound(); }, []);
   const [fontsLoaded] = useFonts({
     PlayfairDisplay_900Black,
@@ -43,16 +45,27 @@ export default function App() {
     <SafeAreaProvider>
       <StatusBar style="dark" />
       {game ? (
-        <GameScreen game={game} act={act} onQuit={quit} onRestart={restart} unlocked={unlocked} />
+        <GameScreen game={game} act={act} onQuit={() => { quit(); setScreen("home"); }} onRestart={restart} unlocked={unlocked} />
       ) : screen === "tutorial" ? (
         <TutorialScreen onExit={() => setScreen("home")} />
       ) : screen === "stats" ? (
         <StatsScreen onExit={() => setScreen("home")} />
-      ) : (
+      ) : screen === "settings" ? (
+        <SettingsScreen onExit={() => setScreen("home")} />
+      ) : screen === "setup" ? (
         <SetupScreen
-          onStart={(p, c, ex) => start(p, c, { excludedCards: ex })}
-          hasSave={hasSave} onResume={resume} onAbandon={abandon}
-          onTutorial={() => setScreen("tutorial")} onStats={() => setScreen("stats")}
+          onStart={(p, c, ex) => { start(p, c, { excludedCards: ex }); setScreen("home"); }}
+          onExit={() => setScreen("home")}
+        />
+      ) : (
+        <HomeScreen
+          hasSave={hasSave}
+          onResume={resume}
+          onDiscard={abandon}
+          onNewGame={() => setScreen("setup")}
+          onSettings={() => setScreen("settings")}
+          onTutorial={() => setScreen("tutorial")}
+          onStats={() => setScreen("stats")}
         />
       )}
     </SafeAreaProvider>
