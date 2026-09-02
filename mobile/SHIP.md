@@ -54,6 +54,19 @@ GC achievement reports when you wire it.
    ```
    EAS handles signing certificates and provisioning profiles for you —
    answer "yes" when it offers to manage credentials.
+
+   **If `eas submit` hangs on "waiting for an available submitter":** that is
+   queue contention on EAS's hosted submitters, not a bad build, and the wait
+   is unbounded. Don't rebuild. Skip EAS Submit and deliver the binary
+   yourself:
+   ```bash
+   eas build:list --platform ios --limit 1   # grab the artifact URL
+   ```
+   Download the `.ipa` from the EAS build page, then drag it into
+   **Transporter** (free, Mac App Store) and hit Deliver. It lands in App
+   Store Connect exactly as `eas submit` would. Prefer this over
+   `xcrun altool --upload-app`, which is semi-deprecated and reports errors
+   poorly.
 3. In **App Store Connect** (appstoreconnect.apple.com): create the app record
    (bundle ID `com.jordanyeats.buyout`, already set in app.json), add yourself
    as a TestFlight tester, install, play.
