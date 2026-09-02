@@ -45,8 +45,12 @@ still claims "No ads. No in-app purchases." and would draw a second rejection.
       it must be replaced before any Android release.
 - [x] Privacy manifest: `NSPrivacyTracking: true` plus DeviceID and
       AdvertisingData collected-data entries (third-party advertising,
-      tracking = true). `NSPrivacyTrackingDomains` left empty on purpose — the
-      Google Mobile Ads SDK ships its own manifest declaring its domains.
+      tracking = true) and the AdMob tracking domains listed explicitly.
+      Build 11 failed validation with **ITMS-91064 (invalid tracking
+      information)** because it had `NSPrivacyTracking: true` with an EMPTY
+      `NSPrivacyTrackingDomains`. Apple requires the two to agree: tracking
+      true demands a non-empty domain list. Do not empty that array while
+      tracking is true, however the SDK declares its own manifest.
 - [x] ATT answer now actually drives ad personalization: `requestNonPersonalized
       AdsOnly` mirrors the ATT status instead of being hardcoded true. Previously
       the prompt was cosmetic and contradicted the in-app copy.

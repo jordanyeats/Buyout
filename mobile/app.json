@@ -17,7 +17,14 @@
       },
       "privacyManifests": {
         "NSPrivacyTracking": true,
-        "NSPrivacyTrackingDomains": [],
+        "NSPrivacyTrackingDomains": [
+          "googleads.g.doubleclick.net",
+          "pagead2.googlesyndication.com",
+          "googleadservices.com",
+          "www.googleadservices.com",
+          "adservice.google.com",
+          "app-measurement.com"
+        ],
         "NSPrivacyCollectedDataTypes": [
           {
             "NSPrivacyCollectedDataType": "NSPrivacyCollectedDataTypeDeviceID",
