@@ -1,4 +1,4 @@
-# App Store Listing — Buyout 1.0.0
+# App Store Listing — Buyout 1.1.0
 
 Paste-ready copy for App Store Connect. Character limits verified.
 No references to any other board game, per naming rules.
@@ -23,8 +23,8 @@ Strategy board game of mergers
 
 ```
 Place tiles, found startups, and outfox the Shark in a paper-and-ink
-boardroom. Every merger makes the front page. Fully offline — no ads,
-no purchases, no accounts.
+boardroom. Every merger makes the front page. Fully offline. One
+purchase removes ads forever.
 ```
 
 ## Keywords (97/100 chars) — no need to repeat name/subtitle words
@@ -78,19 +78,20 @@ MADE LIKE A NEWSPAPER
 Playfair headlines, ink rules, and graph paper. Designed for iPhone and
 iPad — the iPad gets a full two-column trading desk.
 
-NO NONSENSE
-Fully offline. No ads. No in-app purchases. No accounts. No tracking.
-Your saves, stats, and player names never leave your device. Free.
+STRAIGHT DEALING
+Fully offline gameplay. No accounts. No analytics of our own. Your saves,
+stats, and player names never leave your device. The free edition shows
+the occasional ad between games; one purchase removes them forever.
 
 The desk is yours.
 ```
 
-## What's New (1.0.0)
+## What's New (1.1.0)
 
 ```
-First edition. Six startups, twenty-seven merger cards, four kinds of AI
-rival, a seven-lesson tutorial, career stats and honors — printed on the
-finest graph paper.
+A new home desk and a redesigned Back Office. Game Center leaderboards
+and honors. Buyout is now free with ads — Remove Ads lives in the Back
+Office, and one purchase retires them for good.
 ```
 
 ---
@@ -100,10 +101,10 @@ finest graph paper.
 | Field | Value |
 |---|---|
 | Category | Games → Board (secondary: Strategy) |
-| Price | Free |
-| Age rating questionnaire | No to all sensitive items; no gambling/contests; no UGC → expect 4+ |
-| App Privacy | "Data Not Collected" |
-| Privacy Policy URL | https://jordanyeats.github.io/Buyout/privacy.html |
+| Price | Free, with one non-consumable IAP (`com.jordanyeats.buyout.removeads`) |
+| Age rating questionnaire | **Advertising: Yes** — required, the app serves AdMob interstitials. All other sensitive items No; no gambling/contests; no UGC → still 4+ |
+| App Privacy | Identifiers → Device ID (Advertising); Usage Data → Ad interactions. "Used for tracking" = Yes (ATT implemented). NOT "Data Not Collected" |
+| Privacy Policy URL | https://jordanyeats.github.io/Buyout/privacy.html (serve `docs/privacy-1.1.html` at that path) |
 | Support URL | https://jordanyeats.github.io/Buyout/support.html |
 | Copyright | © 2026 Jordan Yeats |
 | Content rights | Does not contain third-party content |

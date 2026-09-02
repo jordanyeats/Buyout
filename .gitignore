@@ -25,3 +25,5 @@ mobile/v4_*.png
 mobile/v5_*.png
 mobile/icon_*.png
 mobile/design/*.png
+
+.DS_Store

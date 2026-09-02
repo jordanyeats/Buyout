@@ -11,6 +11,9 @@ import { getAds, getAtt, getIap } from "./native-mods";
 const AD_FREE_KEY = "buyout.adfree.v1";
 export const REMOVE_ADS_SKU = "com.jordanyeats.buyout.removeads";
 
+/** Live AdMob interstitial unit (iOS). Dev builds use Google's test unit. */
+const INTERSTITIAL_UNIT_ID = "ca-app-pub-9842723539475080/7683530345";
+
 /** Minimum gap between interstitials, and never after the first game of a session. */
 const INTERSTITIAL_GAP_MS = 8 * 60 * 1000;
 
@@ -19,6 +22,11 @@ let adsInitialized = false;
 let lastInterstitialAt = 0;
 let gamesFinishedThisSession = 0;
 let removeAdsPrice: string | null = null;
+/**
+ * Whether we may request personalized ads. On iOS this mirrors the ATT answer;
+ * elsewhere Google's UMP consent flow governs it, so we leave it open.
+ */
+let trackingAuthorized = Platform.OS !== "ios";
 let interstitial: any = null;
 const listeners = new Set<() => void>();
 
@@ -56,9 +64,9 @@ function preloadInterstitial(): void {
   if (!g || adFree) return;
   try {
     const { InterstitialAd, TestIds, AdEventType } = g;
-    // TODO(release): replace TestIds.INTERSTITIAL with the real AdMob unit id.
-    const ad = InterstitialAd.createForAdRequest(TestIds.INTERSTITIAL, {
-      requestNonPersonalizedAdsOnly: true,
+    const unitId = __DEV__ ? TestIds.INTERSTITIAL : INTERSTITIAL_UNIT_ID;
+    const ad = InterstitialAd.createForAdRequest(unitId, {
+      requestNonPersonalizedAdsOnly: !trackingAuthorized,
     });
     ad.addAdEventListener(AdEventType.LOADED, () => {
       interstitial = ad;
@@ -114,7 +122,8 @@ export async function initMonetize(): Promise<void> {
     // ATT prompt (iOS).
     if (Platform.OS === "ios") {
       try {
-        await getAtt()?.requestTrackingPermissionsAsync();
+        const res = await getAtt()?.requestTrackingPermissionsAsync();
+        trackingAuthorized = res?.status === "granted";
       } catch {}
     }
     await g.default().initialize();
