@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { CARD_DEFS, CLEAN_COUNT, newGame, type PlayerConfig } from "../src/index.js";
+import { CARD_DEFS, CLEAN_COUNT, newGame, type PlayerConfig } from "buyout-engine";
 
 const CONFIGS: PlayerConfig[] = [
   { name: "You", kind: "human" },

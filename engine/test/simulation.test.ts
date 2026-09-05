@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import type { PlayerKind } from "../src/index.js";
+import type { PlayerKind } from "buyout-engine";
 import { runGame } from "./helpers.js";
 
 /**

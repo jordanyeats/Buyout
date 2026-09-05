@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { applyAction, priceOf, type GameState } from "../src/index.js";
+import { applyAction, priceOf, type GameState } from "buyout-engine";
 import { grantShares, handTile, putCompany, scenario } from "./helpers.js";
 
 /**

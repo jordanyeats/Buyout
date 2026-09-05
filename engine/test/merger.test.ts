@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { applyAction, priceForSize, EngineError, type GameState } from "../src/index.js";
+import { applyAction, priceForSize, EngineError, type GameState } from "buyout-engine";
 import { grantShares, handTile, putCompany, scenario } from "./helpers.js";
 
 /** Blink(3) at rows 0-2 col 0; Zap(2) at rows 0-1 col 2; seam at (0,1) in P1's hand. */

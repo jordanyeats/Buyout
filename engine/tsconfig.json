@@ -2,7 +2,9 @@
   "compilerOptions": {
     "target": "ES2022", "module": "ESNext", "moduleResolution": "bundler",
     "strict": true, "noUncheckedIndexedAccess": true, "skipLibCheck": true,
-    "types": ["vitest/globals"]
+    "types": ["vitest/globals", "node"],
+    "baseUrl": ".",
+    "paths": { "buyout-engine": ["../mobile/src/engine/index.ts"] }
   },
-  "include": ["src", "test"]
+  "include": ["test", "vitest.config.ts", "../mobile/src/engine"]
 }

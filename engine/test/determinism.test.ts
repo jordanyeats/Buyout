@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { applyAction, newGame } from "../src/index.js";
+import { applyAction, newGame } from "buyout-engine";
 import { cfg, runGame } from "./helpers.js";
 
 const KINDS = ["strategic", "greedy", "random", "strategic"] as const;
