@@ -1,4 +1,4 @@
-# App Store Listing — Buyout 1.1.0
+# App Store Listing — Buyout 1.2.0
 
 Paste-ready copy for App Store Connect. Character limits verified.
 No references to any other board game, per naming rules.
@@ -85,6 +85,26 @@ the occasional ad between games; one purchase removes them forever.
 
 The desk is yours.
 ```
+
+## What's New (1.2.0)
+
+```
+Deck packs. Choose Standard, Easy, Hard, or build your own in the Back
+Office, where every merger card now explains exactly what it does.
+
+Shares in an acquired company no longer vanish from the ledger — they
+sit in the drawer where you can see them.
+
+A closed merger now reports what it did to your shareholder value, in
+dollars per share, rather than just the survivor's new size.
+
+Fixes for Game Center sign-in, advertisement loading, and the Remove
+Ads purchase.
+```
+
+Honors are earned on the Standard and Hard decks, or with the merger deck
+switched off. The leaderboards take Standard games alone, so every fortune
+on them was won with the same deck.
 
 ## What's New (1.1.0)
 
