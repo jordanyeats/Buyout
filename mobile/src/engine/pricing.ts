@@ -73,11 +73,28 @@ export function payBonuses(g: GameState, coName: string, logs: string[]): void {
       p.cash += each;
       logs.push(`${p.name} receives $${each.toLocaleString()} minority for ${coName}`);
     }
-  } else {
+  } else if (min.length === 0) {
+    // Tied for majority with nobody else holding: there is no second position
+    // to pay, so the tied holders split both bonuses between them.
     const each = Math.floor((majBonus + minBonus) / maj.length);
     for (const p of maj) {
       p.cash += each;
       logs.push(`${p.name} receives $${each.toLocaleString()} split for ${coName}`);
+    }
+  } else {
+    // Tied for majority with other shareholders behind them. The tie splits the
+    // majority bonus only; second position is still second and still collects
+    // the minority bonus. (Until now the tied holders swallowed both and the
+    // runner-up was paid nothing, however many shares they held.)
+    const eachMaj = Math.floor(majBonus / maj.length);
+    for (const p of maj) {
+      p.cash += eachMaj;
+      logs.push(`${p.name} receives $${eachMaj.toLocaleString()} split majority for ${coName}`);
+    }
+    const eachMin = Math.floor(minBonus / min.length);
+    for (const p of min) {
+      p.cash += eachMin;
+      logs.push(`${p.name} receives $${eachMin.toLocaleString()} minority for ${coName}`);
     }
   }
 }

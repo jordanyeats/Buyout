@@ -39,8 +39,10 @@ export function FrontPage({ game, onDismiss }: { game: GameState; onDismiss: () 
   } else if (maj.length === 1) {
     const n = displayName(maj[0]!);
     bonusNote = `${n === "You" ? "You collect" : `${n} collects`} the ${money(majB)} majority bonus; the ${money(minB)} minority bonus goes to ${min.map(displayName).join(" and ")}.`;
+  } else if (maj.length > 1 && min.length === 0) {
+    bonusNote = `Majority is tied — ${maj.map(displayName).join(" and ")} split ${money(majB + minB)}, with no other shareholders to pay.`;
   } else if (maj.length > 1) {
-    bonusNote = `Majority is tied — ${maj.map(displayName).join(" and ")} split ${money(majB + minB)}.`;
+    bonusNote = `Majority is tied — ${maj.map(displayName).join(" and ")} split the ${money(majB)} majority bonus; the ${money(minB)} minority bonus goes to ${min.map(displayName).join(" and ")}.`;
   }
 
   return (
