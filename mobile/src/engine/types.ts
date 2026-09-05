@@ -60,6 +60,12 @@ export interface MergerCtx {
   halfPrice: boolean;
   triggeredBy: string;
   resultDetails: string[];
+  /**
+   * Survivor share price the instant before the current defunct was absorbed.
+   * The market wrap reports the gain per share against this. Re-sampled at each
+   * defunct so a multi-company merger reports each step's gain, not a running total.
+   */
+  survPriceBefore: number;
   /** Phase to enter after the whole merger event completes. Delayed (pending) resolutions happen before the current player's place phase. */
   afterPhase: "buy" | "place";
 }

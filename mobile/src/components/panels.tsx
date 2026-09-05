@@ -141,6 +141,47 @@ export function Holdings({ game }: { game: GameState }) {
       {active.length ? (
         <Text style={{ textAlign: "right", fontFamily: SANS, fontSize: 9.5, color: INK3, paddingTop: 3 }}>■ majority · ▢ founded</Text>
       ) : null}
+      <DefunctHoldings game={game} />
+    </View>
+  );
+}
+
+/**
+ * Certificates in companies that have been acquired. The engine leaves these in
+ * hand — they are worthless unless the name is founded again — but every other
+ * view filters on `status !== "inactive"`, so without this the player's own
+ * position silently vanishes at the moment of the merger.
+ */
+function DefunctHoldings({ game }: { game: GameState }) {
+  const defunct = Object.values(game.cos).filter((c) => c.status === "inactive");
+  const rows = game.players
+    .map((p) => ({
+      player: p,
+      held: defunct
+        .map((c) => ({ name: c.name, n: p.shares[c.name] ?? 0 }))
+        .filter((x) => x.n > 0),
+    }))
+    .filter((r) => r.held.length > 0);
+  if (!rows.length) return null;
+  return (
+    <View style={{ marginTop: 12, borderTopWidth: 1, borderTopColor: BD, paddingTop: 8 }}>
+      <Text style={[hstyle, { color: INK3 }]}>In the drawer · acquired companies</Text>
+      {rows.map(({ player, held }) => (
+        <View key={player.name} style={{ flexDirection: "row", alignItems: "center", flexWrap: "wrap", gap: 6, paddingVertical: 4 }}>
+          <Text numberOfLines={1} style={{ fontFamily: SANS_SEMI, fontSize: 11.5, color: INK2, minWidth: 62 }}>
+            {player.kind === "human" ? "You" : player.name}
+          </Text>
+          {held.map(({ name, n }) => (
+            <View key={name} style={{ flexDirection: "row", alignItems: "center", gap: 4, borderWidth: 1, borderColor: BD2, paddingHorizontal: 6, paddingVertical: 2 }}>
+              <Text style={{ fontFamily: SANS_BLACK, fontSize: 10, color: INK3 }}>{companyStyle(name).code}</Text>
+              <Text style={{ fontFamily: SANS_BLACK, fontSize: 11, color: INK2 }}>{n}</Text>
+            </View>
+          ))}
+        </View>
+      ))}
+      <Text style={{ fontFamily: SANS, fontSize: 9.5, lineHeight: 14, color: INK3, paddingTop: 4, fontStyle: "italic" }}>
+        Worth nothing at close — unless the name is founded again.
+      </Text>
     </View>
   );
 }

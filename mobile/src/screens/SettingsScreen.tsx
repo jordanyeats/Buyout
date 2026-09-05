@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
-import { Alert, Platform, Pressable, Text, View } from "react-native";
+import { Alert, Linking, Platform, Pressable, Text, View } from "react-native";
+import { SUPPORT_URL } from "../links";
 import { isMuted, setMuted } from "../store/sound";
 import { buyRemoveAds, getRemoveAdsPrice, isAdFree, onMonetizeChange, restorePurchases } from "../store/monetize";
 import { gcAlias, gcAuthenticate, gcShowLeaderboards, gcSignedIn, onGameCenterChange } from "../store/gamecenter";
@@ -115,7 +116,14 @@ export function SettingsScreen({ onExit }: { onExit: () => void }) {
           Your game stays on your device. Saves, statistics, honors, and any player names you type are stored locally and never leave this phone. Buyout has no accounts and no analytics of its own, and the game is fully playable offline.{"\n\n"}
           The free edition shows advertisements from Google AdMob, which may collect device identifiers to serve and measure ads — only with your permission, which iOS asks for and you can change any time in Settings › Privacy › Tracking. Decline and ads simply stay non-personalized. Purchasing Remove Ads ends all advertising and the data collection that comes with it.{"\n\n"}
           Deleting the app deletes all of its local data.{"\n\n"}
-          Questions: jordan.yeats@gmail.com
+          Questions, bugs, or ideas:{" "}
+          <Text
+            onPress={() => { void Linking.openURL(SUPPORT_URL); }}
+            style={{ fontFamily: SANS_SEMI, textDecorationLine: "underline" }}
+          >
+            the support page
+          </Text>
+          .
         </Text>
 
         <View style={{ height: 24 }} />

@@ -254,6 +254,7 @@ function beginMerger(
     seam, surv, defuncts: sorted, di: 0, card, cardApplied: false,
     decider: null, decisions: {}, taxActive: false, halfPrice: false,
     triggeredBy, resultDetails: [], afterPhase: "buy",
+    survPriceBefore: priceOf(g, surv),
   };
   g.phase = "mergerAnnounce";
   log(g, `Merger: ${surv} absorbs ${sorted.join(", ")}`);
@@ -341,6 +342,9 @@ function acknowledgeAnnounce(g: GameState): GameState {
 function startDefunct(g: GameState): void {
   const ctx = g.mergerCtx!;
   const dn = ctx.defuncts[ctx.di]!;
+  // Sample before any of this defunct's effects land, so the wrap reports the
+  // gain this absorption produced rather than the whole event's.
+  ctx.survPriceBefore = priceOf(g, ctx.surv);
   payBonuses(g, dn, g.logs);
   ctx.decisions = {};
   const next = nextDecider(g, dn);
@@ -577,6 +581,7 @@ function beginPendingResolution(g: GameState, surv: string, defuncts: string[], 
     di: 0, card: null, cardApplied: true, decider: null, decisions: {},
     taxActive: false, halfPrice: false, triggeredBy: "regulatory resolution", resultDetails: [],
     afterPhase: "place",
+    survPriceBefore: priceOf(g, surv),
   };
   g.phase = "mergerAnnounce";
   log(g, `Delayed merger resolves: ${surv} absorbs ${touching.join(", ")}`);

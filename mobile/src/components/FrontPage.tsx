@@ -2,7 +2,7 @@ import React from "react";
 import { Modal, Text, View } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { MAJORITY_MULT, MINORITY_MULT, majorityMinority, priceOf, type GameState, type Player } from "../engine";
-import { ACCENT, BD, BD2, BG, GRN, INK, INK2, INK3, RED, SANS, SANS_BLACK, SANS_SEMI, SERIF, SERIF_BOLD, money } from "../theme";
+import { ACCENT, BD, BD2, BG, GRN, INK, INK2, INK3, RED, SANS, SANS_BLACK, SANS_BOLD, SANS_SEMI, SERIF, SERIF_BOLD, money } from "../theme";
 import { CountUp, InkButton, LedgerPage, PressIn, Wordmark } from "./common";
 import type { AchievementDef } from "../store/stats";
 
@@ -129,15 +129,30 @@ export function MarketWrap({ game, onDismiss }: { game: GameState; onDismiss: ()
   const ctx = game.mergerCtx;
   if (!ctx) return null;
   const cs = { borderColor: INK };
+  const priceNow = priceOf(game, ctx.surv);
+  const delta = priceNow - ctx.survPriceBefore;
   return (
     <Modal visible transparent animationType="fade" onRequestClose={onDismiss}>
       <View style={{ flex: 1, backgroundColor: "rgba(26,23,21,0.45)", alignItems: "center", justifyContent: "center", padding: 22 }}>
         <View style={{ backgroundColor: BG, borderWidth: 1, ...cs, padding: 20, width: "100%", maxWidth: 380 }}>
           <Text style={{ fontFamily: SANS_BLACK, fontSize: 9, letterSpacing: 2.5, textTransform: "uppercase", color: INK3 }}>Market wrap</Text>
           <Text style={{ fontFamily: SERIF, fontSize: 20, color: INK, marginTop: 3 }}>
-            {ctx.surv} settles at size {game.cos[ctx.surv]!.size}
+            Merger settled
           </Text>
-          <Text style={{ fontFamily: SANS, fontSize: 12.5, color: INK2, marginBottom: 10 }}>{money(priceOf(game, ctx.surv))} a share</Text>
+          <Text style={{ fontFamily: SANS, fontSize: 13, lineHeight: 20, color: INK2, marginTop: 4 }}>
+            {delta > 0 ? (
+              <>Shareholder value for {ctx.surv} has increased by{" "}
+                <Text style={{ fontFamily: SANS_BOLD, color: GRN }}>{money(delta)}</Text> per share.</>
+            ) : delta < 0 ? (
+              <>Shareholder value for {ctx.surv} has fallen by{" "}
+                <Text style={{ fontFamily: SANS_BOLD, color: RED }}>{money(-delta)}</Text> per share.</>
+            ) : (
+              <>Shareholder value for {ctx.surv} is unchanged.</>
+            )}
+          </Text>
+          <Text style={{ fontFamily: SANS, fontSize: 12.5, color: INK3, marginTop: 4, marginBottom: 10 }}>
+            Now {money(priceNow)} a share at size {game.cos[ctx.surv]!.size}
+          </Text>
           <View style={{ borderTopWidth: 1, borderTopColor: BD2, paddingTop: 8 }}>
             {ctx.resultDetails.map((d, i) => (
               <Text key={i} style={{ fontFamily: SANS, fontSize: 12, lineHeight: 19, color: INK2 }}>{d}</Text>
