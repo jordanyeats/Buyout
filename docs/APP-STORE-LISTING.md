@@ -1,4 +1,4 @@
-# App Store Listing — Buyout 1.2.0
+# App Store Listing — Buyout 1.2.1
 
 Paste-ready copy for App Store Connect. Character limits verified.
 No references to any other board game, per naming rules.
@@ -86,11 +86,15 @@ the occasional ad between games; one purchase removes them forever.
 The desk is yours.
 ```
 
-## What's New (1.2.0)
+## What's New (1.2.1)
 
 ```
 Deck packs. Choose Standard, Easy, Hard, or build your own in the Back
 Office, where every merger card now explains exactly what it does.
+
+Fixed: when two shareholders tied for majority, they took both bonuses
+and second place was paid nothing. The tie now splits the majority
+bonus and second place collects the minority bonus it is owed.
 
 Shares in an acquired company no longer vanish from the ledger — they
 sit in the drawer where you can see them.
@@ -124,8 +128,8 @@ Office, and one purchase retires them for good.
 | Price | Free, with one non-consumable IAP (`com.jordanyeats.buyout.removeads`) |
 | Age rating questionnaire | **Advertising: Yes** — required, the app serves AdMob interstitials. All other sensitive items No; no gambling/contests; no UGC → still 4+ |
 | App Privacy | Identifiers → Device ID (Advertising); Usage Data → Ad interactions. "Used for tracking" = Yes (ATT implemented). NOT "Data Not Collected" |
-| Privacy Policy URL | https://jordanyeats.github.io/Buyout/privacy.html (serve `docs/privacy-1.1.html` at that path) |
-| Support URL | https://jordanyeats.github.io/Buyout/support.html |
+| Privacy Policy URL | https://jordanyeats.github.io/privacy.html |
+| Support URL | https://jordanyeats.github.io/support.html |
 | Copyright | © 2026 Jordan Yeats |
 | Content rights | Does not contain third-party content |
 | Review notes | paste from docs/APP-REVIEW-NOTES.md |
