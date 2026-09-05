@@ -7,9 +7,13 @@ import { priceOf } from "./pricing.js";
 import { shuffle } from "./rng.js";
 import type { CardDef, GameState } from "./types.js";
 
-export function buildDeck(g: { rngState: number }, excluded: string[] = []): CardDef[] {
+export function buildDeck(
+  g: { rngState: number },
+  excluded: string[] = [],
+  cleanCount: number = CLEAN_COUNT,
+): CardDef[] {
   const deck: CardDef[] = CARD_DEFS.filter((c) => !excluded.includes(c.id));
-  for (let i = 0; i < CLEAN_COUNT; i++)
+  for (let i = 0; i < Math.max(0, cleanCount); i++)
     deck.push({
       id: "clean", cat: "clean", name: "Clean Acquisition",
       desc: `Normal merger. The dealmaker receives $${CLEAN_CARD_CASH.toLocaleString()}.`,

@@ -76,7 +76,7 @@ export function newGame(configs: PlayerConfig[], seed: number, useCards: boolean
   if (useCards) {
     // Deck shuffled from an independent stream so tile order and deck order are decoupled.
     const deckRng = { rngState: rngNext(seed + 7777)[1] };
-    g.deck = buildDeck(deckRng, options.excludedCards ?? []);
+    g.deck = buildDeck(deckRng, options.excludedCards ?? [], options.cleanCount);
   }
   maybeSkipPlace(g);
   return g;

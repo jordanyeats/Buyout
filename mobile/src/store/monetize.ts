@@ -22,6 +22,11 @@ let adsInitialized = false;
 let lastInterstitialAt = 0;
 let gamesFinishedThisSession = 0;
 let removeAdsPrice: string | null = null;
+/** Why the last ad load or purchase failed, for the diagnostics line in Settings. */
+let lastAdError: string | null = null;
+let lastPurchaseError: string | null = null;
+let productAvailable = false;
+let retryTimer: ReturnType<typeof setTimeout> | null = null;
 /**
  * Whether we may request personalized ads. On iOS this mirrors the ATT answer;
  * elsewhere Google's UMP consent flow governs it, so we leave it open.
@@ -48,6 +53,21 @@ export function getRemoveAdsPrice(): string | null {
   return removeAdsPrice;
 }
 
+/** Diagnostics for the Settings panel — why ads or purchases are not working. */
+export function monetizeStatus() {
+  return {
+    adFree,
+    adsAvailable: getAds() !== null,
+    adsInitialized,
+    interstitialReady: interstitial !== null,
+    lastAdError,
+    purchasesAvailable: getIap() !== null,
+    productAvailable,
+    removeAdsPrice,
+    lastPurchaseError,
+  };
+}
+
 const ads = (): any | null => getAds();
 const iap = (): any | null => getIap();
 
@@ -59,9 +79,18 @@ async function setAdFree(v: boolean): Promise<void> {
   } catch {}
 }
 
-function preloadInterstitial(): void {
+/**
+ * Load an interstitial and hold it until it is shown.
+ *
+ * A failed load used to be terminal: there was no ERROR listener, so one
+ * transient failure (no fill, no network at launch) left `interstitial` null
+ * for the rest of the session and no ad ever appeared again. Failures now back
+ * off and retry, and the reason is kept for the diagnostics line in Settings.
+ */
+function preloadInterstitial(attempt = 0): void {
   const g = ads();
   if (!g || adFree) return;
+  if (retryTimer) { clearTimeout(retryTimer); retryTimer = null; }
   try {
     const { InterstitialAd, TestIds, AdEventType } = g;
     const unitId = __DEV__ ? TestIds.INTERSTITIAL : INTERSTITIAL_UNIT_ID;
@@ -70,13 +99,26 @@ function preloadInterstitial(): void {
     });
     ad.addAdEventListener(AdEventType.LOADED, () => {
       interstitial = ad;
+      lastAdError = null;
+      notify();
+    });
+    ad.addAdEventListener(AdEventType.ERROR, (err: any) => {
+      interstitial = null;
+      lastAdError = err?.message ?? String(err ?? "unknown ad load error");
+      notify();
+      // 8s, 16s, 32s … capped at 5 minutes.
+      const delay = Math.min(8000 * Math.pow(2, attempt), 5 * 60 * 1000);
+      retryTimer = setTimeout(() => preloadInterstitial(attempt + 1), delay);
     });
     ad.addAdEventListener(AdEventType.CLOSED, () => {
       interstitial = null;
       preloadInterstitial(); // queue the next one
     });
     ad.load();
-  } catch {}
+  } catch (e: any) {
+    lastAdError = e?.message ?? String(e);
+    notify();
+  }
 }
 
 /**
@@ -98,15 +140,36 @@ export async function initMonetize(): Promise<void> {
         try {
           if (purchase?.productId === REMOVE_ADS_SKU) {
             await setAdFree(true);
+            lastPurchaseError = null;
             await store.finishTransaction({ purchase, isConsumable: false });
+            notify();
           }
-        } catch {}
+        } catch (e: any) {
+          lastPurchaseError = e?.message ?? String(e);
+          notify();
+        }
+      });
+      // Without this, a declined or failed purchase was completely silent: the
+      // button returned to idle and nothing told the player what happened.
+      store.purchaseErrorListener?.((err: any) => {
+        const code = err?.code ?? "";
+        // A deliberate cancel is not an error worth reporting back.
+        lastPurchaseError = /cancel/i.test(String(code)) ? null : (err?.message ?? String(err));
+        notify();
       });
       const products = await store.fetchProducts({ skus: [REMOVE_ADS_SKU], type: "in-app" });
       const p = Array.isArray(products) ? products[0] : null;
       removeAdsPrice = p?.displayPrice ?? p?.localizedPrice ?? null;
+      productAvailable = !!p;
+      if (!p) {
+        lastPurchaseError =
+          "The App Store did not return the Remove Ads product. Check that it is created, priced, and in a submittable state in App Store Connect.";
+      }
       notify();
-    } catch {}
+    } catch (e: any) {
+      lastPurchaseError = e?.message ?? String(e);
+      notify();
+    }
   }
   if (adFree) return;
 
@@ -154,6 +217,13 @@ export function maybeShowInterstitial(): void {
 export async function buyRemoveAds(): Promise<void> {
   const store = iap();
   if (!store) throw new Error("Purchases are unavailable in this build.");
+  if (!productAvailable) {
+    throw new Error(
+      "The App Store has not returned this product. It may not be approved for sale yet, or the device is not signed in to a store account that can buy it.",
+    );
+  }
+  lastPurchaseError = null;
+  notify();
   await store.requestPurchase({ request: { apple: { sku: REMOVE_ADS_SKU } }, type: "in-app" });
 }
 

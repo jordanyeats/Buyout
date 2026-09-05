@@ -1,7 +1,8 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Pressable, Text, TextInput, View } from "react-native";
-import { CARD_DEFS, type PlayerConfig, type PlayerKind } from "../engine";
-import { ACCENT, BD, BD2, BG, INK, INK2, INK3, SANS, SANS_BLACK, SANS_BOLD, SANS_SEMI, WARM } from "../theme";
+import { type PlayerConfig, type PlayerKind } from "../engine";
+import { achievementsEligible, deckSize, getPackConfig, onPackChange, packDef } from "../store/packs";
+import { ACCENT, BD, BD2, BG, GRN, INK, INK2, INK3, SANS, SANS_BLACK, SANS_BOLD, SANS_SEMI, WARM } from "../theme";
 import { InkButton, LedgerPage, PressIn } from "../components/common";
 
 const KINDS: { kind: PlayerKind; label: string }[] = [
@@ -13,7 +14,7 @@ const KINDS: { kind: PlayerKind; label: string }[] = [
 ];
 
 export function SetupScreen({ onStart, onExit }: {
-  onStart: (players: PlayerConfig[], cards: boolean, excludedCards: string[]) => void;
+  onStart: (players: PlayerConfig[], cards: boolean) => void;
   onExit: () => void;
 }) {
   const [players, setPlayers] = useState<PlayerConfig[]>([
@@ -23,10 +24,10 @@ export function SetupScreen({ onStart, onExit }: {
     { name: "Rando", kind: "random" },
   ]);
   const [cards, setCards] = useState(true);
-  const [showDeck, setShowDeck] = useState(false);
-  const [excluded, setExcluded] = useState<string[]>([]);
-  const toggleCard = (id: string) =>
-    setExcluded(excluded.includes(id) ? excluded.filter((x) => x !== id) : [...excluded, id]);
+  const [cfg, setCfg] = useState(getPackConfig());
+  useEffect(() => onPackChange(() => setCfg(getPackConfig())), []);
+  const pack = packDef(cfg.pack);
+  const ranked = achievementsEligible(cards, cfg.pack);
   const update = (i: number, patch: Partial<PlayerConfig>) =>
     setPlayers(players.map((p, j) => (j === i ? { ...p, ...patch } : p)));
 
@@ -75,41 +76,37 @@ export function SetupScreen({ onStart, onExit }: {
             <View style={{ width: 18, height: 18, borderWidth: 1.5, borderColor: INK, backgroundColor: cards ? INK : "transparent", alignItems: "center", justifyContent: "center" }}>
               {cards ? <Text style={{ color: BG, fontSize: 11, fontFamily: SANS_BOLD }}>✓</Text> : null}
             </View>
-            <View>
+            <View style={{ flex: 1 }}>
               <Text style={{ fontFamily: SANS_BOLD, fontSize: 13, color: INK }}>Merger cards</Text>
-              <Text style={{ fontFamily: SANS, fontSize: 10.5, color: INK3 }}>27-card deck drawn when deals close</Text>
+              <Text style={{ fontFamily: SANS, fontSize: 10.5, color: INK3 }}>
+                {cards ? `${pack.name} deck · ${deckSize(cfg)} cards, drawn when deals close` : "No deck — pure board play"}
+              </Text>
             </View>
           </Pressable>
 
           {cards ? (
-            <View style={{ marginBottom: 12 }}>
-              <Pressable onPress={() => setShowDeck(!showDeck)}>
-                <Text style={{ fontFamily: SANS_SEMI, fontSize: 11, color: INK3, letterSpacing: 1, textTransform: "uppercase" }}>
-                  {showDeck ? "▾" : "▸"} Deck settings{excluded.length ? ` · ${excluded.length} removed` : ""}
-                </Text>
-              </Pressable>
-              {showDeck ? (
-                <View style={{ marginTop: 8, gap: 4 }}>
-                  {CARD_DEFS.map((c) => {
-                    const off = excluded.includes(c.id);
-                    return (
-                      <Pressable key={c.id} onPress={() => toggleCard(c.id)} style={{ flexDirection: "row", alignItems: "center", gap: 8, paddingVertical: 4, opacity: off ? 0.4 : 1 }}>
-                        <View style={{ width: 14, height: 14, borderWidth: 1.5, borderColor: INK, backgroundColor: off ? "transparent" : INK }} />
-                        <Text style={{ fontFamily: SANS_SEMI, fontSize: 12, color: INK, flex: 1 }}>{c.name}</Text>
-                        <Text style={{ fontFamily: SANS, fontSize: 10, color: INK3 }}>{c.dev ? "devastating" : c.cat}</Text>
-                      </Pressable>
-                    );
-                  })}
-                </View>
-              ) : null}
-            </View>
+            <Text style={{ fontFamily: SANS, fontSize: 11, lineHeight: 17, color: INK3, marginBottom: 12, fontStyle: "italic" }}>
+              {pack.desc} Change packs in The Back Office.
+            </Text>
           ) : null}
+
+          <View style={{
+            flexDirection: "row", alignItems: "center", gap: 8, marginBottom: 14,
+            borderLeftWidth: 2, borderLeftColor: ranked ? GRN : BD2, paddingLeft: 10, paddingVertical: 4,
+          }}>
+            <Text style={{ fontFamily: SANS, fontSize: 11, lineHeight: 17, color: INK3, flex: 1 }}>
+              {ranked
+                ? "Honors can be earned this game."
+                : `The ${pack.name} deck is for experimenting — this game earns no honors.`}
+              {cards && cfg.pack !== "standard" ? " Only Standard games post to the leaderboards." : ""}
+            </Text>
+          </View>
 
           <View style={{ flexDirection: "row", gap: 8 }}>
             {players.length < 6 ? (
               <InkButton label="+ Player" onPress={() => setPlayers([...players, { name: `P${players.length + 1}`, kind: "greedy" }])} style={{ flex: 1 }} />
             ) : null}
-            <InkButton label="Start game" primary onPress={() => onStart(players, cards, excluded)} style={{ flex: 2 }} />
+            <InkButton label="Start game" primary onPress={() => onStart(players, cards)} style={{ flex: 2 }} />
           </View>
         </PressIn>
         <View style={{ height: 40 }} />

@@ -89,6 +89,17 @@ export interface PendingMerger {
 export interface GameOptions {
   /** Card ids removed from the deck at game creation (deck settings). */
   excludedCards?: string[];
+  /**
+   * How many "Clean Acquisition" filler cards to shuffle in. Defaults to
+   * CLEAN_COUNT. Lowering it raises the density of consequential cards, which
+   * is what the Hard pack does.
+   */
+  cleanCount?: number;
+  /**
+   * Which deck pack produced these options. Recorded so finished games can be
+   * gated for honors and leaderboards; the engine itself never reads it.
+   */
+  pack?: string;
 }
 
 export interface GameState {

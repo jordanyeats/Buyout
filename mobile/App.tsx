@@ -12,7 +12,8 @@ import {
 import { useGame } from "./src/store/useGame";
 import { initSound } from "./src/store/sound";
 import { initMonetize, maybeShowInterstitial } from "./src/store/monetize";
-import { gcAuthenticate } from "./src/store/gamecenter";
+import { initGameCenter } from "./src/store/gamecenter";
+import { initPacks, optionsFor } from "./src/store/packs";
 import { HomeScreen } from "./src/screens/HomeScreen";
 import { SetupScreen } from "./src/screens/SetupScreen";
 import { SettingsScreen } from "./src/screens/SettingsScreen";
@@ -23,7 +24,7 @@ import { BG, INK3, SANS } from "./src/theme";
 
 export default function App() {
   const [screen, setScreen] = React.useState<"home" | "setup" | "settings" | "tutorial" | "stats">("home");
-  React.useEffect(() => { initSound(); initMonetize(); gcAuthenticate(); }, []);
+  React.useEffect(() => { initSound(); initMonetize(); initPacks(); initGameCenter(); }, []);
   const [fontsLoaded] = useFonts({
     PlayfairDisplay_900Black,
     PlayfairDisplay_700Bold,
@@ -62,7 +63,7 @@ export default function App() {
         <SettingsScreen onExit={() => setScreen("home")} />
       ) : screen === "setup" ? (
         <SetupScreen
-          onStart={(p, c, ex) => { start(p, c, { excludedCards: ex }); setScreen("home"); }}
+          onStart={(p, c) => { start(p, c, optionsFor()); setScreen("home"); }}
           onExit={() => setScreen("home")}
         />
       ) : (
