@@ -4,6 +4,25 @@ The app code posts to these exact IDs. Create them in
 ASC → your app → Services → Game Center.
 (IDs use only letters, digits, periods, underscores — ASC forbids hyphens.)
 
+## "*MISSING TITLE* 56551873" in the Game Center overlay
+
+That is Game Center saying the leaderboard **exists but has no localization**.
+The number is App Store Connect's internal id; the hourglass means it has never
+finished configuring. Creating a leaderboard is not enough — each one needs a
+Localization row or it has no display name to show anyone.
+
+Fix, per leaderboard, in ASC → your app → Services → Game Center → Leaderboards:
+
+1. Open the leaderboard → **Localizations → Add Localization → English (U.S.)**
+2. **Name**: `Best Fortune` / `Career Wins` (this is the *MISSING TITLE*)
+3. **Score Format**: Money → `$` for the fortune board; Integer for wins
+4. **Score Format Suffix**: leave blank
+5. **Image**: 512×512, required before the board will display properly
+6. Save, then confirm the row no longer reads *MISSING TITLE*
+
+Scores already submitted are not lost — they are attached to the leaderboard id,
+not its title, and appear as soon as the localization exists.
+
 ## Leaderboards (both: Classic, integer, "High to Low" sort)
 
 | ID | Reference name | Score format |
