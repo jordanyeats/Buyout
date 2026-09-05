@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { SHARK_CONFIG, aiAction, applyAction, newGame } from "../src/index.js";
+import { SHARK_CONFIG, aiAction, applyAction, newGame } from "buyout-engine";
 import { grantShares, handTile, putCompany, runGame, scenario } from "./helpers.js";
 
 describe("shark (simulation AI)", () => {

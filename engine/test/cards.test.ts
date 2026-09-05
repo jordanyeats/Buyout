@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   applyAction, canPlay, priceForSize, priceOf, CARD_DEFS,
   type CardDef, type GameState,
-} from "../src/index.js";
+} from "buyout-engine";
 import { grantShares, handTile, putCompany, scenario } from "./helpers.js";
 
 function card(id: string): CardDef {

@@ -1,7 +1,7 @@
 import {
   aiAction, applyAction, checkInvariants, newGame,
   type Action, type GameState, type PlayerConfig, type PlayerKind, type Tile,
-} from "../src/index.js";
+} from "buyout-engine";
 
 export function cfg(...kinds: PlayerKind[]): PlayerConfig[] {
   return kinds.map((k, i) => ({ name: `P${i + 1}`, kind: k }));
@@ -69,7 +69,7 @@ export function runGame(
   seed: number,
   kinds: PlayerKind[],
   useCards: boolean,
-  opts: { checkEveryStep?: boolean; maxSteps?: number; options?: import("../src/index.js").GameOptions } = {},
+  opts: { checkEveryStep?: boolean; maxSteps?: number; options?: import("buyout-engine").GameOptions } = {},
 ): RunResult {
   let g = newGame(cfg(...kinds), seed, useCards, opts.options);
   const actions: Action[] = [];

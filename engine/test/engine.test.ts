@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { applyAction, newGame, priceOf, EngineError, MAX_BUY } from "../src/index.js";
+import { applyAction, newGame, priceOf, EngineError, MAX_BUY } from "buyout-engine";
 import { cfg, grantShares, handTile, putCompany, putSingle, scenario } from "./helpers.js";
 
 describe("buy validation (engine no longer trusts the UI)", () => {

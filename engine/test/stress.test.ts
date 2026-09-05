@@ -1,5 +1,5 @@
 import { it, expect } from "vitest";
-import type { PlayerKind } from "../src/index.js";
+import type { PlayerKind } from "buyout-engine";
 import { runGame } from "./helpers.js";
 const CONFIGS: PlayerKind[][] = [
   ["strategic","greedy"],["strategic","greedy","random"],
