@@ -48,10 +48,17 @@ Same steps, with:
 | Display Name | `Career Wins` |
 | Score Format | `1,000` |
 
-**On the image:** ASC will not let you save a localization without one. Any
-512×512 PNG works. The achievement art in `~/Downloads/buyout-achievements/`
-is the right visual language if you want something consistent — or ask and
-I'll generate two.
+**On the image:** ASC will not let you save a localization without one. Two are
+ready in the repo, in the same tile language as the achievement art — flat
+company colour, one Playfair glyph, rotated corner code:
+
+| Leaderboard | File |
+|---|---|
+| Best Fortune | `mobile/design/lb-fortune.png` (green, **F**, L1) |
+| Career Wins | `mobile/design/lb-wins.png` (red, **W**, L2) |
+
+They deliberately avoid `$`, which the Tycoon achievement already uses — two
+near-identical tiles in one Game Center list is a bad tell.
 
 **Verify:** reopen the app → Settings → Game Center → **Check Game Center
 setup**. It should report both leaderboards found with no missing IDs. Then
