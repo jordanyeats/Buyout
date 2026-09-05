@@ -2,11 +2,21 @@ import React, { useEffect, useState } from "react";
 import { Text, View } from "react-native";
 import { ACCENT, BD, BG, GRN, INK, INK2, INK3, SANS, SANS_BLACK, SANS_SEMI, SERIF, money } from "../theme";
 import { InkButton, LedgerPage, SectionRule } from "../components/common";
-import { ACHIEVEMENTS, loadStats, summarize, type Stats } from "../store/stats";
+import { ACHIEVEMENTS, loadStats, summarize, type GameRecord, type Stats } from "../store/stats";
+import { PACKS } from "../store/packs";
 
 const KIND_LABEL: Record<string, string> = {
   random: "Casual", greedy: "Greedy", strategic: "Sharp", shark: "Shark",
 };
+
+const PACK_ROWS = [...PACKS.map((p) => ({ id: p.id as string, name: p.name })), { id: "none", name: "No deck" }];
+
+/**
+ * Which deck a recorded game was played with. Records written before packs
+ * existed carry no pack; with cards on they were the full deck, which is what
+ * Standard is.
+ */
+const deckOf = (r: GameRecord): string => (r.cards ? r.pack ?? "standard" : "none");
 
 export function StatsScreen({ onExit }: { onExit: () => void }) {
   const [stats, setStats] = useState<Stats | null>(null);
@@ -33,6 +43,29 @@ export function StatsScreen({ onExit }: { onExit: () => void }) {
               <Text style={{ fontFamily: SANS_BLACK, fontSize: 22, color: INK }}>{s.best ? money(s.best) : "—"}</Text>
             </View>
 
+            <SectionRule label="By deck" />
+            {PACK_ROWS.map(({ id, name }) => {
+              const games = stats!.records.filter((r) => deckOf(r) === id);
+              if (!games.length) return null;
+              const wins = games.filter((r) => r.humanWon).length;
+              const best = games.reduce((m, r) => Math.max(m, r.humanCash), 0);
+              return (
+                <View key={id} style={{ flexDirection: "row", alignItems: "center", paddingVertical: 6, borderBottomWidth: 1, borderBottomColor: BD }}>
+                  <View style={{ flex: 1 }}>
+                    <Text style={{ fontFamily: SANS_SEMI, fontSize: 12.5, color: INK }}>{name}</Text>
+                    {id === "standard" ? (
+                      <Text style={{ fontFamily: SANS, fontSize: 10, color: INK3 }}>posts to the leaderboards</Text>
+                    ) : id === "easy" || id === "custom" ? (
+                      <Text style={{ fontFamily: SANS, fontSize: 10, color: INK3 }}>unranked — no honors</Text>
+                    ) : null}
+                  </View>
+                  <Text style={{ fontFamily: SANS, fontSize: 12.5, color: INK2 }}>
+                    {wins}/{games.length} won · best {money(best)}
+                  </Text>
+                </View>
+              );
+            })}
+
             <SectionRule label="Versus the desks" />
             {Object.entries(s.byKind).length === 0 ? (
               <Text style={{ fontFamily: SANS, fontSize: 12, color: INK3, fontStyle: "italic", paddingVertical: 6 }}>No completed games yet.</Text>
@@ -48,6 +81,9 @@ export function StatsScreen({ onExit }: { onExit: () => void }) {
             )}
 
             <SectionRule label="Honors" right={`${stats!.unlocked.length}/${ACHIEVEMENTS.length}`} />
+            <Text style={{ fontFamily: SANS, fontSize: 11, lineHeight: 17, color: INK3, paddingBottom: 6, fontStyle: "italic" }}>
+              Earned on the Standard or Hard deck, or with the merger deck switched off. Easy and Custom decks are for experimenting.
+            </Text>
             {ACHIEVEMENTS.map((a) => {
               const got = stats!.unlocked.includes(a.id);
               return (

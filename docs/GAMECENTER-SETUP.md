@@ -30,14 +30,43 @@ Image files are in ~/Downloads/buyout-achievements/, named to match.
 | `buyout.honor.purist` | The Purist | Win with the merger deck disabled. | You won a pure game — no cards, no luck, all board. | ach-purist.png |
 | `buyout.honor.full_table` | Full Table | Win a six-player game. | You beat a full table of five rivals. | ach-full-table.png |
 
+## What posts, and when
+
+Deck packs are chosen in Settings → The merger deck. They decide what reaches
+Game Center:
+
+| Deck | Honors | Leaderboards |
+|---|---|---|
+| Standard | yes | yes |
+| Hard | yes | no |
+| Easy | no | no |
+| Custom | no | no |
+| Merger deck off | yes | no |
+
+Only the full Standard deck posts scores, so both global tables compare games
+played with the same deck. Honors also count on Hard, and on games played with
+no deck at all — the latter matters because The Purist ("win with the merger
+deck disabled") can only be earned that way.
+
+No new leaderboard IDs are needed for this: the two boards above stay as they
+are, and everything else is simply not submitted.
+
 ## Notes
 
 - The Game Center capability is declared in the app's entitlements
   (app.json → ios.entitlements); EAS syncs the capability at build time
   (enabled manually on the App ID 2026-08-10).
-- Sign-in is attempted at launch; manual sign-in + View leaderboards live
-  in Settings → Game Center. Scores/achievements post after each finished
-  game and re-sync fully on sign-in.
+- The native authenticate handler is installed once at launch and its result
+  arrives as an event, not a promise. The earlier version awaited a promise
+  that only resolved if the sign-in sheet could be presented — at cold launch
+  it frequently could not, and sign-in then hung for the life of the process.
+- Manual sign-in + View leaderboards live in Settings → Game Center. Scores and
+  achievements post after each eligible finished game and re-sync on sign-in.
+- **Settings → Game Center → "Check Game Center setup"** asks Game Center which
+  of the IDs above it actually knows about, and names any it does not. Run it
+  first whenever posting appears to do nothing — it separates a code bug from
+  missing App Store Connect configuration, which are otherwise identical from
+  the app's side.
 - Test with a sandbox Apple ID via TestFlight.
 - These can also be created programmatically via the App Store Connect API
   (gameCenterAchievements + localizations + image upload) with an API key —
