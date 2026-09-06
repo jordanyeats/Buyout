@@ -89,26 +89,31 @@ The desk is yours.
 ## What's New (1.2.1)
 
 ```
-Deck packs. Choose Standard, Easy, Hard, or build your own in the Back
-Office, where every merger card now explains exactly what it does.
+DECK PACKS
+Choose how the merger deck plays: Standard, Easy, Hard, or build your
+own card by card. Every card now explains exactly what it does, in the
+Back Office.
 
-Fixed: when two shareholders tied for majority, they took both bonuses
-and second place was paid nothing. The tie now splits the majority
-bonus and second place collects the minority bonus it is owed.
+Honors are earned on Standard and Hard, or with the deck switched off.
+The leaderboards take Standard games alone, so every fortune on them
+was won with the same deck.
 
-Shares in an acquired company no longer vanish from the ledger — they
-sit in the drawer where you can see them.
+NOTHING VANISHES
+Shares in a company that gets acquired used to disappear from the
+ledger. They now sit in the drawer, where you can see what you are
+still holding.
 
-A closed merger now reports what it did to your shareholder value, in
-dollars per share, rather than just the survivor's new size.
+A CLOSED DEAL TELLS YOU WHAT IT DID
+The market wrap now reports what a merger did to shareholder value, in
+dollars per share, instead of just the survivor's new size.
 
-Fixes for Game Center sign-in, advertisement loading, and the Remove
-Ads purchase.
+A TIE NO LONGER ROBS SECOND PLACE
+When two shareholders tied for majority, they split both bonuses and
+second place was paid nothing. The tie now splits the majority bonus,
+and second place collects the minority bonus it is owed.
+
+Game Center sign-in now works reliably. Plus: squashed a bug or two.
 ```
-
-Honors are earned on the Standard and Hard decks, or with the merger deck
-switched off. The leaderboards take Standard games alone, so every fortune
-on them was won with the same deck.
 
 ## What's New (1.1.0)
 
