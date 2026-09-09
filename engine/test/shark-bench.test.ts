@@ -8,6 +8,13 @@ import { SHARK_CONFIG, aiAction, applyAction, currentActor, newGame, type GameSt
  *
  *   BENCH=1 npx vitest run test/shark-bench.test.ts
  *   BENCH=1 BENCH_GAMES=40 npx vitest run test/shark-bench.test.ts
+ *
+ * With BENCH_BUDGETS set it instead sweeps the honest shark across rollout
+ * budgets ("rollouts x maxActions"), to ask whether compute buys back the
+ * strength the clairvoyant version was getting for free:
+ *
+ *   BENCH=1 BENCH_GAMES=15 BENCH_SEATS=2 BENCH_BUDGETS=10x90,25x150 \
+ *     npx vitest run test/shark-bench.test.ts
  */
 
 interface Tally {
@@ -47,32 +54,65 @@ function report(label: string, t: Tally): void {
   );
 }
 
-const LINEUPS: { name: string; kinds: PlayerKind[] }[] = [
+const ALL_LINEUPS: { name: string; kinds: PlayerKind[] }[] = [
   { name: "shark v strategic", kinds: ["shark", "strategic"] },
   { name: "shark v strat+greedy", kinds: ["shark", "strategic", "greedy"] },
 ];
 
-it.runIf(process.env.BENCH)("BENCH: honest vs clairvoyant shark", () => {
-  const games = Number(process.env.BENCH_GAMES ?? 20);
-  SHARK_CONFIG.rollouts = 10;
-  SHARK_CONFIG.maxActionsPerRollout = 90;
+/** BENCH_SEATS=2 restricts the sweep to the two-seat lineup (the cheapest clean signal). */
+function lineups(): typeof ALL_LINEUPS {
+  const seats = process.env.BENCH_SEATS;
+  return seats ? ALL_LINEUPS.filter((l) => l.kinds.length === Number(seats)) : ALL_LINEUPS;
+}
 
-  for (const { name, kinds } of LINEUPS) {
-    console.log(`\n--- ${name} (${games} seeds x ${kinds.length} seats, cards on) ---`);
-    for (const determinize of [true, false]) {
-      SHARK_CONFIG.determinize = determinize;
-      const t = empty();
-      for (let i = 0; i < games; i++) {
-        // Same seed for both modes; shark rotates through every seat so first-move
-        // advantage cancels instead of favouring one arm.
-        for (let seat = 0; seat < kinds.length; seat++) {
-          const lineup = [...kinds];
-          lineup[0] = kinds[seat]!; lineup[seat] = "shark";
-          playGame(9001 + i * 37, lineup as PlayerKind[], seat, t);
-        }
-      }
-      report(determinize ? "honest" : "clairvoyant", t);
+/** One arm: `games` seeds, shark rotated through every seat. */
+function runArm(games: number, kinds: PlayerKind[]): Tally {
+  const t = empty();
+  for (let i = 0; i < games; i++) {
+    // Same seeds across every arm; rotating the shark cancels first-move advantage.
+    for (let seat = 0; seat < kinds.length; seat++) {
+      const lineup = [...kinds];
+      lineup[0] = kinds[seat]!;
+      lineup[seat] = "shark";
+      playGame(9001 + i * 37, lineup as PlayerKind[], seat, t);
     }
   }
+  return t;
+}
+
+it.runIf(process.env.BENCH)("BENCH: shark strength", () => {
+  const games = Number(process.env.BENCH_GAMES ?? 20);
+  const budgets = (process.env.BENCH_BUDGETS ?? "")
+    .split(",").filter(Boolean)
+    .map((b) => b.split("x").map(Number) as [number, number]);
+
+  for (const { name, kinds } of lineups()) {
+    const baseline = (100 / kinds.length).toFixed(1);
+    console.log(
+      `\n--- ${name} (${games} seeds x ${kinds.length} seats, cards on) ` +
+      `— chance baseline ${baseline}% ---`,
+    );
+
+    if (budgets.length) {
+      // Sweep: does more compute buy the honest shark real strength?
+      SHARK_CONFIG.determinize = true;
+      for (const [rollouts, maxA] of budgets) {
+        SHARK_CONFIG.rollouts = rollouts;
+        SHARK_CONFIG.maxActionsPerRollout = maxA;
+        report(`honest ${rollouts}x${maxA}`, runArm(games, kinds));
+      }
+      continue;
+    }
+
+    SHARK_CONFIG.rollouts = 10;
+    SHARK_CONFIG.maxActionsPerRollout = 90;
+    for (const determinize of [true, false]) {
+      SHARK_CONFIG.determinize = determinize;
+      report(determinize ? "honest" : "clairvoyant", runArm(games, kinds));
+    }
+  }
+
   SHARK_CONFIG.determinize = true;
-}, 3_600_000);
+  SHARK_CONFIG.rollouts = 10;
+  SHARK_CONFIG.maxActionsPerRollout = 90;
+}, 14_400_000);
