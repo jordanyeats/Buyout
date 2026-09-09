@@ -24,6 +24,16 @@ export const SHARK_CONFIG = {
    * so the honest and cheating players can be measured head-to-head.
    */
   determinize: true,
+  /**
+   * What a rollout's outcome is worth to the shark.
+   *
+   * "networth" scores absolute final wealth. "margin" scores final wealth minus
+   * the best opponent's, which is what actually decides the game and which
+   * cancels the common-mode swing shared by every candidate move (a rollout
+   * where the whole market booms lifts them all equally). Same cost per
+   * rollout; less noise per rollout.
+   */
+  objective: "networth" as "networth" | "margin",
 };
 
 function netWorth(g: GameState, idx: number): number {
@@ -31,6 +41,17 @@ function netWorth(g: GameState, idx: number): number {
   let w = p.cash;
   for (const [name, cnt] of Object.entries(p.shares)) w += cnt * priceOf(g, name);
   return w;
+}
+
+/** What one finished rollout is worth to seat `idx`. See SHARK_CONFIG.objective. */
+function score(g: GameState, idx: number): number {
+  const mine = netWorth(g, idx);
+  if (SHARK_CONFIG.objective !== "margin") return mine;
+  let best = -Infinity;
+  for (let i = 0; i < g.players.length; i++) {
+    if (i !== idx) best = Math.max(best, netWorth(g, i));
+  }
+  return best === -Infinity ? mine : mine - best;
 }
 
 /** Fisher-Yates over an arbitrary rng (the state rng is not consumed here). */
@@ -108,7 +129,7 @@ function rollout(start: GameState, me: number, salt: number): number {
     if (!next) break;
     g = next;
   }
-  return netWorth(g, me);
+  return score(g, me);
 }
 
 export function sharkPlace(g: GameState, idx: number): Action {

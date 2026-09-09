@@ -82,6 +82,8 @@ function runArm(games: number, kinds: PlayerKind[]): Tally {
 
 it.runIf(process.env.BENCH)("BENCH: shark strength", () => {
   const games = Number(process.env.BENCH_GAMES ?? 20);
+  if (process.env.BENCH_OBJECTIVE)
+    SHARK_CONFIG.objective = process.env.BENCH_OBJECTIVE as typeof SHARK_CONFIG.objective;
   const budgets = (process.env.BENCH_BUDGETS ?? "")
     .split(",").filter(Boolean)
     .map((b) => b.split("x").map(Number) as [number, number]);
@@ -99,7 +101,7 @@ it.runIf(process.env.BENCH)("BENCH: shark strength", () => {
       for (const [rollouts, maxA] of budgets) {
         SHARK_CONFIG.rollouts = rollouts;
         SHARK_CONFIG.maxActionsPerRollout = maxA;
-        report(`honest ${rollouts}x${maxA}`, runArm(games, kinds));
+        report(`honest ${rollouts}x${maxA} ${SHARK_CONFIG.objective}`, runArm(games, kinds));
       }
       continue;
     }
@@ -115,4 +117,5 @@ it.runIf(process.env.BENCH)("BENCH: shark strength", () => {
   SHARK_CONFIG.determinize = true;
   SHARK_CONFIG.rollouts = 10;
   SHARK_CONFIG.maxActionsPerRollout = 90;
+  SHARK_CONFIG.objective = "networth";
 }, 14_400_000);
