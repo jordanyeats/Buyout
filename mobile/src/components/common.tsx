@@ -23,6 +23,8 @@ export function Mark({ name, size, color }: { name: string; size: number; color:
       return <Svg {...p}><Circle cx={6} cy={6} r={4.6} fill="none" stroke={color} strokeWidth={1.4} /><Circle cx={6} cy={6} r={2.4} fill="none" stroke={color} strokeWidth={1.2} /></Svg>;
     case "Pogo":
       return <Svg {...p}><Rect x={2.5} y={1.5} width={7} height={2} fill={color} /><Rect x={3.5} y={5} width={5} height={2} fill={color} opacity={0.75} /><Rect x={4.5} y={8.5} width={3} height={2} fill={color} opacity={0.5} /></Svg>;
+    case "Vault":
+      return <Svg {...p}><Rect x={1.5} y={2} width={9} height={8} fill="none" stroke={color} strokeWidth={1.3} /><Circle cx={6} cy={6} r={2.1} fill="none" stroke={color} strokeWidth={1.2} /><Path d="M6 3.9 V6" stroke={color} strokeWidth={1} strokeLinecap="round" /></Svg>;
     default: // Blink
       return <Svg {...p}><Circle cx={6} cy={6} r={4.6} fill="none" stroke={color} strokeWidth={1.6} /><Circle cx={6} cy={6} r={1.8} fill={color} /></Svg>;
   }
@@ -40,7 +42,7 @@ export function Wordmark({ name, size = 13, light = false }: { name: string; siz
 }
 
 /** Cash that counts instead of jumping. */
-export function CountUp({ value, style }: { value: number; style?: TextStyle | TextStyle[] }) {
+export function CountUp({ value, style, numberOfLines }: { value: number; style?: TextStyle | TextStyle[]; numberOfLines?: number }) {
   const [disp, setDisp] = useState(value);
   const prev = useRef(value);
   useEffect(() => {
@@ -58,7 +60,7 @@ export function CountUp({ value, style }: { value: number; style?: TextStyle | T
     raf = requestAnimationFrame(step);
     return () => cancelAnimationFrame(raf);
   }, [value]);
-  return <Text style={style}>{money(disp)}</Text>;
+  return <Text numberOfLines={numberOfLines} style={style}>{money(disp)}</Text>;
 }
 
 /** Thick-thin rule pair with a small-caps section label. Rules, never cards. */

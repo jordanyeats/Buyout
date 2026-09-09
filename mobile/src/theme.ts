@@ -32,4 +32,5 @@ export const IDENT: Record<string, CompanyIdentity> = {
   Spark: { tag: "Ideas that ignite." },
   Neon: { tag: "Nightlife, organized." },
   Pogo: { tag: "Bounce-back logistics." },
+  Vault: { tag: "Nothing ever leaves." },
 };

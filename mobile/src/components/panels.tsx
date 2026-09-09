@@ -244,7 +244,11 @@ export function SafeBanner({ game }: { game: GameState }) {
 
 export function Holdings({ game }: { game: GameState }) {
   const active = Object.values(game.cos).filter((c) => c.status !== "inactive");
-  const cellW = { flex: 1 } as const;
+  // Column widths are a flex split of ~362pt at phone width: each company
+  // column costs a share of the money columns. At seven companies a 1.0
+  // share left Cash and Worth at 47pt, which clips "$100,000"; 0.9 against
+  // 1.9 keeps them near 57pt and still fits a two-letter code.
+  const cellW = { flex: 0.9 } as const;
   // Majority holders per company, computed once per render.
   const majOf: Record<string, Set<string>> = {};
   for (const c of active) majOf[c.name] = new Set(majorityMinority(game, c.name).maj.map((m) => m.name));
@@ -252,9 +256,9 @@ export function Holdings({ game }: { game: GameState }) {
     <View>
       <View style={{ flexDirection: "row", borderBottomWidth: 1, borderBottomColor: INK, paddingBottom: 4 }}>
         <Text style={[{ flex: 2 }, hstyle]}>Player</Text>
-        <Text style={[{ flex: 1.6, textAlign: "right" }, hstyle]}>Cash</Text>
+        <Text style={[{ flex: 1.9, textAlign: "right" }, hstyle]}>Cash</Text>
         {active.map((c) => <Text key={c.name} style={[cellW, hstyle, { textAlign: "center" }]}>{companyStyle(c.name).code}</Text>)}
-        <Text style={[{ flex: 1.6, textAlign: "right" }, hstyle]}>Worth</Text>
+        <Text style={[{ flex: 1.9, textAlign: "right" }, hstyle]}>Worth</Text>
       </View>
       {game.players.map((p, i) => {
         const worth = p.cash + active.reduce((s, c) => s + (p.shares[c.name] ?? 0) * priceOf(game, c.name), 0);
@@ -267,7 +271,7 @@ export function Holdings({ game }: { game: GameState }) {
               </Text>
               {p.kind !== "human" ? <Text style={{ fontFamily: SANS, fontSize: 8, color: INK3, marginTop: 1 }}>{p.kind}</Text> : null}
             </View>
-            <CountUp value={p.cash} style={{ flex: 1.6, textAlign: "right", fontFamily: SANS_SEMI, fontSize: 12, color: GRN, fontVariant: ["tabular-nums"] }} />
+            <CountUp value={p.cash} numberOfLines={1} style={{ flex: 1.9, textAlign: "right", fontFamily: SANS_SEMI, fontSize: 12, color: GRN, fontVariant: ["tabular-nums"] }} />
             {active.map((c) => {
               const s = p.shares[c.name] ?? 0;
               const cs = companyStyle(c.name);
@@ -289,15 +293,15 @@ export function Holdings({ game }: { game: GameState }) {
               }
               return <Text key={c.name} style={[cellW, { textAlign: "center", fontFamily: s ? SANS_BLACK : SANS, fontSize: 12, color: s ? cs.ptx : BD2 }]}>{s || "–"}</Text>;
             })}
-            <CountUp value={worth} style={{ flex: 1.6, textAlign: "right", fontFamily: SANS_BLACK, fontSize: 12, color: INK, fontVariant: ["tabular-nums"] }} />
+            <CountUp value={worth} numberOfLines={1} style={{ flex: 1.9, textAlign: "right", fontFamily: SANS_BLACK, fontSize: 12, color: INK, fontVariant: ["tabular-nums"] }} />
           </View>
         );
       })}
       <View style={{ flexDirection: "row", paddingTop: 4 }}>
         <Text style={[{ flex: 2 }, mstyle]}>Market</Text>
-        <View style={{ flex: 1.6 }} />
+        <View style={{ flex: 1.9 }} />
         {active.map((c) => <Text key={c.name} style={[cellW, mstyle, { textAlign: "center" }]}>{game.market[c.name]}</Text>)}
-        <View style={{ flex: 1.6 }} />
+        <View style={{ flex: 1.9 }} />
       </View>
       {active.length ? (
         <Text style={{ textAlign: "right", fontFamily: SANS, fontSize: 9.5, color: INK3, paddingTop: 3 }}>■ majority · ▢ founded</Text>

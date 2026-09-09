@@ -1,5 +1,5 @@
 // Marketing screenshot states — dev-only, excluded from release builds.
-import { applyAction, newGame, type GameState, type PlayerConfig, type Tile } from "./src/engine";
+import { SAFE_SIZE, applyAction, newGame, type GameState, type PlayerConfig, type Tile } from "./src/engine";
 
 function base(seed = 42): GameState {
   const configs: PlayerConfig[] = [
@@ -27,7 +27,7 @@ function putCompany(g: GameState, name: string, tiles: Tile[]): void {
   }
   const co = g.cos[name]!;
   co.size = tiles.length;
-  co.status = co.size >= 25 ? "safe" : "active";
+  co.status = co.size >= SAFE_SIZE ? "safe" : "active";
 }
 function putSingle(g: GameState, t: Tile): void {
   take(g, t);

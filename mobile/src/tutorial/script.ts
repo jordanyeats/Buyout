@@ -1,5 +1,5 @@
 import {
-  newGame, type Action, type GameState, type PlayerKind, type Tile,
+  SAFE_SIZE, newGame, type Action, type GameState, type PlayerKind, type Tile,
 } from "../engine";
 
 /** ---- state builders (mirror the engine test helpers) ---- */
@@ -25,7 +25,7 @@ function putCompany(g: GameState, name: string, tiles: Tile[]): void {
   }
   const co = g.cos[name]!;
   co.size = tiles.length;
-  co.status = co.size >= 25 ? "safe" : "active";
+  co.status = co.size >= SAFE_SIZE ? "safe" : "active";
 }
 
 function putSingle(g: GameState, t: Tile): void {
