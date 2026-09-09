@@ -110,7 +110,7 @@ it.runIf(process.env.BENCH)("BENCH: shark strength", () => {
     SHARK_CONFIG.maxActionsPerRollout = 90;
     for (const determinize of [true, false]) {
       SHARK_CONFIG.determinize = determinize;
-      report(determinize ? "honest" : "clairvoyant", runArm(games, kinds));
+      report(`${determinize ? "honest" : "clairvoyant"} ${SHARK_CONFIG.objective}`, runArm(games, kinds));
     }
   }
 

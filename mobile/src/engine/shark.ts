@@ -32,8 +32,11 @@ export const SHARK_CONFIG = {
    * cancels the common-mode swing shared by every candidate move (a rollout
    * where the whole market booms lifts them all equally). Same cost per
    * rollout; less noise per rollout.
+   *
+   * Measured vs `strategic`, 60 games, chance baseline 50%: "networth" wins
+   * 48.3% (indistinguishable from chance), "margin" 63.3%, for +3ms a move.
    */
-  objective: "networth" as "networth" | "margin",
+  objective: "margin" as "networth" | "margin",
 };
 
 function netWorth(g: GameState, idx: number): number {
