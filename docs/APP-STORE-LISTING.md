@@ -1,4 +1,4 @@
-# App Store Listing — Buyout 1.2.1
+# App Store Listing — Buyout 1.3.0
 
 Paste-ready copy for App Store Connect. Character limits verified.
 No references to any other board game, per naming rules.
@@ -84,6 +84,27 @@ stats, and player names never leave your device. The free edition shows
 the occasional ad between games; one purchase removes them forever.
 
 The desk is yours.
+```
+
+## What's New (1.3.0)
+
+```
+THE DRAW DECIDES WHO OPENS
+The opening seat is drawn at the start of every game. You no longer
+lead every table by default, and the floor says who did.
+
+THE RECORD LEADS WITH THE LEADERBOARDS
+The global tables have moved to the top of The Record, alongside the
+career they belong with, instead of sitting behind the Back Office.
+
+A WORD FROM OUR SPONSOR
+Advertisements between games now arrive announced. The paper tells you
+one is coming and counts it down, then runs your final edition. One
+purchase still retires them for good.
+
+THE DECK COUNT SAYS WHAT IT MEANS
+The cards list claimed "15 of 15 in play" for a Standard deck of 27.
+It now counts the effects and the full deck separately, for every pack.
 ```
 
 ## What's New (1.2.1)

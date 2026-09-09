@@ -5,7 +5,7 @@ import { isMuted, setMuted } from "../store/sound";
 import { buyRemoveAds, getRemoveAdsPrice, isAdFree, monetizeStatus, onMonetizeChange, restorePurchases } from "../store/monetize";
 import {
   gcAlias, gcAuthenticate, gcAvailable, gcDiagnose, gcLastError,
-  gcShowLeaderboards, gcSignedIn, onGameCenterChange,
+  gcSignedIn, onGameCenterChange,
 } from "../store/gamecenter";
 import {
   PACKS, cardsIn, cleanCountFor, deckSize, excludedFor, getPackConfig,
@@ -140,7 +140,7 @@ export function SettingsScreen({ onExit }: { onExit: () => void }) {
         <Pressable onPress={() => setShowCards(!showCards)} style={{ paddingVertical: 8 }}>
           <Text style={{ fontFamily: SANS_SEMI, fontSize: 11, color: INK3, letterSpacing: 1, textTransform: "uppercase" }}>
             {showCards ? "▾" : "▸"} The cards
-            {cfg.pack === "custom" ? " · tap to include or remove" : ` · ${cardsIn(cfg).length} of ${CARD_DEFS.length} in play`}
+            {cfg.pack === "custom" ? " · tap to include or remove" : ` · ${cardsIn(cfg).length} of ${CARD_DEFS.length} effects · ${deckSize(cfg)} cards`}
           </Text>
         </Pressable>
         {showCards ? (
@@ -192,10 +192,12 @@ export function SettingsScreen({ onExit }: { onExit: () => void }) {
         <SectionRule label="Game Center" />
         {gc ? (
           <View style={{ paddingVertical: 6 }}>
-            <Text style={{ fontFamily: SANS_SEMI, fontSize: 13, color: GRN, marginBottom: 10 }}>
+            <Text style={{ fontFamily: SANS_SEMI, fontSize: 13, color: GRN }}>
               ■ Signed in{gcAlias() ? ` as ${gcAlias()}` : ""} — Standard fortunes and honors post automatically.
             </Text>
-            <InkButton label="View leaderboards" onPress={() => { void gcShowLeaderboards(); }} />
+            <Text style={{ fontFamily: SANS, fontSize: 11.5, lineHeight: 17, color: INK3, marginTop: 6 }}>
+              The tables themselves live at the top of The Record.
+            </Text>
           </View>
         ) : (
           <View style={{ paddingVertical: 6 }}>

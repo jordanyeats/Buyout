@@ -11,7 +11,7 @@ import {
 } from "@expo-google-fonts/source-sans-3";
 import { useGame } from "./src/store/useGame";
 import { initSound } from "./src/store/sound";
-import { initMonetize, maybeShowInterstitial } from "./src/store/monetize";
+import { initMonetize } from "./src/store/monetize";
 import { initGameCenter } from "./src/store/gamecenter";
 import { initPacks, optionsFor } from "./src/store/packs";
 import { HomeScreen } from "./src/screens/HomeScreen";
@@ -51,8 +51,8 @@ export default function App() {
         <GameScreen
           game={game}
           act={act}
-          onQuit={() => { const over = game.over; quit(); setScreen("home"); if (over) maybeShowInterstitial(); }}
-          onRestart={() => { const over = game.over; restart(); if (over) maybeShowInterstitial(); }}
+          onQuit={() => { quit(); setScreen("home"); }}
+          onRestart={() => { restart(); }}
           unlocked={unlocked}
         />
       ) : screen === "tutorial" ? (

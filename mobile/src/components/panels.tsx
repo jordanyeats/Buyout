@@ -304,7 +304,13 @@ export function ActionsPanel({ game, sel, act, onNewGame, onSelect }: {
     if (isHuman) return <SettlementPanel key={`${game.mergerCtx!.di}-${actorIdx}`} game={game} act={act} />;
     return <Waiting text={`${actor.name} weighs the offer…`} />;
   }
-  if (!isHuman) return <Waiting text={`${actor.name} studies the board…`} />;
+  // The opening seat is drawn, so the first move of a game is often a rival's.
+  // Saying so once, on an empty board, is the difference between "the draw went
+  // against me" and "why is it playing itself?".
+  if (!isHuman) {
+    const opening = game.board.every((row) => row.every((c) => c === null));
+    return <Waiting text={opening ? `${actor.name} drew the opening seat…` : `${actor.name} studies the board…`} />;
+  }
 
   if (game.phase === "place") {
     return (
