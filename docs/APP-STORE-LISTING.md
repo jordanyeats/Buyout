@@ -90,10 +90,11 @@ The desk is yours.
 
 ```
 THE SPONSOR BREAK ALWAYS LETS YOU OUT
-A finished game could lock up when an advertisement failed to load,
-with the results sitting behind it and no way through. The break now
-offers a way out if the sponsor never arrives, and the three separate
-faults that could stall it have been fixed.
+A finished game could lock up when an advertisement failed to arrive —
+the results sitting behind it with no way through, or the screen simply
+going black. An ad that has sat too long to be shown is now discarded
+rather than played, one that never reaches the screen is given up on in
+seconds instead of tens, and the break offers a way out regardless.
 
 THE SHARK PLANS BLIND
 The toughest opponent could see what it had no business seeing: the
