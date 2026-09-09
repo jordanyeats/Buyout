@@ -1,4 +1,4 @@
-# App Store Listing — Buyout 1.3.0
+# App Store Listing — Buyout 1.3.1
 
 Paste-ready copy for App Store Connect. Character limits verified.
 No references to any other board game, per naming rules.
@@ -84,6 +84,37 @@ stats, and player names never leave your device. The free edition shows
 the occasional ad between games; one purchase removes them forever.
 
 The desk is yours.
+```
+
+## What's New (1.3.1)
+
+```
+THE SPONSOR BREAK ALWAYS LETS YOU OUT
+A finished game could lock up when an advertisement failed to load,
+with the results sitting behind it and no way through. The break now
+offers a way out if the sponsor never arrives, and the three separate
+faults that could stall it have been fixed.
+
+THE SHARK PLANS BLIND
+The toughest opponent could see what it had no business seeing: the
+tiles in your rivals' hands and the order of the merger deck. It now
+plans against a guess, the same as you do. You may find it beatable in
+ways it was not before. That is the point.
+
+COMPANIES GO SAFE SOONER
+A company is beyond takeover at 18 tiles rather than 25, so safety is
+something you can reach while the board is still being fought over,
+instead of a formality moments before the closing bell.
+
+READ ANY COMPANY'S BOOK
+Tap a company anywhere on the floor for its full position: tiles held,
+share price, what is left in the market, your own stake, and who
+collects the majority and minority bonuses if it falls today.
+
+THE FLOOR READS BETTER
+A safe company is ruled off on the board and announced as it crosses.
+Tiles land with weight instead of appearing. Seven-figure fortunes no
+longer wrap in the market listings.
 ```
 
 ## What's New (1.3.0)

@@ -17,6 +17,7 @@ change. Do not reintroduce one.)
 npm install        # dev deps (typescript, vitest)
 npm test           # 49 tests: units + 220 seeded full-game simulations
 STRESS=1 npx vitest run test/stress.test.ts   # 1,200 games, invariants every action
+BENCH=1 npx vitest run test/shark-bench.test.ts   # honest vs clairvoyant shark, head to head
 npm run typecheck
 ```
 
@@ -116,14 +117,15 @@ cards.ts       deck + card effects
 engine.ts      newGame / applyAction / invariants — the core
 ai.ts          random / greedy / strategic (your heuristics, deterministic)
 brain.ts       AI dispatch by player kind
-shark.ts       simulation AI
+shark.ts       simulation AI — rollouts over re-sampled hidden state
 index.ts       the public surface the app and the tests import
 ```
 
 Tests (`engine/`, this directory):
 
 ```
-test/              49 tests incl. 220 simulated games; stress sweep behind STRESS=1
+test/              units + 220 simulated games; stress sweep behind STRESS=1,
+                   shark head-to-head benchmark behind BENCH=1
 vitest.config.ts   aliases `buyout-engine` → ../mobile/src/engine/index.ts
 ```
 

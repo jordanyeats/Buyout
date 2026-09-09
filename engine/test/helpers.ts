@@ -1,5 +1,5 @@
 import {
-  aiAction, applyAction, checkInvariants, newGame,
+  SAFE_SIZE, aiAction, applyAction, checkInvariants, newGame,
   type Action, type GameState, type PlayerConfig, type PlayerKind, type Tile,
 } from "buyout-engine";
 
@@ -32,7 +32,7 @@ export function putCompany(g: GameState, name: string, tiles: Tile[]): void {
   }
   const co = g.cos[name]!;
   co.size = tiles.length;
-  co.status = co.size >= 25 ? "safe" : "active";
+  co.status = co.size >= SAFE_SIZE ? "safe" : "active";
 }
 
 /** Force-mark a company safe (e.g., to model a shrunk-but-sticky safe company). */
