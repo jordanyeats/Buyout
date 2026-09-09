@@ -28,6 +28,12 @@ export function GameScreen({ game, act, onQuit, onRestart, unlocked = [] }: {
     if (adBreakDue()) setAdBreak(true);
     else setShowFinal(true);
   }, [game.over]);
+  // Both stable: AdBreak's countdown keys off the identity of what it is given,
+  // and a fresh arrow per render would restart the timer on every re-render.
+  // reveal is idempotent, so the ad closing and the player tapping the way out
+  // can both call it without fighting.
+  const reveal = React.useCallback(() => { setAdBreak(false); setShowFinal(true); }, []);
+  const runBreak = React.useCallback(() => { void runInterstitial().then(reveal); }, [reveal]);
   const { width } = useWindowDimensions();
   const wide = width >= 768; // iPad: board left, desk right
   const place = (a: Action) => { setSel(null); act(a); };
@@ -68,9 +74,7 @@ export function GameScreen({ game, act, onQuit, onRestart, unlocked = [] }: {
 
   return (
     <View style={{ flex: 1, backgroundColor: BG }}>
-      {adBreak ? (
-        <AdBreak onDone={() => { runInterstitial().then(() => { setAdBreak(false); setShowFinal(true); }); }} />
-      ) : null}
+      {adBreak ? <AdBreak onDone={runBreak} onSkip={reveal} /> : null}
       {game.over && showFinal ? (
         <FinalEdition game={game} unlocked={unlocked} onRestart={onRestart} onQuit={onQuit} onInspect={() => setShowFinal(false)} />
       ) : null}

@@ -25,6 +25,18 @@ let lastPurchaseError: string | null = null;
 let productAvailable = false;
 let retryTimer: ReturnType<typeof setTimeout> | null = null;
 /**
+ * Teardowns for the listeners on the ad object currently being loaded.
+ * addAdEventListener returns an unsubscribe and we used to drop it, so every
+ * retry left the previous ad still subscribed. A unit that errors repeatedly
+ * then accumulated live ad objects, each able to schedule its own retry.
+ */
+let adUnsubs: (() => void)[] = [];
+
+function dropAdListeners(): void {
+  for (const off of adUnsubs) { try { off(); } catch {} }
+  adUnsubs = [];
+}
+/**
  * Whether we may request personalized ads. On iOS this mirrors the ATT answer;
  * elsewhere Google's UMP consent flow governs it, so we leave it open.
  */
@@ -76,6 +88,7 @@ async function setAdFree(v: boolean): Promise<void> {
   if (v) {
     interstitial = null;
     if (retryTimer) { clearTimeout(retryTimer); retryTimer = null; }
+    dropAdListeners(); // or an in-flight load would re-arm interstitial after the purchase
   }
   notify();
   try {
@@ -95,18 +108,27 @@ function preloadInterstitial(attempt = 0): void {
   const g = ads();
   if (!g || adFree) return;
   if (retryTimer) { clearTimeout(retryTimer); retryTimer = null; }
+  dropAdListeners();
   try {
     const { InterstitialAd, TestIds, AdEventType } = g;
     const unitId = __DEV__ ? TestIds.INTERSTITIAL : INTERSTITIAL_UNIT_ID;
     const ad = InterstitialAd.createForAdRequest(unitId, {
       requestNonPersonalizedAdsOnly: !trackingAuthorized,
     });
-    ad.addAdEventListener(AdEventType.LOADED, () => {
+    // Only the ad this call created may drive state. Without the guard a stale
+    // object firing late could null a good interstitial or start a second
+    // retry chain alongside this one.
+    let live = true;
+    const own = (type: any, fn: (arg: any) => void) => {
+      const off = ad.addAdEventListener(type, (arg: any) => { if (live) fn(arg); });
+      adUnsubs.push(() => { live = false; if (typeof off === "function") off(); });
+    };
+    own(AdEventType.LOADED, () => {
       interstitial = ad;
       lastAdError = null;
       notify();
     });
-    ad.addAdEventListener(AdEventType.ERROR, (err: any) => {
+    own(AdEventType.ERROR, (err: any) => {
       interstitial = null;
       lastAdError = err?.message ?? String(err ?? "unknown ad load error");
       notify();
@@ -114,7 +136,7 @@ function preloadInterstitial(attempt = 0): void {
       const delay = Math.min(8000 * Math.pow(2, attempt), 5 * 60 * 1000);
       retryTimer = setTimeout(() => preloadInterstitial(attempt + 1), delay);
     });
-    ad.addAdEventListener(AdEventType.CLOSED, () => {
+    own(AdEventType.CLOSED, () => {
       interstitial = null;
       const r = closeResolver; closeResolver = null;
       if (r) r();
@@ -233,7 +255,11 @@ export function runInterstitial(): Promise<void> {
       clearTimeout(guard);
       resolve();
     };
-    guard = setTimeout(finish, 45000);
+    // If this fires while a real ad is genuinely on screen, resolving is still
+    // correct: the results mount behind the ad and are simply there when it
+    // closes. 45s was chosen to never cut an ad short and instead became the
+    // length of the freeze whenever one failed to report closing.
+    guard = setTimeout(finish, 20000);
     closeResolver = finish;
     try {
       interstitial = null;
