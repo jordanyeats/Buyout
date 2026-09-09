@@ -24,7 +24,7 @@ export const money = (n: number) => "$" + n.toLocaleString("en-US");
 
 /**
  * Money for narrow table cells. The Holdings columns are flex-sized against up
- * to six company columns, so a seven-figure fortune wrapped its last digits
+ * to seven company columns, so a seven-figure fortune wrapped its last digits
  * onto a second line.
  *
  * Four significant digits, always: "$1.234M", "$12.35M", "$123.5M" are all

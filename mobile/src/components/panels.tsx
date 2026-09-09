@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Animated, Modal, Pressable, ScrollView, Text, View } from "react-native";
 import {
-  CONVERT_FROM, CONVERT_TO, END_SIZE, MAJORITY_MULT, MAX_BUY, MINORITY_MULT, SAFE_SIZE, TAX_RATE,
+  CONVERT_FROM, CONVERT_TO, END_SIZE, MAJORITY_MULT, MAX_BUY, MINORITY_MULT, SAFE_SIZE, TAX_RATE, WARN_SIZE,
   canPlay, convertCapacity, currentActor, majorityMinority, priceOf,
   type Action, type GameState, type Tile,
 } from "../engine";
@@ -13,7 +13,7 @@ const label = (t: Tile) => String.fromCharCode(65 + t[1]) + (t[0] + 1);
 export function Ticker({ game }: { game: GameState }) {
   const last = game.logs[game.logs.length - 1];
   const nearEnd = Object.values(game.cos)
-    .filter((c) => c.status !== "inactive" && c.size >= 30)
+    .filter((c) => c.status !== "inactive" && c.size >= WARN_SIZE)
     .sort((a, b) => b.size - a.size)[0];
   return (
     <View>
@@ -26,7 +26,7 @@ export function Ticker({ game }: { game: GameState }) {
         <View style={{ flexDirection: "row", alignItems: "center", gap: 8, paddingVertical: 5, borderBottomWidth: 1, borderBottomColor: RED, backgroundColor: "#F9EFEF" }}>
           <Text style={{ fontFamily: SANS_BLACK, fontSize: 10, letterSpacing: 1.5, textTransform: "uppercase", color: RED }}>■ Closing bell nears</Text>
           <Text style={{ flex: 1, fontFamily: SANS, fontSize: 11.5, color: INK }}>
-            {nearEnd.name} at {nearEnd.size} — the game ends at 35
+            {nearEnd.name} at {nearEnd.size} — the game ends at {END_SIZE}
           </Text>
         </View>
       ) : null}

@@ -1,5 +1,5 @@
 import {
-  SAFE_SIZE, newGame, type Action, type GameState, type PlayerKind, type Tile,
+  END_SIZE, SAFE_SIZE, WARN_SIZE, newGame, type Action, type GameState, type PlayerKind, type Tile,
 } from "../engine";
 
 /** ---- state builders (mirror the engine test helpers) ---- */
@@ -142,7 +142,7 @@ export const TUTORIAL: TutorialStep[] = [
     kicker: "Final lesson",
     headline: "Safety, and the closing bell",
     body:
-      "At size 25 a company is SAFE — it can never be taken over; it can only take over others. When any company reaches size 30, the ticker warns you the closing bell is near; at 35 the game ends — final bonuses pay, every share liquidates, and the largest fortune wins. That's the whole game. The desk is yours.",
+      `At size ${SAFE_SIZE} a company is SAFE — it can never be taken over; it can only take over others. When any company reaches size ${WARN_SIZE}, the ticker warns you the closing bell is near; at ${END_SIZE} the game ends — final bonuses pay, every share liquidates, and the largest fortune wins. That's the whole game. The desk is yours.`,
     build: null,
     goal: null,
   },

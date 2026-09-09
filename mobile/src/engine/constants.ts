@@ -4,6 +4,8 @@ export const ROWS = 9;
 export const COLS = 9;
 export const SAFE_SIZE = 18;
 export const END_SIZE = 35;
+/** The ticker starts warning that the closing bell is near at this size. */
+export const WARN_SIZE = 30;
 export const START_CASH = 100_000;
 export const HAND_SIZE = 4;
 export const MAX_BUY = 3;
