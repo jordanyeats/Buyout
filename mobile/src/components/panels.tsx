@@ -1,11 +1,11 @@
-import React, { useState } from "react";
-import { Pressable, ScrollView, Text, View } from "react-native";
+import React, { useEffect, useRef, useState } from "react";
+import { Animated, Modal, Pressable, ScrollView, Text, View } from "react-native";
 import {
-  CONVERT_FROM, CONVERT_TO, MAX_BUY, TAX_RATE,
+  CONVERT_FROM, CONVERT_TO, END_SIZE, MAJORITY_MULT, MAX_BUY, MINORITY_MULT, SAFE_SIZE, TAX_RATE,
   canPlay, convertCapacity, currentActor, majorityMinority, priceOf,
   type Action, type GameState, type Tile,
 } from "../engine";
-import { ACCENT, BD, BD2, GRN, IDENT, INK, INK2, INK3, PUR, RED, SANS, SANS_BLACK, SANS_BOLD, SANS_SEMI, SERIF, money } from "../theme";
+import { ACCENT, BD, BD2, BG, GRN, IDENT, INK, INK2, INK3, PUR, RED, SANS, SANS_BLACK, SANS_BOLD, SANS_SEMI, SERIF, money } from "../theme";
 import { CountUp, InkButton, PressIn, Stepper, Wordmark, companyStyle } from "./common";
 
 const label = (t: Tile) => String.fromCharCode(65 + t[1]) + (t[0] + 1);
@@ -63,21 +63,182 @@ export function HandBar({ game, sel, onSelect }: { game: GameState; sel: Tile | 
 
 export function CoBar({ game }: { game: GameState }) {
   const active = Object.values(game.cos).filter((c) => c.status !== "inactive");
+  const [open, setOpen] = useState<string | null>(null);
   return (
     <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 6, justifyContent: "center", paddingVertical: 4 }}>
       {active.map((c) => {
         const cs = companyStyle(c.name);
+        const safe = c.status === "safe";
         return (
-          <View key={c.name} style={{ flexDirection: "row", alignItems: "center", gap: 6, paddingVertical: 5, paddingHorizontal: 10, backgroundColor: cs.pill, borderWidth: 1, borderColor: BD }}>
+          <Pressable
+            key={c.name}
+            onPress={() => setOpen(c.name)}
+            accessibilityRole="button"
+            accessibilityLabel={`${c.name}: ${c.size} tiles, ${money(priceOf(game, c.name))} a share${safe ? ", safe from takeover" : ""}. Open details.`}
+            style={({ pressed }) => ({
+              flexDirection: "row", alignItems: "center", gap: 6,
+              paddingVertical: 5, paddingHorizontal: 10,
+              backgroundColor: cs.pill,
+              borderWidth: safe ? 2 : 1, borderColor: safe ? INK : BD,
+              opacity: pressed ? 0.7 : 1,
+            })}
+          >
             <Wordmark name={c.name} size={11.5} />
             <Text style={{ fontFamily: SANS_SEMI, fontSize: 10.5, color: INK3 }}>
-              {c.size} · {money(priceOf(game, c.name))}{c.status === "safe" ? " · SAFE" : ""}
+              {c.size} · {money(priceOf(game, c.name))}{safe ? " · SAFE" : ""}
             </Text>
-          </View>
+          </Pressable>
         );
       })}
-
+      <CompanySheet game={game} name={open} onClose={() => setOpen(null)} />
     </View>
+  );
+}
+
+/** One labelled figure in the company sheet's stat grid. */
+function Figure({ label, value, note, color = INK }: { label: string; value: string; note?: string; color?: string }) {
+  return (
+    <View style={{ flexBasis: "48%", flexGrow: 1, paddingVertical: 7, borderBottomWidth: 1, borderBottomColor: BD }}>
+      <Text style={{ fontFamily: SANS_BLACK, fontSize: 8.5, letterSpacing: 1.6, textTransform: "uppercase", color: INK3 }}>{label}</Text>
+      <Text style={{ fontFamily: SANS_BLACK, fontSize: 16, color, marginTop: 2, fontVariant: ["tabular-nums"] }}>{value}</Text>
+      {note ? <Text style={{ fontFamily: SANS, fontSize: 10, color: INK3, marginTop: 1 }}>{note}</Text> : null}
+    </View>
+  );
+}
+
+/**
+ * The prospectus: everything public about one company, on tap. Nothing here is
+ * hidden information — it is all readable off the board and the ledger already,
+ * just not in one place.
+ */
+export function CompanySheet({ game, name, onClose }: { game: GameState; name: string | null; onClose: () => void }) {
+  if (!name) return null;
+  const co = game.cos[name];
+  if (!co) return null;
+
+  const cs = companyStyle(name);
+  const price = priceOf(game, name);
+  const { maj, min } = majorityMinority(game, name);
+  const human = game.players.find((p) => p.kind === "human");
+  const mine = human?.shares[name] ?? 0;
+  const inMarket = game.market[name] ?? 0;
+  const issued = game.issued[name] ?? 0;
+  const safe = co.status === "safe";
+  const toSafe = Math.max(0, SAFE_SIZE - co.size);
+  const toEnd = Math.max(0, END_SIZE - co.size);
+  const names = (ps: typeof maj) => ps.map((p) => (p.kind === "human" ? "You" : p.name)).join(", ");
+
+  return (
+    <Modal visible transparent animationType="fade" onRequestClose={onClose}>
+      <Pressable onPress={onClose} style={{ flex: 1, backgroundColor: "rgba(20,16,12,0.45)", justifyContent: "center", padding: 20 }}>
+        <Pressable onPress={() => {}} style={{ backgroundColor: BG, borderWidth: 2, borderColor: INK, maxHeight: "86%" }}>
+          <View style={{ backgroundColor: cs.bg, paddingVertical: 12, paddingHorizontal: 14 }}>
+            <Wordmark name={name} size={19} light />
+            <Text style={{ fontFamily: SERIF, fontSize: 11, color: cs.tx, marginTop: 3, opacity: 0.9 }}>{IDENT[name]?.tag ?? ""}</Text>
+          </View>
+
+          <ScrollView contentContainerStyle={{ padding: 14 }}>
+            <View style={{
+              flexDirection: "row", alignItems: "center", gap: 7,
+              borderWidth: safe ? 2 : 1, borderColor: safe ? INK : BD2,
+              paddingVertical: 6, paddingHorizontal: 9, marginBottom: 8,
+            }}>
+              <View style={{ width: 7, height: 7, backgroundColor: safe ? INK : ACCENT }} />
+              <Text style={{ fontFamily: SANS_BLACK, fontSize: 10, letterSpacing: 1.6, textTransform: "uppercase", color: INK }}>
+                {safe ? "Safe from takeover" : "Open to takeover"}
+              </Text>
+              <Text style={{ fontFamily: SANS, fontSize: 10.5, color: INK2, flex: 1, textAlign: "right" }}>
+                {safe ? `passed ${SAFE_SIZE} tiles` : `${toSafe} more to reach ${SAFE_SIZE}`}
+              </Text>
+            </View>
+
+            <View style={{ flexDirection: "row", flexWrap: "wrap", columnGap: 14 }}>
+              <Figure label="Tiles on board" value={String(co.size)} note={toEnd > 0 ? `${toEnd} from ending the game at ${END_SIZE}` : "at the end threshold"} />
+              <Figure label="Price a share" value={money(price)} />
+              <Figure label="You hold" value={String(mine)} note={mine > 0 ? `worth ${money(mine * price)}` : "no position"} color={mine > 0 ? GRN : INK3} />
+              <Figure label="Left in market" value={String(inMarket)} note={`of ${issued} issued`} />
+            </View>
+
+            <Text style={{ fontFamily: SANS_BLACK, fontSize: 9, letterSpacing: 2, textTransform: "uppercase", color: INK, marginTop: 14, marginBottom: 4 }}>
+              Bonuses if it goes defunct now
+            </Text>
+            <View style={{ borderTopWidth: 1, borderTopColor: INK }}>
+              <View style={{ flexDirection: "row", paddingVertical: 6, borderBottomWidth: 1, borderBottomColor: BD }}>
+                <Text style={{ flex: 1, fontFamily: SANS_SEMI, fontSize: 11.5, color: INK }}>Majority</Text>
+                <Text style={{ flex: 1.4, fontFamily: SANS, fontSize: 11.5, color: INK2 }}>{maj.length ? names(maj) : "—"}</Text>
+                <Text style={{ fontFamily: SANS_SEMI, fontSize: 11.5, color: GRN, fontVariant: ["tabular-nums"] }}>{money(price * MAJORITY_MULT)}</Text>
+              </View>
+              <View style={{ flexDirection: "row", paddingVertical: 6, borderBottomWidth: 1, borderBottomColor: BD }}>
+                <Text style={{ flex: 1, fontFamily: SANS_SEMI, fontSize: 11.5, color: INK }}>Minority</Text>
+                <Text style={{ flex: 1.4, fontFamily: SANS, fontSize: 11.5, color: INK2 }}>{min.length ? names(min) : "—"}</Text>
+                <Text style={{ fontFamily: SANS_SEMI, fontSize: 11.5, color: GRN, fontVariant: ["tabular-nums"] }}>{money(price * MINORITY_MULT)}</Text>
+              </View>
+            </View>
+            <Text style={{ fontFamily: SANS, fontSize: 10.5, color: INK3, marginTop: 6 }}>
+              {safe
+                ? "Safe companies are never absorbed, so these pay only at final scoring."
+                : "Paid whenever this company is absorbed in a merger, and again at final scoring."}
+            </Text>
+
+            <InkButton label="Close" onPress={onClose} style={{ marginTop: 16 }} />
+          </ScrollView>
+        </Pressable>
+      </Pressable>
+    </Modal>
+  );
+}
+
+/**
+ * A company crossing the safe line is a real turning point — it can never be
+ * taken over again — but it is not worth a full page. A rule-and-caps banner
+ * slides in over the board and retires itself.
+ */
+export function SafeBanner({ game }: { game: GameState }) {
+  const [shown, setShown] = useState<string | null>(null);
+  const seen = useRef<Set<string> | null>(null);
+  const v = useRef(new Animated.Value(0)).current;
+
+  const safeNow = Object.values(game.cos).filter((c) => c.status === "safe").map((c) => c.name).sort().join(",");
+
+  useEffect(() => {
+    const names = safeNow ? safeNow.split(",") : [];
+    // First render of a game (including a resumed save) seeds the baseline
+    // rather than announcing everything that is already safe.
+    if (seen.current === null) { seen.current = new Set(names); return; }
+    const fresh = names.find((n) => !seen.current!.has(n));
+    for (const n of names) seen.current.add(n);
+    if (!fresh) return;
+    setShown(fresh);
+    v.setValue(0);
+    Animated.sequence([
+      Animated.timing(v, { toValue: 1, duration: 260, useNativeDriver: true }),
+      Animated.delay(2400),
+      Animated.timing(v, { toValue: 0, duration: 320, useNativeDriver: true }),
+    ]).start(({ finished }) => { if (finished) setShown(null); });
+  }, [safeNow, v]);
+
+  if (!shown) return null;
+  const cs = companyStyle(shown);
+  return (
+    <Animated.View
+      pointerEvents="none"
+      accessibilityLiveRegion="polite"
+      style={{
+        opacity: v,
+        transform: [{ translateY: v.interpolate({ inputRange: [0, 1], outputRange: [-16, 0] }) }],
+        borderTopWidth: 2.5, borderBottomWidth: 2.5, borderColor: INK,
+        backgroundColor: cs.pill, paddingVertical: 8, paddingHorizontal: 12, marginTop: 6,
+        flexDirection: "row", alignItems: "center", gap: 8,
+      }}
+    >
+      <Wordmark name={shown} size={13} />
+      <Text style={{ fontFamily: SANS_BLACK, fontSize: 10, letterSpacing: 1.8, textTransform: "uppercase", color: INK }}>
+        is safe
+      </Text>
+      <Text style={{ flex: 1, textAlign: "right", fontFamily: SERIF, fontSize: 11, color: INK2 }}>
+        {SAFE_SIZE} tiles — no longer a takeover target
+      </Text>
+    </Animated.View>
   );
 }
 

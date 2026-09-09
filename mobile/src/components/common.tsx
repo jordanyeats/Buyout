@@ -114,14 +114,28 @@ export function Stepper({ value, onDelta, step = 1, color = INK, disabled = fals
   );
 }
 
-/** Mount animation: letterpress stamp (scale overshoot + settle). */
+/**
+ * Mount animation: letterpress stamp. The tile arrives large and slightly
+ * proud of the paper, then lands — a fast ink-up so it reads as struck rather
+ * than faded in, and a spring that overshoots just past its resting size
+ * before settling. Slower and wider than a UI pop on purpose: the weight is
+ * the point.
+ */
 export function StampIn({ children, delay = 0 }: { children: React.ReactNode; delay?: number }) {
   const v = useRef(new Animated.Value(0)).current;
+  const ink = useRef(new Animated.Value(0)).current;
   useEffect(() => {
-    Animated.spring(v, { toValue: 1, delay, useNativeDriver: true, speed: 22, bounciness: 9 }).start();
-  }, [v, delay]);
+    Animated.parallel([
+      // Ink hits the paper almost immediately — no long cross-fade.
+      Animated.timing(ink, { toValue: 1, duration: 110, delay, useNativeDriver: true }),
+      Animated.spring(v, { toValue: 1, delay, useNativeDriver: true, speed: 13, bounciness: 14 }),
+    ]).start();
+  }, [v, ink, delay]);
   return (
-    <Animated.View style={{ opacity: v, transform: [{ scale: v.interpolate({ inputRange: [0, 1], outputRange: [1.35, 1] }) }] }}>
+    <Animated.View style={{
+      opacity: ink,
+      transform: [{ scale: v.interpolate({ inputRange: [0, 1], outputRange: [1.55, 1] }) }],
+    }}>
       {children}
     </Animated.View>
   );

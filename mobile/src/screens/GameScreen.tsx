@@ -6,7 +6,7 @@ import { ACCENT, BG, INK, INK2, INK3, SANS, SANS_BLACK, SANS_SEMI, SERIF } from 
 import { Board } from "../components/Board";
 import { LedgerPage, SectionRule } from "../components/common";
 import { FinalEdition, FrontPage, MarketWrap } from "../components/FrontPage";
-import { ActionsPanel, CoBar, HandBar, Holdings, Ticker } from "../components/panels";
+import { ActionsPanel, CoBar, HandBar, Holdings, SafeBanner, Ticker } from "../components/panels";
 
 export function GameScreen({ game, act, onQuit, onRestart, unlocked = [] }: {
   game: GameState;
@@ -27,6 +27,7 @@ export function GameScreen({ game, act, onQuit, onRestart, unlocked = [] }: {
 
   const boardCol = (
     <View style={wide ? { flex: 1.1, paddingRight: 18 } : undefined}>
+      <SafeBanner game={game} />
       <Board game={game} sel={sel} onSelect={setSel} />
       <CoBar game={game} />
     </View>
