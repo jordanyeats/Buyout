@@ -25,6 +25,16 @@ interface SaveFile {
  * deterministic — we save {seed, configs, actions} after every move and restore
  * by replaying. A killed app resumes mid-merger, mid-anything.
  */
+/** Fisher-Yates over a copy: who sits where, decided anew each game. */
+function shuffleSeats(configs: PlayerConfig[]): PlayerConfig[] {
+  const a = [...configs];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j]!, a[i]!];
+  }
+  return a;
+}
+
 export function useGame() {
   const [game, setGame] = useState<GameState | null>(null);
   const [unlocked, setUnlocked] = useState<AchievementDef[]>([]);
@@ -57,11 +67,18 @@ export function useGame() {
 
   const start = useCallback((configs: PlayerConfig[], useCards: boolean, options: GameOptions = {}) => {
     const seed = (Date.now() ^ (Math.random() * 0xffffffff)) | 0;
-    saveRef.current = { configs, seed, useCards, options, actions: [] };
-    lastConfig.current = { configs, useCards, options };
+    // Seats are drawn fresh for every game. The engine opens at seat 0, and
+    // Setup always hands the human over first, so without this the human led
+    // every single game. Shuffled here rather than inside newGame() so a seed
+    // still replays to exactly the game it dealt — which both the save file
+    // and the engine test suite depend on. The shuffled order is what gets
+    // persisted, so a resumed game restores the same table.
+    const seated = shuffleSeats(configs);
+    saveRef.current = { configs: seated, seed, useCards, options, actions: [] };
+    lastConfig.current = { configs: seated, useCards, options };
     setUnlocked([]);
     persist();
-    setGame(newGame(configs, seed, useCards, options));
+    setGame(newGame(seated, seed, useCards, options));
   }, [persist]);
 
   const resume = useCallback(() => {

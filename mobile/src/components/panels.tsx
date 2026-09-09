@@ -5,7 +5,7 @@ import {
   canPlay, convertCapacity, currentActor, majorityMinority, priceOf,
   type Action, type GameState, type Tile,
 } from "../engine";
-import { ACCENT, BD, BD2, BG, GRN, IDENT, INK, INK2, INK3, PUR, RED, SANS, SANS_BLACK, SANS_BOLD, SANS_SEMI, SERIF, money } from "../theme";
+import { ACCENT, BD, BD2, BG, GRN, IDENT, INK, INK2, INK3, PUR, RED, SANS, SANS_BLACK, SANS_BOLD, SANS_SEMI, SERIF, money, moneyTight } from "../theme";
 import { CountUp, InkButton, PressIn, Stepper, Wordmark, companyStyle } from "./common";
 
 const label = (t: Tile) => String.fromCharCode(65 + t[1]) + (t[0] + 1);
@@ -244,11 +244,7 @@ export function SafeBanner({ game }: { game: GameState }) {
 
 export function Holdings({ game }: { game: GameState }) {
   const active = Object.values(game.cos).filter((c) => c.status !== "inactive");
-  // Column widths are a flex split of ~362pt at phone width: each company
-  // column costs a share of the money columns. At seven companies a 1.0
-  // share left Cash and Worth at 47pt, which clips "$100,000"; 0.9 against
-  // 1.9 keeps them near 57pt and still fits a two-letter code.
-  const cellW = { flex: 0.9 } as const;
+  const cellW = { flex: 1 } as const;
   // Majority holders per company, computed once per render.
   const majOf: Record<string, Set<string>> = {};
   for (const c of active) majOf[c.name] = new Set(majorityMinority(game, c.name).maj.map((m) => m.name));
@@ -256,9 +252,9 @@ export function Holdings({ game }: { game: GameState }) {
     <View>
       <View style={{ flexDirection: "row", borderBottomWidth: 1, borderBottomColor: INK, paddingBottom: 4 }}>
         <Text style={[{ flex: 2 }, hstyle]}>Player</Text>
-        <Text style={[{ flex: 1.9, textAlign: "right" }, hstyle]}>Cash</Text>
+        <Text style={[{ flex: 1.6, textAlign: "right" }, hstyle]}>Cash</Text>
         {active.map((c) => <Text key={c.name} style={[cellW, hstyle, { textAlign: "center" }]}>{companyStyle(c.name).code}</Text>)}
-        <Text style={[{ flex: 1.9, textAlign: "right" }, hstyle]}>Worth</Text>
+        <Text style={[{ flex: 1.6, textAlign: "right" }, hstyle]}>Worth</Text>
       </View>
       {game.players.map((p, i) => {
         const worth = p.cash + active.reduce((s, c) => s + (p.shares[c.name] ?? 0) * priceOf(game, c.name), 0);
@@ -271,7 +267,7 @@ export function Holdings({ game }: { game: GameState }) {
               </Text>
               {p.kind !== "human" ? <Text style={{ fontFamily: SANS, fontSize: 8, color: INK3, marginTop: 1 }}>{p.kind}</Text> : null}
             </View>
-            <CountUp value={p.cash} numberOfLines={1} style={{ flex: 1.9, textAlign: "right", fontFamily: SANS_SEMI, fontSize: 12, color: GRN, fontVariant: ["tabular-nums"] }} />
+            <CountUp value={p.cash} format={moneyTight} numberOfLines={1} style={{ flex: 1.6, textAlign: "right", fontFamily: SANS_SEMI, fontSize: 12, color: GRN, fontVariant: ["tabular-nums"] }} />
             {active.map((c) => {
               const s = p.shares[c.name] ?? 0;
               const cs = companyStyle(c.name);
@@ -293,15 +289,15 @@ export function Holdings({ game }: { game: GameState }) {
               }
               return <Text key={c.name} style={[cellW, { textAlign: "center", fontFamily: s ? SANS_BLACK : SANS, fontSize: 12, color: s ? cs.ptx : BD2 }]}>{s || "–"}</Text>;
             })}
-            <CountUp value={worth} numberOfLines={1} style={{ flex: 1.9, textAlign: "right", fontFamily: SANS_BLACK, fontSize: 12, color: INK, fontVariant: ["tabular-nums"] }} />
+            <CountUp value={worth} format={moneyTight} numberOfLines={1} style={{ flex: 1.6, textAlign: "right", fontFamily: SANS_BLACK, fontSize: 12, color: INK, fontVariant: ["tabular-nums"] }} />
           </View>
         );
       })}
       <View style={{ flexDirection: "row", paddingTop: 4 }}>
         <Text style={[{ flex: 2 }, mstyle]}>Market</Text>
-        <View style={{ flex: 1.9 }} />
+        <View style={{ flex: 1.6 }} />
         {active.map((c) => <Text key={c.name} style={[cellW, mstyle, { textAlign: "center" }]}>{game.market[c.name]}</Text>)}
-        <View style={{ flex: 1.9 }} />
+        <View style={{ flex: 1.6 }} />
       </View>
       {active.length ? (
         <Text style={{ textAlign: "right", fontFamily: SANS, fontSize: 9.5, color: INK3, paddingTop: 3 }}>■ majority · ▢ founded</Text>
@@ -469,7 +465,13 @@ export function ActionsPanel({ game, sel, act, onNewGame, onSelect }: {
     if (isHuman) return <SettlementPanel key={`${game.mergerCtx!.di}-${actorIdx}`} game={game} act={act} />;
     return <Waiting text={`${actor.name} weighs the offer…`} />;
   }
-  if (!isHuman) return <Waiting text={`${actor.name} studies the board…`} />;
+  // The opening seat is drawn, so the first move of a game is often a rival's.
+  // Saying so once, on an empty board, is the difference between "the draw went
+  // against me" and "why is it playing itself?".
+  if (!isHuman) {
+    const opening = game.board.every((row) => row.every((c) => c === null));
+    return <Waiting text={opening ? `${actor.name} drew the opening seat…` : `${actor.name} studies the board…`} />;
+  }
 
   if (game.phase === "place") {
     return (

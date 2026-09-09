@@ -126,7 +126,12 @@ describe("fair play: UN-INFLUENCABLE", () => {
     expect(draws(50)).toBe(draws(3));
   }, 120000);
 
-  it("who moves first is fixed by the rules, not drawn from the rng", () => {
+  it("the engine always opens at seat 0, whatever the seed", () => {
+    // The opening seat IS drawn per game — but in useGame.start(), by shuffling
+    // the seat order before newGame sees it. Drawing it inside the engine would
+    // consume the rng and break seed replay, which the save file and the replay
+    // tests both depend on. So the engine opening at seat 0 is the invariant
+    // that makes a drawn opening seat safe, not evidence that none is drawn.
     for (const seed of [1, 2, 99, 12345, -5]) {
       const g = newGame(cfg("human", "strategic", "shark"), seed, true);
       expect(currentActor(g)).toBe(0);

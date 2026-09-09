@@ -6,6 +6,8 @@ import { ACCENT, BG, INK, INK2, INK3, SANS, SANS_BLACK, SANS_SEMI, SERIF } from 
 import { Board } from "../components/Board";
 import { LedgerPage, SectionRule } from "../components/common";
 import { FinalEdition, FrontPage, MarketWrap } from "../components/FrontPage";
+import { AdBreak } from "../components/AdBreak";
+import { adBreakDue, runInterstitial } from "../store/monetize";
 import { ActionsPanel, CoBar, HandBar, Holdings, SafeBanner, Ticker } from "../components/panels";
 
 export function GameScreen({ game, act, onQuit, onRestart, unlocked = [] }: {
@@ -17,7 +19,21 @@ export function GameScreen({ game, act, onQuit, onRestart, unlocked = [] }: {
 }) {
   const [sel, setSel] = useState<Tile | null>(null);
   const [showFinal, setShowFinal] = useState(false);
-  useEffect(() => { if (game.over) setShowFinal(true); }, [game.over]);
+  const [adBreak, setAdBreak] = useState(false);
+  // A finished game either goes straight to the Final Edition, or takes the
+  // sponsor break first. The break stays mounted under the ad so the results
+  // are never glimpsed before it, and reveals only once the ad is closed.
+  useEffect(() => {
+    if (!game.over) return;
+    if (adBreakDue()) setAdBreak(true);
+    else setShowFinal(true);
+  }, [game.over]);
+  // Both stable: AdBreak's countdown keys off the identity of what it is given,
+  // and a fresh arrow per render would restart the timer on every re-render.
+  // reveal is idempotent, so the ad closing and the player tapping the way out
+  // can both call it without fighting.
+  const reveal = React.useCallback(() => { setAdBreak(false); setShowFinal(true); }, []);
+  const runBreak = React.useCallback(() => { void runInterstitial().then(reveal); }, [reveal]);
   const { width } = useWindowDimensions();
   const wide = width >= 768; // iPad: board left, desk right
   const place = (a: Action) => { setSel(null); act(a); };
@@ -59,6 +75,7 @@ export function GameScreen({ game, act, onQuit, onRestart, unlocked = [] }: {
 
   return (
     <View style={{ flex: 1, backgroundColor: BG }}>
+      {adBreak ? <AdBreak onDone={runBreak} onSkip={reveal} /> : null}
       {game.over && showFinal ? (
         <FinalEdition game={game} unlocked={unlocked} onRestart={onRestart} onQuit={onQuit} onInspect={() => setShowFinal(false)} />
       ) : null}

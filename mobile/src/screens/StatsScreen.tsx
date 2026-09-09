@@ -4,6 +4,9 @@ import { ACCENT, BD, BG, GRN, INK, INK2, INK3, SANS, SANS_BLACK, SANS_SEMI, SERI
 import { InkButton, LedgerPage, SectionRule } from "../components/common";
 import { ACHIEVEMENTS, loadStats, summarize, type GameRecord, type Stats } from "../store/stats";
 import { PACKS } from "../store/packs";
+import {
+  gcAlias, gcAuthenticate, gcAvailable, gcShowLeaderboards, gcSignedIn, onGameCenterChange,
+} from "../store/gamecenter";
 
 const KIND_LABEL: Record<string, string> = {
   random: "Casual", greedy: "Greedy", strategic: "Sharp", shark: "Shark",
@@ -20,14 +23,35 @@ const deckOf = (r: GameRecord): string => (r.cards ? r.pack ?? "standard" : "non
 
 export function StatsScreen({ onExit }: { onExit: () => void }) {
   const [stats, setStats] = useState<Stats | null>(null);
+  const [gc, setGc] = useState(gcSignedIn());
   useEffect(() => {
     loadStats().then(setStats);
   }, []);
+  useEffect(() => onGameCenterChange(() => setGc(gcSignedIn())), []);
   const s = stats ? summarize(stats) : null;
 
   return (
     <View style={{ flex: 1, backgroundColor: BG }}>
       <LedgerPage title="The Record" right={<Text onPress={onExit} style={{ fontFamily: SANS, fontSize: 9, color: INK3, letterSpacing: 1.5, textTransform: "uppercase" }}>Back</Text>}>
+
+        <SectionRule label="Leaderboards" />
+        {gc ? (
+          <View style={{ paddingVertical: 6 }}>
+            <Text style={{ fontFamily: SANS_SEMI, fontSize: 12.5, color: GRN, marginBottom: 10 }}>
+              ■ Signed in{gcAlias() ? ` as ${gcAlias()}` : ""} — Standard fortunes and honors post automatically.
+            </Text>
+            <InkButton label="View leaderboards" onPress={() => { void gcShowLeaderboards(); }} />
+          </View>
+        ) : (
+          <View style={{ paddingVertical: 6 }}>
+            <Text style={{ fontFamily: SANS, fontSize: 12, lineHeight: 18, color: INK2, marginBottom: 10 }}>
+              {gcAvailable()
+                ? "Sign in to post your best fortune and career wins to the global tables, and your honors as achievements."
+                : "Game Center is unavailable in this build."}
+            </Text>
+            {gcAvailable() ? <InkButton label="Sign in to Game Center" onPress={() => gcAuthenticate()} /> : null}
+          </View>
+        )}
 
         {s ? (
           <>

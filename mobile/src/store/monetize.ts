@@ -14,19 +14,28 @@ export const REMOVE_ADS_SKU = "com.jordanyeats.buyout.removeads";
 /** Live AdMob interstitial unit (iOS). Dev builds use Google's test unit. */
 const INTERSTITIAL_UNIT_ID = "ca-app-pub-9842723539475080/7683530345";
 
-/** Minimum gap between interstitials, and never after the first game of a session. */
-const INTERSTITIAL_GAP_MS = 8 * 60 * 1000;
-
 let adFree = false;
 let adsInitialized = false;
-let lastInterstitialAt = 0;
-let gamesFinishedThisSession = 0;
+/** Resolves the promise handed back by runInterstitial(), on CLOSED. */
+let closeResolver: (() => void) | null = null;
 let removeAdsPrice: string | null = null;
 /** Why the last ad load or purchase failed, for the diagnostics line in Settings. */
 let lastAdError: string | null = null;
 let lastPurchaseError: string | null = null;
 let productAvailable = false;
 let retryTimer: ReturnType<typeof setTimeout> | null = null;
+/**
+ * Teardowns for the listeners on the ad object currently being loaded.
+ * addAdEventListener returns an unsubscribe and we used to drop it, so every
+ * retry left the previous ad still subscribed. A unit that errors repeatedly
+ * then accumulated live ad objects, each able to schedule its own retry.
+ */
+let adUnsubs: (() => void)[] = [];
+
+function dropAdListeners(): void {
+  for (const off of adUnsubs) { try { off(); } catch {} }
+  adUnsubs = [];
+}
 /**
  * Whether we may request personalized ads. On iOS this mirrors the ATT answer;
  * elsewhere Google's UMP consent flow governs it, so we leave it open.
@@ -73,6 +82,14 @@ const iap = (): any | null => getIap();
 
 async function setAdFree(v: boolean): Promise<void> {
   adFree = v;
+  // Buying Remove Ads mid-session must not leave a loaded ad or a pending
+  // retry behind: adBreakDue() would still refuse it, but holding a live
+  // interstitial after the player has paid to be rid of them is wrong.
+  if (v) {
+    interstitial = null;
+    if (retryTimer) { clearTimeout(retryTimer); retryTimer = null; }
+    dropAdListeners(); // or an in-flight load would re-arm interstitial after the purchase
+  }
   notify();
   try {
     await AsyncStorage.setItem(AD_FREE_KEY, v ? "1" : "0");
@@ -91,18 +108,27 @@ function preloadInterstitial(attempt = 0): void {
   const g = ads();
   if (!g || adFree) return;
   if (retryTimer) { clearTimeout(retryTimer); retryTimer = null; }
+  dropAdListeners();
   try {
     const { InterstitialAd, TestIds, AdEventType } = g;
     const unitId = __DEV__ ? TestIds.INTERSTITIAL : INTERSTITIAL_UNIT_ID;
     const ad = InterstitialAd.createForAdRequest(unitId, {
       requestNonPersonalizedAdsOnly: !trackingAuthorized,
     });
-    ad.addAdEventListener(AdEventType.LOADED, () => {
+    // Only the ad this call created may drive state. Without the guard a stale
+    // object firing late could null a good interstitial or start a second
+    // retry chain alongside this one.
+    let live = true;
+    const own = (type: any, fn: (arg: any) => void) => {
+      const off = ad.addAdEventListener(type, (arg: any) => { if (live) fn(arg); });
+      adUnsubs.push(() => { live = false; if (typeof off === "function") off(); });
+    };
+    own(AdEventType.LOADED, () => {
       interstitial = ad;
       lastAdError = null;
       notify();
     });
-    ad.addAdEventListener(AdEventType.ERROR, (err: any) => {
+    own(AdEventType.ERROR, (err: any) => {
       interstitial = null;
       lastAdError = err?.message ?? String(err ?? "unknown ad load error");
       notify();
@@ -110,8 +136,10 @@ function preloadInterstitial(attempt = 0): void {
       const delay = Math.min(8000 * Math.pow(2, attempt), 5 * 60 * 1000);
       retryTimer = setTimeout(() => preloadInterstitial(attempt + 1), delay);
     });
-    ad.addAdEventListener(AdEventType.CLOSED, () => {
+    own(AdEventType.CLOSED, () => {
       interstitial = null;
+      const r = closeResolver; closeResolver = null;
+      if (r) r();
       preloadInterstitial(); // queue the next one
     });
     ad.load();
@@ -196,21 +224,51 @@ export async function initMonetize(): Promise<void> {
 }
 
 /**
- * Show an interstitial if the moment is right: ads on, one is loaded, at
- * least one full game already finished this session, and the frequency cap
- * has cooled down. Call when the Final Edition is dismissed.
+ * Whether a just-finished game should carry a sponsor break.
+ *
+ * Every completed game does, provided ads still apply to this player and one
+ * is actually loaded. The old rule — never before the second game of a
+ * *session* — meant the common case, one long game and then the phone goes
+ * down, showed nothing at all: requests outran impressions roughly eight to
+ * one. Nothing here is time-based, so a player who finishes two games back to
+ * back sees a break after each.
  */
-export function maybeShowInterstitial(): void {
-  gamesFinishedThisSession += 1;
-  if (adFree || !adsInitialized || !interstitial) return;
-  if (gamesFinishedThisSession < 2) return; // never after the first game
-  const now = Date.now();
-  if (now - lastInterstitialAt < INTERSTITIAL_GAP_MS) return;
-  try {
-    lastInterstitialAt = now;
-    interstitial.show();
-    interstitial = null;
-  } catch {}
+export function adBreakDue(): boolean {
+  return !adFree && adsInitialized && interstitial !== null;
+}
+
+/**
+ * Show the loaded interstitial, resolving when it closes.
+ *
+ * Always resolves — a throw from show(), or an SDK that never reports a close,
+ * must not strand the player on the sponsor break with their results behind it.
+ */
+export function runInterstitial(): Promise<void> {
+  const ad = interstitial;
+  if (!ad) return Promise.resolve();
+  return new Promise<void>((resolve) => {
+    let done = false;
+    let guard: ReturnType<typeof setTimeout>;
+    const finish = () => {
+      if (done) return;
+      done = true;
+      clearTimeout(guard);
+      resolve();
+    };
+    // If this fires while a real ad is genuinely on screen, resolving is still
+    // correct: the results mount behind the ad and are simply there when it
+    // closes. 45s was chosen to never cut an ad short and instead became the
+    // length of the freeze whenever one failed to report closing.
+    guard = setTimeout(finish, 20000);
+    closeResolver = finish;
+    try {
+      interstitial = null;
+      ad.show();
+    } catch {
+      closeResolver = null;
+      finish();
+    }
+  });
 }
 
 /** Buy Remove Ads. Resolves when the request is submitted; the listener flips the flag. */
