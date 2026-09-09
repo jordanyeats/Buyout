@@ -1,18 +1,29 @@
 import { applyAction, currentActor, playableTiles } from "./engine";
 import { policyAction } from "./ai";
 import { priceOf } from "./pricing";
-import type { Action, GameState, Tile } from "./types";
+import { derivedRng } from "./rng";
+import type { Action, GameState, Player, Tile } from "./types";
 
 /**
  * "Shark": a simulation AI tier. For each playable tile, it plays the move and
  * then rolls the game forward with fast heuristic policies for every seat,
- * several times with perturbed randomness, scoring its own final net worth.
+ * several times, scoring its own final net worth.
  * The deterministic engine makes this both cheap and reproducible: the same
  * state always produces the same choice.
+ *
+ * Each rollout starts from a DETERMINIZATION — a world re-sampled to be
+ * consistent with what the shark can legitimately see. See `determinize`.
  */
 export const SHARK_CONFIG = {
   rollouts: 10,
   maxActionsPerRollout: 90,
+  /**
+   * Re-sample hidden information before each rollout. Off means rollouts run on
+   * the true state: the shark plans against opponents' actual tiles and a known
+   * draw order, which is clairvoyance rather than skill. Kept as a switch only
+   * so the honest and cheating players can be measured head-to-head.
+   */
+  determinize: true,
 };
 
 function netWorth(g: GameState, idx: number): number {
@@ -20,6 +31,60 @@ function netWorth(g: GameState, idx: number): number {
   let w = p.cash;
   for (const [name, cnt] of Object.entries(p.shares)) w += cnt * priceOf(g, name);
   return w;
+}
+
+/** Fisher-Yates over an arbitrary rng (the state rng is not consumed here). */
+function shuffleWith<T>(arr: T[], rng: () => number): void {
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(rng() * (i + 1));
+    [arr[i], arr[j]] = [arr[j] as T, arr[i] as T];
+  }
+}
+
+/**
+ * Re-sample the hidden state into one world consistent with what seat `me`
+ * legitimately knows, so a rollout plans against a plausible game rather than
+ * the real one.
+ *
+ * Public, and therefore preserved exactly: the board, every player's cash,
+ * shares and holdings, the market, the discard pile, and HOW MANY tiles each
+ * opponent holds. Hidden, and therefore re-sampled: which tiles those are, the
+ * order of the undrawn pool, and the order of the deck.
+ *
+ * Every unseen tile — the pool plus all opponents' hands — goes into one bag,
+ * gets shuffled, and is dealt back so each opponent holds the same COUNT it
+ * held before. The shark's own hand is untouched. Destroyed tiles are in
+ * neither pool nor hands, so they stay destroyed.
+ *
+ * The bag and the deck are sorted into a canonical order BEFORE shuffling.
+ * Without that, shuffling a hidden arrangement with a fixed rng would map the
+ * true arrangement onto the sampled one, and the "guess" would still carry a
+ * trace of the answer. Sorting first makes the sample a pure function of what
+ * the shark can see.
+ */
+export function determinize(g: GameState, me: number, rng: () => number): GameState {
+  const bag: Tile[] = [...g.pool];
+  for (let i = 0; i < g.players.length; i++) {
+    if (i !== me) bag.push(...g.players[i]!.hand);
+  }
+  bag.sort((a, b) => a[0] - b[0] || a[1] - b[1]);
+  shuffleWith(bag, rng);
+
+  let dealt = 0;
+  const players: Player[] = g.players.map((p, i) => {
+    if (i === me) return p;
+    const hand = bag.slice(dealt, dealt + p.hand.length);
+    dealt += p.hand.length;
+    return { ...p, hand };
+  });
+
+  // The deck's CONTENTS are public (a known card list minus the discard pile);
+  // only its order is hidden.
+  const deck = [...g.deck];
+  deck.sort((a, b) => (a.id < b.id ? -1 : a.id > b.id ? 1 : a.flav < b.flav ? -1 : a.flav > b.flav ? 1 : 0));
+  shuffleWith(deck, rng);
+
+  return { ...g, players, pool: bag.slice(dealt), deck };
 }
 
 /** Advance a state by one policy action for whoever must act. Returns null when stuck. */
@@ -37,6 +102,7 @@ function policyStep(g: GameState): GameState | null {
 
 function rollout(start: GameState, me: number, salt: number): number {
   let g: GameState = { ...start, rngState: (start.rngState ^ Math.imul(salt + 1, 0x9e3779b9)) | 0 };
+  if (SHARK_CONFIG.determinize) g = determinize(g, me, derivedRng(start.rngState, salt));
   for (let i = 0; i < SHARK_CONFIG.maxActionsPerRollout && !g.over; i++) {
     const next = policyStep(g);
     if (!next) break;
