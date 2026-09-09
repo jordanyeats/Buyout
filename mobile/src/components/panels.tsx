@@ -5,7 +5,7 @@ import {
   canPlay, convertCapacity, currentActor, majorityMinority, priceOf,
   type Action, type GameState, type Tile,
 } from "../engine";
-import { ACCENT, BD, BD2, GRN, IDENT, INK, INK2, INK3, PUR, RED, SANS, SANS_BLACK, SANS_BOLD, SANS_SEMI, SERIF, money } from "../theme";
+import { ACCENT, BD, BD2, GRN, IDENT, INK, INK2, INK3, PUR, RED, SANS, SANS_BLACK, SANS_BOLD, SANS_SEMI, SERIF, money, moneyTight } from "../theme";
 import { CountUp, InkButton, PressIn, Stepper, Wordmark, companyStyle } from "./common";
 
 const label = (t: Tile) => String.fromCharCode(65 + t[1]) + (t[0] + 1);
@@ -106,7 +106,7 @@ export function Holdings({ game }: { game: GameState }) {
               </Text>
               {p.kind !== "human" ? <Text style={{ fontFamily: SANS, fontSize: 8, color: INK3, marginTop: 1 }}>{p.kind}</Text> : null}
             </View>
-            <CountUp value={p.cash} style={{ flex: 1.6, textAlign: "right", fontFamily: SANS_SEMI, fontSize: 12, color: GRN, fontVariant: ["tabular-nums"] }} />
+            <CountUp value={p.cash} format={moneyTight} style={{ flex: 1.6, textAlign: "right", fontFamily: SANS_SEMI, fontSize: 12, color: GRN, fontVariant: ["tabular-nums"] }} />
             {active.map((c) => {
               const s = p.shares[c.name] ?? 0;
               const cs = companyStyle(c.name);
@@ -128,7 +128,7 @@ export function Holdings({ game }: { game: GameState }) {
               }
               return <Text key={c.name} style={[cellW, { textAlign: "center", fontFamily: s ? SANS_BLACK : SANS, fontSize: 12, color: s ? cs.ptx : BD2 }]}>{s || "–"}</Text>;
             })}
-            <CountUp value={worth} style={{ flex: 1.6, textAlign: "right", fontFamily: SANS_BLACK, fontSize: 12, color: INK, fontVariant: ["tabular-nums"] }} />
+            <CountUp value={worth} format={moneyTight} style={{ flex: 1.6, textAlign: "right", fontFamily: SANS_BLACK, fontSize: 12, color: INK, fontVariant: ["tabular-nums"] }} />
           </View>
         );
       })}

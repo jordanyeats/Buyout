@@ -22,6 +22,25 @@ export const SANS_BLACK = "SourceSans3_800ExtraBold";
 
 export const money = (n: number) => "$" + n.toLocaleString("en-US");
 
+/**
+ * Money for narrow table cells. The Holdings columns are flex-sized against up
+ * to six company columns, which leaves roughly seven characters — so a
+ * seven-figure fortune wrapped its last digits onto a second line.
+ *
+ * Below a million nothing changes. Above it the precision steps down as the
+ * magnitude climbs, so "$1.23M", "$12.3M" and "$123M" all occupy the same
+ * width and the column never reflows mid-game. Prose and headline figures keep
+ * money() and their full precision — this is only for cells that cannot grow.
+ */
+export const moneyTight = (n: number): string => {
+  const a = Math.abs(n);
+  if (a < 1_000_000) return money(n);
+  const sign = n < 0 ? "−" : "";
+  const [div, suffix] = a < 1_000_000_000 ? [1_000_000, "M"] : [1_000_000_000, "B"];
+  const v = a / div;
+  return `${sign}$${v.toFixed(v < 10 ? 2 : v < 100 ? 1 : 0)}${suffix}`;
+};
+
 export interface CompanyIdentity {
   tag: string;
 }

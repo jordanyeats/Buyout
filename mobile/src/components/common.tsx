@@ -40,7 +40,7 @@ export function Wordmark({ name, size = 13, light = false }: { name: string; siz
 }
 
 /** Cash that counts instead of jumping. */
-export function CountUp({ value, style }: { value: number; style?: TextStyle | TextStyle[] }) {
+export function CountUp({ value, style, format = money }: { value: number; style?: TextStyle | TextStyle[]; format?: (n: number) => string }) {
   const [disp, setDisp] = useState(value);
   const prev = useRef(value);
   useEffect(() => {
@@ -58,7 +58,7 @@ export function CountUp({ value, style }: { value: number; style?: TextStyle | T
     raf = requestAnimationFrame(step);
     return () => cancelAnimationFrame(raf);
   }, [value]);
-  return <Text style={style}>{money(disp)}</Text>;
+  return <Text style={style}>{format(disp)}</Text>;
 }
 
 /** Thick-thin rule pair with a small-caps section label. Rules, never cards. */
