@@ -101,11 +101,6 @@ tiles in your rivals' hands and the order of the merger deck. It now
 plans against a guess, the same as you do. You may find it beatable in
 ways it was not before. That is the point.
 
-A SEVENTH STARTUP OPENS
-Vault joins the market. With six names the roster ran full for a
-quarter of the average game and new companies simply could not be
-founded; a seventh keeps the floor moving and puts more deals in play.
-
 COMPANIES GO SAFE SOONER
 A company is beyond takeover at 18 tiles rather than 25, so safety is
 something you can reach while the board is still being fought over,

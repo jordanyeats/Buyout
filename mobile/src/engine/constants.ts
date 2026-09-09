@@ -51,10 +51,6 @@ export const COMPANIES: CompanyStyle[] = [
   { name: "Spark", code: "SK", bg: "#9B2335", tx: "#F5CDD3", pill: "#FAE6E9", ptx: "#7A1A2A" },
   { name: "Neon", code: "NE", bg: "#1B6B3A", tx: "#C5E8D3", pill: "#E4F5EB", ptx: "#14522D" },
   { name: "Pogo", code: "PG", bg: "#3D3D99", tx: "#CDCDF5", pill: "#EAEAFB", ptx: "#2D2D75" },
-  // Seventh slot. Six saturated hues already crowd the wheel, so this one
-  // separates by saturation instead: a cool slate that cannot be mistaken
-  // for Pogo's indigo, Blink's teal, or the warm grey of a loose tile.
-  { name: "Vault", code: "VT", bg: "#45566B", tx: "#D2DCE6", pill: "#EDF1F5", ptx: "#33404F" },
 ];
 
 export const CARD_DEFS: CardDef[] = [

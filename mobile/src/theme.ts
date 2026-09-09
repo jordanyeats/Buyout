@@ -24,7 +24,7 @@ export const money = (n: number) => "$" + n.toLocaleString("en-US");
 
 /**
  * Money for narrow table cells. The Holdings columns are flex-sized against up
- * to seven company columns, so a seven-figure fortune wrapped its last digits
+ * to six company columns, so a seven-figure fortune wrapped its last digits
  * onto a second line.
  *
  * Four significant digits, always: "$1.234M", "$12.35M", "$123.5M" are all
@@ -52,5 +52,4 @@ export const IDENT: Record<string, CompanyIdentity> = {
   Spark: { tag: "Ideas that ignite." },
   Neon: { tag: "Nightlife, organized." },
   Pogo: { tag: "Bounce-back logistics." },
-  Vault: { tag: "Nothing ever leaves." },
 };

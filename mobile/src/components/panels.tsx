@@ -244,12 +244,12 @@ export function SafeBanner({ game }: { game: GameState }) {
 
 export function Holdings({ game }: { game: GameState }) {
   const active = Object.values(game.cos).filter((c) => c.status !== "inactive");
-  // Money columns are 1.8, not the 1.6 they were at six companies. A seventh
-  // company column is taken out of Cash and Worth, which dropped them to 47.5pt
-  // at phone width — and "$129,543" in the Worth cell's black weight measures
-  // 48.6pt, so sub-million fortunes truncated. moneyTight only abbreviates
-  // above a million, so it does not rescue that range. 1.8 restores the 51.7pt
-  // those columns had at six companies; the company column keeps its full share.
+  // Six companies is the ceiling this table was measured against: Cash and
+  // Worth land at 51.7pt at phone width, and the widest thing they carry is
+  // "$129,543" in the Worth cell's black weight at 48.6pt. A seventh column
+  // takes its width from these two and drops them to 47.5pt, which truncates
+  // that range — moneyTight only abbreviates above a million, so it does not
+  // rescue it. If a seventh company is ever added, these go to 1.8.
   const cellW = { flex: 1 } as const;
   // Majority holders per company, computed once per render.
   const majOf: Record<string, Set<string>> = {};
@@ -258,9 +258,9 @@ export function Holdings({ game }: { game: GameState }) {
     <View>
       <View style={{ flexDirection: "row", borderBottomWidth: 1, borderBottomColor: INK, paddingBottom: 4 }}>
         <Text style={[{ flex: 2 }, hstyle]}>Player</Text>
-        <Text style={[{ flex: 1.8, textAlign: "right" }, hstyle]}>Cash</Text>
+        <Text style={[{ flex: 1.6, textAlign: "right" }, hstyle]}>Cash</Text>
         {active.map((c) => <Text key={c.name} style={[cellW, hstyle, { textAlign: "center" }]}>{companyStyle(c.name).code}</Text>)}
-        <Text style={[{ flex: 1.8, textAlign: "right" }, hstyle]}>Worth</Text>
+        <Text style={[{ flex: 1.6, textAlign: "right" }, hstyle]}>Worth</Text>
       </View>
       {game.players.map((p, i) => {
         const worth = p.cash + active.reduce((s, c) => s + (p.shares[c.name] ?? 0) * priceOf(game, c.name), 0);
@@ -273,7 +273,7 @@ export function Holdings({ game }: { game: GameState }) {
               </Text>
               {p.kind !== "human" ? <Text style={{ fontFamily: SANS, fontSize: 8, color: INK3, marginTop: 1 }}>{p.kind}</Text> : null}
             </View>
-            <CountUp value={p.cash} format={moneyTight} numberOfLines={1} style={{ flex: 1.8, textAlign: "right", fontFamily: SANS_SEMI, fontSize: 12, color: GRN, fontVariant: ["tabular-nums"] }} />
+            <CountUp value={p.cash} format={moneyTight} numberOfLines={1} style={{ flex: 1.6, textAlign: "right", fontFamily: SANS_SEMI, fontSize: 12, color: GRN, fontVariant: ["tabular-nums"] }} />
             {active.map((c) => {
               const s = p.shares[c.name] ?? 0;
               const cs = companyStyle(c.name);
@@ -295,15 +295,15 @@ export function Holdings({ game }: { game: GameState }) {
               }
               return <Text key={c.name} style={[cellW, { textAlign: "center", fontFamily: s ? SANS_BLACK : SANS, fontSize: 12, color: s ? cs.ptx : BD2 }]}>{s || "–"}</Text>;
             })}
-            <CountUp value={worth} format={moneyTight} numberOfLines={1} style={{ flex: 1.8, textAlign: "right", fontFamily: SANS_BLACK, fontSize: 12, color: INK, fontVariant: ["tabular-nums"] }} />
+            <CountUp value={worth} format={moneyTight} numberOfLines={1} style={{ flex: 1.6, textAlign: "right", fontFamily: SANS_BLACK, fontSize: 12, color: INK, fontVariant: ["tabular-nums"] }} />
           </View>
         );
       })}
       <View style={{ flexDirection: "row", paddingTop: 4 }}>
         <Text style={[{ flex: 2 }, mstyle]}>Market</Text>
-        <View style={{ flex: 1.8 }} />
+        <View style={{ flex: 1.6 }} />
         {active.map((c) => <Text key={c.name} style={[cellW, mstyle, { textAlign: "center" }]}>{game.market[c.name]}</Text>)}
-        <View style={{ flex: 1.8 }} />
+        <View style={{ flex: 1.6 }} />
       </View>
       {active.length ? (
         <Text style={{ textAlign: "right", fontFamily: SANS, fontSize: 9.5, color: INK3, paddingTop: 3 }}>■ majority · ▢ founded</Text>
