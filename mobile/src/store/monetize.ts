@@ -16,6 +16,14 @@ const INTERSTITIAL_UNIT_ID = "ca-app-pub-9842723539475080/7683530345";
 
 let adFree = false;
 let adsInitialized = false;
+/**
+ * When the held interstitial finished loading. AdMob expires an interstitial
+ * roughly an hour after load, and show() on an expired one presents nothing
+ * and never reports CLOSED — which is a black screen for as long as the guard
+ * in runInterstitial() runs. Refuse anything near that age and reload instead.
+ */
+let interstitialLoadedAt = 0;
+const AD_MAX_AGE_MS = 50 * 60 * 1000;
 /** Resolves the promise handed back by runInterstitial(), on CLOSED. */
 let closeResolver: (() => void) | null = null;
 let removeAdsPrice: string | null = null;
@@ -69,6 +77,7 @@ export function monetizeStatus() {
     adsAvailable: getAds() !== null,
     adsInitialized,
     interstitialReady: interstitial !== null,
+    interstitialAgeMs: interstitial === null ? null : Date.now() - interstitialLoadedAt,
     lastAdError,
     purchasesAvailable: getIap() !== null,
     productAvailable,
@@ -125,11 +134,13 @@ function preloadInterstitial(attempt = 0): void {
     };
     own(AdEventType.LOADED, () => {
       interstitial = ad;
+      interstitialLoadedAt = Date.now();
       lastAdError = null;
       notify();
     });
     own(AdEventType.ERROR, (err: any) => {
       interstitial = null;
+      interstitialLoadedAt = 0;
       lastAdError = err?.message ?? String(err ?? "unknown ad load error");
       notify();
       // 8s, 16s, 32s … capped at 5 minutes.
@@ -138,6 +149,7 @@ function preloadInterstitial(attempt = 0): void {
     });
     own(AdEventType.CLOSED, () => {
       interstitial = null;
+      interstitialLoadedAt = 0;
       const r = closeResolver; closeResolver = null;
       if (r) r();
       preloadInterstitial(); // queue the next one
@@ -234,7 +246,19 @@ export async function initMonetize(): Promise<void> {
  * back sees a break after each.
  */
 export function adBreakDue(): boolean {
-  return !adFree && adsInitialized && interstitial !== null;
+  if (adFree || !adsInitialized || interstitial === null) return false;
+  // Deliberately not a pure predicate: a stale ad is dropped here and a fresh
+  // one queued, so the game that asked simply goes straight to its results
+  // rather than opening a break in front of an ad that cannot appear.
+  if (Date.now() - interstitialLoadedAt > AD_MAX_AGE_MS) {
+    interstitial = null;
+    interstitialLoadedAt = 0;
+    lastAdError = "Held interstitial passed its expiry before it could be shown; reloading.";
+    notify();
+    preloadInterstitial();
+    return false;
+  }
+  return true;
 }
 
 /**
@@ -249,10 +273,14 @@ export function runInterstitial(): Promise<void> {
   return new Promise<void>((resolve) => {
     let done = false;
     let guard: ReturnType<typeof setTimeout>;
+    let openWatch: ReturnType<typeof setTimeout> | null = null;
+    let offOpened: (() => void) | null = null;
     const finish = () => {
       if (done) return;
       done = true;
       clearTimeout(guard);
+      if (openWatch) clearTimeout(openWatch);
+      if (offOpened) { try { offOpened(); } catch {} offOpened = null; }
       resolve();
     };
     // If this fires while a real ad is genuinely on screen, resolving is still
@@ -260,9 +288,34 @@ export function runInterstitial(): Promise<void> {
     // closes. 45s was chosen to never cut an ad short and instead became the
     // length of the freeze whenever one failed to report closing.
     guard = setTimeout(finish, 20000);
+    // An ad that reaches the screen fires OPENED almost at once. One that does
+    // not — an expired creative is the usual reason — fires nothing at all,
+    // and waiting out the guard for it shows the player a dead screen for the
+    // whole 20s. So watch for OPENED, and if it never comes, conclude the ad
+    // is not up and reveal the results. Armed ONLY if the listener actually
+    // registered: with no OPENED event to wait for, this timer would cut short
+    // every genuine ad instead.
+    try {
+      const { AdEventType } = ads() ?? {};
+      if (AdEventType?.OPENED) {
+        const off = ad.addAdEventListener(AdEventType.OPENED, () => {
+          if (openWatch) { clearTimeout(openWatch); openWatch = null; }
+        });
+        if (typeof off === "function") offOpened = off;
+      }
+    } catch {}
+    if (offOpened) {
+      openWatch = setTimeout(() => {
+        lastAdError = "show() reported no OPENED within 3s; treated as never shown.";
+        notify();
+        finish();
+        preloadInterstitial(); // the one we just dropped is gone either way
+      }, 3000);
+    }
     closeResolver = finish;
     try {
       interstitial = null;
+      interstitialLoadedAt = 0;
       ad.show();
     } catch {
       closeResolver = null;
