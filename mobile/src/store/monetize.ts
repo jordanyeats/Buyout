@@ -39,6 +39,18 @@ let retryTimer: ReturnType<typeof setTimeout> | null = null;
  * then accumulated live ad objects, each able to schedule its own retry.
  */
 let adUnsubs: (() => void)[] = [];
+/**
+ * The last dozen ad lifecycle events, oldest first, for the Settings
+ * diagnostics. Nothing about this path can be reproduced off a device, so
+ * when a player reports "it went black" this is the only way to learn which
+ * step actually failed: whether an ad loaded, whether it reached the screen,
+ * and whether it ever reported closing.
+ */
+const adLog: string[] = [];
+function logAd(event: string): void {
+  adLog.push(`${new Date().toLocaleTimeString()}  ${event}`);
+  if (adLog.length > 12) adLog.shift();
+}
 
 function dropAdListeners(): void {
   for (const off of adUnsubs) { try { off(); } catch {} }
@@ -78,6 +90,7 @@ export function monetizeStatus() {
     adsInitialized,
     interstitialReady: interstitial !== null,
     interstitialAgeMs: interstitial === null ? null : Date.now() - interstitialLoadedAt,
+    adLog: [...adLog],
     lastAdError,
     purchasesAvailable: getIap() !== null,
     productAvailable,
@@ -132,13 +145,16 @@ function preloadInterstitial(attempt = 0): void {
       const off = ad.addAdEventListener(type, (arg: any) => { if (live) fn(arg); });
       adUnsubs.push(() => { live = false; if (typeof off === "function") off(); });
     };
+    if (AdEventType.OPENED) own(AdEventType.OPENED, () => logAd("opened"));
     own(AdEventType.LOADED, () => {
+      logAd("loaded");
       interstitial = ad;
       interstitialLoadedAt = Date.now();
       lastAdError = null;
       notify();
     });
     own(AdEventType.ERROR, (err: any) => {
+      logAd(`error: ${err?.message ?? err}`);
       interstitial = null;
       interstitialLoadedAt = 0;
       lastAdError = err?.message ?? String(err ?? "unknown ad load error");
@@ -148,6 +164,7 @@ function preloadInterstitial(attempt = 0): void {
       retryTimer = setTimeout(() => preloadInterstitial(attempt + 1), delay);
     });
     own(AdEventType.CLOSED, () => {
+      logAd("closed");
       interstitial = null;
       interstitialLoadedAt = 0;
       const r = closeResolver; closeResolver = null;
@@ -205,6 +222,19 @@ export async function initMonetize(): Promise<void> {
         lastPurchaseError =
           "The App Store did not return the Remove Ads product. Check that it is created, priced, and in a submittable state in App Store Connect.";
       }
+      // The comment above this block has always promised a quiet entitlement
+      // check, and there has never been one: the app knew about a purchase
+      // only from its own AsyncStorage flag. Reinstall, switch device or clear
+      // storage and it forgot, ads came back, and the only way back was
+      // finding Restore by hand. Ask the store directly, every launch.
+      try {
+        const owned = await store.getAvailablePurchases();
+        if (Array.isArray(owned) && owned.some((x: any) => x?.productId === REMOVE_ADS_SKU)) {
+          await setAdFree(true);
+        }
+      } catch (e: any) {
+        lastPurchaseError = e?.message ?? String(e);
+      }
       notify();
     } catch (e: any) {
       lastPurchaseError = e?.message ?? String(e);
@@ -253,6 +283,7 @@ export function adBreakDue(): boolean {
   if (Date.now() - interstitialLoadedAt > AD_MAX_AGE_MS) {
     interstitial = null;
     interstitialLoadedAt = 0;
+    logAd("dropped: past expiry before it could be shown");
     lastAdError = "Held interstitial passed its expiry before it could be shown; reloading.";
     notify();
     preloadInterstitial();
@@ -287,7 +318,7 @@ export function runInterstitial(): Promise<void> {
     // correct: the results mount behind the ad and are simply there when it
     // closes. 45s was chosen to never cut an ad short and instead became the
     // length of the freeze whenever one failed to report closing.
-    guard = setTimeout(finish, 20000);
+    guard = setTimeout(() => { logAd("gave up: no CLOSED within 20s"); finish(); }, 20000);
     // An ad that reaches the screen fires OPENED almost at once. One that does
     // not — an expired creative is the usual reason — fires nothing at all,
     // and waiting out the guard for it shows the player a dead screen for the
@@ -306,6 +337,7 @@ export function runInterstitial(): Promise<void> {
     } catch {}
     if (offOpened) {
       openWatch = setTimeout(() => {
+        logAd("gave up: no OPENED within 3s of show()");
         lastAdError = "show() reported no OPENED within 3s; treated as never shown.";
         notify();
         finish();
@@ -314,6 +346,7 @@ export function runInterstitial(): Promise<void> {
     }
     closeResolver = finish;
     try {
+      logAd("show() called");
       interstitial = null;
       interstitialLoadedAt = 0;
       ad.show();

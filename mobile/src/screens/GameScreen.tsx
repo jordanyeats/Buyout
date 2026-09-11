@@ -24,7 +24,11 @@ export function GameScreen({ game, act, onQuit, onRestart, unlocked = [] }: {
   // sponsor break first. The break stays mounted under the ad so the results
   // are never glimpsed before it, and reveals only once the ad is closed.
   useEffect(() => {
-    if (!game.over) return;
+    // A new game must clear both, or "run it back" carries the last game's
+    // overlay state into it: showFinal stayed true across a restart, so the
+    // next finished game could mount its results alongside the sponsor break
+    // instead of behind it.
+    if (!game.over) { setAdBreak(false); setShowFinal(false); return; }
     if (adBreakDue()) setAdBreak(true);
     else setShowFinal(true);
   }, [game.over]);
