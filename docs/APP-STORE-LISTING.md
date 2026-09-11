@@ -1,4 +1,4 @@
-# App Store Listing — Buyout 1.3.1
+# App Store Listing — Buyout 1.3.2
 
 Paste-ready copy for App Store Connect. Character limits verified.
 No references to any other board game, per naming rules.
@@ -84,6 +84,26 @@ stats, and player names never leave your device. The free edition shows
 the occasional ad between games; one purchase removes them forever.
 
 The desk is yours.
+```
+
+## What's New (1.3.2)
+
+```
+THE SCREEN COMES BACK AFTER THE ADVERTISEMENT
+An advertisement that played all the way through could still leave the
+paper on a blank screen with no way forward. The sponsor break no longer
+hands the advertisement a window to get lost in, so your final results
+are waiting the moment it finishes.
+
+YOUR PURCHASE IS REMEMBERED
+Remove Ads now restores itself when the app opens. Reinstall, or move to
+a new phone, and the paper asks the App Store what you own instead of
+relying on its own memory — or losing it.
+
+THE BACK OFFICE KEEPS A RECORD
+Settings now logs what each advertisement actually did — whether it
+loaded, whether it reached the screen, and whether it ever closed. If one
+misbehaves, the log says exactly where it stopped.
 ```
 
 ## What's New (1.3.1)
