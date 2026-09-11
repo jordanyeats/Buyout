@@ -270,6 +270,7 @@ export function SettingsScreen({ onExit }: { onExit: () => void }) {
               ["Ad SDK present", mon.adsAvailable ? "yes" : "no — native module missing"],
               ["Ad SDK initialized", mon.adsInitialized ? "yes" : "no"],
               ["Interstitial loaded", mon.interstitialReady ? "yes" : "no"],
+              ["Held for", mon.interstitialAgeMs == null ? "—" : `${Math.round(mon.interstitialAgeMs / 60000)} min (expires near 60)`],
               ["Last ad error", mon.lastAdError ?? "none"],
               ["Store connected", mon.purchasesAvailable ? "yes" : "no — native module missing"],
               ["Remove Ads product", mon.productAvailable ? (mon.removeAdsPrice ?? "found") : "not returned by the App Store"],
@@ -280,8 +281,18 @@ export function SettingsScreen({ onExit }: { onExit: () => void }) {
                 <Text style={{ fontFamily: SANS_SEMI, fontSize: 10.5, color: INK2, flex: 1 }}>{v}</Text>
               </View>
             ))}
+            {mon.adLog.length ? (
+              <View style={{ marginTop: 8, borderTopWidth: 1, borderTopColor: BD2, paddingTop: 6 }}>
+                <Text style={{ fontFamily: SANS, fontSize: 10, color: INK3, letterSpacing: 1, textTransform: "uppercase", marginBottom: 3 }}>
+                  Ad log
+                </Text>
+                {mon.adLog.map((line, i) => (
+                  <Text key={i} style={{ fontFamily: SANS, fontSize: 10, lineHeight: 14, color: INK2 }}>{line}</Text>
+                ))}
+              </View>
+            ) : null}
             <Text style={{ fontFamily: SANS, fontSize: 10, lineHeight: 15, color: INK3, marginTop: 6, fontStyle: "italic" }}>
-              Ads appear only after the second finished game of a session, and at most once every 8 minutes.
+              One advertisement follows each finished game. There is no session or time gate.
             </Text>
           </View>
         ) : null}

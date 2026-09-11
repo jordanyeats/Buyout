@@ -1,7 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
-import { Modal, Pressable, Text, View } from "react-native";
-import { SafeAreaProvider } from "react-native-safe-area-context";
-import { BD2, INK, INK2, INK3, RED, SANS, SANS_BLACK, SERIF, SERIF_BOLD } from "../theme";
+import { Pressable, StyleSheet, Text, View } from "react-native";
+import { BD2, BG, INK, INK2, INK3, RED, SANS, SANS_BLACK, SERIF, SERIF_BOLD } from "../theme";
 import { LedgerPage, PressIn } from "./common";
 
 /**
@@ -70,72 +69,77 @@ export function AdBreak({ onDone, onSkip }: { onDone: () => void; onSkip: () => 
     return () => clearTimeout(t);
   }, []);
 
+  // NOT a Modal. An RN Modal is its own UIViewController, and the ad SDK
+  // presents the interstitial from the ROOT controller — so showing an ad while
+  // this was up meant presenting over an already-presented modal. The ad plays,
+  // and the dismissal unwinds onto a window that is no longer the one on screen:
+  // the player is left looking at black, with the ad's own close chrome gone
+  // with it. As a plain absolutely-filled view there is only ever one window,
+  // and the ad presents and dismisses over the root as the SDK expects.
   return (
-    <Modal visible animationType="fade" onRequestClose={() => {}}>
-      <SafeAreaProvider>
-        <LedgerPage
-          title="The Buyout Ledger"
-          padding={20}
-          right={<Text style={{ fontFamily: SANS, fontSize: 9, color: INK3, letterSpacing: 1.5, textTransform: "uppercase" }}>Advertisement</Text>}
-        >
-          <View style={{ marginBottom: 10 }} />
+    <View style={[StyleSheet.absoluteFill, { backgroundColor: BG, zIndex: 40 }]}>
+      <LedgerPage
+        title="The Buyout Ledger"
+        padding={20}
+        right={<Text style={{ fontFamily: SANS, fontSize: 9, color: INK3, letterSpacing: 1.5, textTransform: "uppercase" }}>Advertisement</Text>}
+      >
+        <View style={{ marginBottom: 10 }} />
 
-          <PressIn delay={80}>
-            <Text style={{ fontFamily: SANS_BLACK, fontSize: 10, letterSpacing: 2.5, textTransform: "uppercase", color: RED, marginBottom: 4 }}>
-              A word from our sponsor
-            </Text>
-            <Text style={{ fontFamily: SERIF, fontSize: 38, lineHeight: 39, color: INK, marginBottom: 8 }}>{cry.shout}</Text>
-            <Text style={{ fontFamily: SERIF_BOLD, fontStyle: "italic", fontSize: 15, color: INK2, marginBottom: 14 }}>{cry.line}</Text>
-          </PressIn>
+        <PressIn delay={80}>
+          <Text style={{ fontFamily: SANS_BLACK, fontSize: 10, letterSpacing: 2.5, textTransform: "uppercase", color: RED, marginBottom: 4 }}>
+            A word from our sponsor
+          </Text>
+          <Text style={{ fontFamily: SERIF, fontSize: 38, lineHeight: 39, color: INK, marginBottom: 8 }}>{cry.shout}</Text>
+          <Text style={{ fontFamily: SERIF_BOLD, fontStyle: "italic", fontSize: 15, color: INK2, marginBottom: 14 }}>{cry.line}</Text>
+        </PressIn>
 
-          <PressIn delay={220} style={{ borderTopWidth: 1, borderTopColor: BD2, paddingTop: 12 }}>
-            <Text style={{ fontFamily: SERIF_BOLD, fontSize: 13.5, lineHeight: 21, color: INK, textAlign: "justify" }}>{body}</Text>
-          </PressIn>
+        <PressIn delay={220} style={{ borderTopWidth: 1, borderTopColor: BD2, paddingTop: 12 }}>
+          <Text style={{ fontFamily: SERIF_BOLD, fontSize: 13.5, lineHeight: 21, color: INK, textAlign: "justify" }}>{body}</Text>
+        </PressIn>
 
-          <PressIn delay={380} style={{ marginTop: 20 }}>
-            <View style={{ borderWidth: 1, borderColor: INK, padding: 13 }}>
-              <View style={{ borderBottomWidth: 1, borderBottomColor: INK, paddingBottom: 4, marginBottom: 9 }}>
-                <Text style={{ fontFamily: SANS_BLACK, fontSize: 9, letterSpacing: 2, textTransform: "uppercase", color: INK }}>■ Going to press</Text>
-              </View>
-              <View style={{ flexDirection: "row", alignItems: "baseline", justifyContent: "center", gap: 8 }}>
-                <Text style={{ fontFamily: SERIF, fontSize: 34, color: INK, fontVariant: ["tabular-nums"] }}>{left}</Text>
-                <Text style={{ fontFamily: SANS, fontSize: 12.5, color: INK2 }}>
-                  {left === 1 ? "second" : "seconds"}
-                </Text>
-              </View>
+        <PressIn delay={380} style={{ marginTop: 20 }}>
+          <View style={{ borderWidth: 1, borderColor: INK, padding: 13 }}>
+            <View style={{ borderBottomWidth: 1, borderBottomColor: INK, paddingBottom: 4, marginBottom: 9 }}>
+              <Text style={{ fontFamily: SANS_BLACK, fontSize: 9, letterSpacing: 2, textTransform: "uppercase", color: INK }}>■ Going to press</Text>
             </View>
+            <View style={{ flexDirection: "row", alignItems: "baseline", justifyContent: "center", gap: 8 }}>
+              <Text style={{ fontFamily: SERIF, fontSize: 34, color: INK, fontVariant: ["tabular-nums"] }}>{left}</Text>
+              <Text style={{ fontFamily: SANS, fontSize: 12.5, color: INK2 }}>
+                {left === 1 ? "second" : "seconds"}
+              </Text>
+            </View>
+          </View>
+        </PressIn>
+
+        {/*
+          The way out. If the ad shows, it covers this and the break is
+          dismissed when the ad closes — nobody ever sees this. It exists for
+          every case where the ad does not arrive: no fill, a creative that
+          never reports closing, a network that dies mid-request. Without it
+          the break is a locked room, since there is no dismiss control and
+          the player's results sit behind it.
+        */}
+        {escape ? (
+          <PressIn style={{ marginTop: 18 }}>
+            <Pressable
+              onPress={onSkip}
+              hitSlop={10}
+              accessibilityRole="button"
+              accessibilityLabel="Go to the final results"
+              style={{ paddingVertical: 12, alignItems: "center" }}
+            >
+              <Text style={{ fontFamily: SANS, fontSize: 12.5, color: INK3, marginBottom: 5 }}>
+                Not seeing the sponsor?
+              </Text>
+              <Text style={{ fontFamily: SANS_BLACK, fontSize: 11, letterSpacing: 1.5, textTransform: "uppercase", color: INK, textDecorationLine: "underline" }}>
+                Go to the final results ⟶
+              </Text>
+            </Pressable>
           </PressIn>
+        ) : null}
 
-          {/*
-            The way out. If the ad shows, it covers this and the break is
-            dismissed when the ad closes — nobody ever sees this. It exists for
-            every case where the ad does not arrive: no fill, a creative that
-            never reports closing, a network that dies mid-request. Without it
-            the break is a locked room, since there is no dismiss control and
-            the player's results sit behind it.
-          */}
-          {escape ? (
-            <PressIn style={{ marginTop: 18 }}>
-              <Pressable
-                onPress={onSkip}
-                hitSlop={10}
-                accessibilityRole="button"
-                accessibilityLabel="Go to the final results"
-                style={{ paddingVertical: 12, alignItems: "center" }}
-              >
-                <Text style={{ fontFamily: SANS, fontSize: 12.5, color: INK3, marginBottom: 5 }}>
-                  Not seeing the sponsor?
-                </Text>
-                <Text style={{ fontFamily: SANS_BLACK, fontSize: 11, letterSpacing: 1.5, textTransform: "uppercase", color: INK, textDecorationLine: "underline" }}>
-                  Go to the final results ⟶
-                </Text>
-              </Pressable>
-            </PressIn>
-          ) : null}
-
-          <View style={{ height: 28 }} />
-        </LedgerPage>
-      </SafeAreaProvider>
-    </Modal>
+        <View style={{ height: 28 }} />
+      </LedgerPage>
+    </View>
   );
 }
