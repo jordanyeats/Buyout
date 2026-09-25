@@ -9,7 +9,13 @@ import { aiAction, applyAction, newGame, type GameState, type PlayerKind } from 
  *   BENCH=1 LADDER_GAMES=1000 npx vitest run test/ladder.test.ts
  *
  * Opt-in, because a few hundred full games is minutes, not the seconds the
- * rest of the suite takes.
+ * rest of the suite takes. LADDER_RUNGS picks which duels to run, because the
+ * rungs are not the same price: shark searches on every placement, so it costs
+ * orders of magnitude more per game than the three heuristics and will happily
+ * eat a timeout that the others finish inside.
+ *
+ *   BENCH=1 LADDER_RUNGS=greedy:random,strategic:greedy npx vitest run …
+ *   BENCH=1 LADDER_RUNGS=shark:strategic LADDER_GAMES=60 npx vitest run …
  */
 
 /**
@@ -39,11 +45,10 @@ function duel(a: PlayerKind, b: PlayerKind, games: number): { aWins: number; n: 
 describe("difficulty ladder", () => {
   it.runIf(process.env.BENCH)("BENCH: each rung against the one below it", { timeout: 900_000 }, () => {
     const GAMES = Number(process.env.LADDER_GAMES ?? 400);
-    const rungs: [PlayerKind, PlayerKind][] = [
-      ["greedy", "random"],
-      ["strategic", "greedy"],
-      ["shark", "strategic"],
-    ];
+    const DEFAULT = "greedy:random,strategic:greedy,shark:strategic";
+    const rungs = (process.env.LADDER_RUNGS ?? DEFAULT)
+      .split(",").filter(Boolean)
+      .map((r) => r.split(":") as [PlayerKind, PlayerKind]);
     for (const [hi, lo] of rungs) {
       const { aWins, n } = duel(hi, lo, GAMES);
       const p = aWins / n;
