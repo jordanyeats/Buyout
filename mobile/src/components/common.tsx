@@ -161,14 +161,19 @@ export function PressIn({ children, delay = 0, style }: { children: React.ReactN
 
 
 /** The broadsheet masthead, in flow: name over a thick-thin rule pair. Scrolls away naturally. */
-export function Masthead({ title, right }: { title: string; right?: React.ReactNode }) {
+export function Masthead({ title, right, compact }: {
+  title: string;
+  right?: React.ReactNode;
+  /** A screen too short to spend 37pt on a nameplate. */
+  compact?: boolean;
+}) {
   return (
-    <View style={{ marginBottom: 4 }}>
-      <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "baseline", borderBottomWidth: 1, borderBottomColor: INK, paddingBottom: 3 }}>
-        <Text style={{ fontFamily: SERIF, fontSize: 18, color: INK }}>{title}</Text>
+    <View style={{ marginBottom: compact ? 2 : 4 }}>
+      <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "baseline", borderBottomWidth: 1, borderBottomColor: INK, paddingBottom: compact ? 1 : 3 }}>
+        <Text style={{ fontFamily: SERIF, fontSize: compact ? 13 : 18, color: INK }}>{title}</Text>
         {right ?? null}
       </View>
-      <View style={{ borderBottomWidth: 3, borderBottomColor: INK, marginTop: 2 }} />
+      <View style={{ borderBottomWidth: compact ? 2 : 3, borderBottomColor: INK, marginTop: compact ? 1 : 2 }} />
     </View>
   );
 }
@@ -188,11 +193,16 @@ export function StatusStrip() {
 }
 
 /** The masthead dissolves as it rolls up toward the status zone. */
-export function FadingMasthead({ scrollY, title, right }: { scrollY: Animated.Value; title: string; right?: React.ReactNode }) {
+export function FadingMasthead({ scrollY, title, right, compact }: {
+  scrollY: Animated.Value;
+  title: string;
+  right?: React.ReactNode;
+  compact?: boolean;
+}) {
   const opacity = scrollY.interpolate({ inputRange: [0, 56], outputRange: [1, 0], extrapolate: "clamp" });
   return (
     <Animated.View style={{ opacity }}>
-      <Masthead title={title} right={right} />
+      <Masthead title={title} right={right} compact={compact} />
     </Animated.View>
   );
 }
@@ -204,10 +214,16 @@ export function FadingMasthead({ scrollY, title, right }: { scrollY: Animated.Va
  * Full-screen Modals must wrap this in their own SafeAreaProvider so the
  * insets are measured for the modal's window.
  */
-export function LedgerPage({ title, right, padding = 16, children }: {
+export function LedgerPage({ title, right, padding = 16, compact, children }: {
   title: string;
   right?: React.ReactNode;
   padding?: number;
+  /**
+   * Trims the page's own furniture on a screen with no height to spare —
+   * a phone held sideways, or a short window on iPad. The nameplate and its
+   * rules are worth a third of a 390pt screen otherwise.
+   */
+  compact?: boolean;
   children?: React.ReactNode;
 }) {
   const scrollY = useRef(new Animated.Value(0)).current;
@@ -216,11 +232,14 @@ export function LedgerPage({ title, right, padding = 16, children }: {
     <View style={{ flex: 1, backgroundColor: BG }}>
       <StatusStrip />
       <Animated.ScrollView
-        contentContainerStyle={{ padding, paddingTop: insets.top + 6 }}
+        contentContainerStyle={{
+          padding: compact ? Math.min(padding, 7) : padding,
+          paddingTop: insets.top + (compact ? 3 : 6),
+        }}
         onScroll={Animated.event([{ nativeEvent: { contentOffset: { y: scrollY } } }], { useNativeDriver: true })}
         scrollEventThrottle={16}
       >
-        <FadingMasthead scrollY={scrollY} title={title} right={right} />
+        <FadingMasthead scrollY={scrollY} title={title} right={right} compact={compact} />
         {children}
       </Animated.ScrollView>
     </View>

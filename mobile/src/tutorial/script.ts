@@ -61,7 +61,7 @@ export const TUTORIAL: TutorialStep[] = [
     kicker: "Lesson one",
     headline: "The board is the market",
     body:
-      "Each turn you place one tile from your hand onto the grid. Lone tiles are unincorporated offices — worth nothing yet, but every company starts as one. Place your first tile anywhere.",
+      "Each turn you place one tile from your hand onto the grid. Lone tiles are unincorporated offices — worth nothing yet, but every company starts as one. Not every square stays open to you: once companies grow, a tile that would join two of them that are safe from takeover is barred. The board is empty for now, so either of yours will do — place one.",
     build: () => {
       const g = base(["human", "strategic"], 11);
       handTile(g, 0, [4, 4]);

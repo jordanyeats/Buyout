@@ -10,14 +10,14 @@ import { CountUp, InkButton, PressIn, Stepper, Wordmark, companyStyle } from "./
 
 const label = (t: Tile) => String.fromCharCode(65 + t[1]) + (t[0] + 1);
 
-export function Ticker({ game }: { game: GameState }) {
+export function Ticker({ game, compact }: { game: GameState; compact?: boolean }) {
   const last = game.logs[game.logs.length - 1];
   const nearEnd = Object.values(game.cos)
     .filter((c) => c.status !== "inactive" && c.size >= WARN_SIZE)
     .sort((a, b) => b.size - a.size)[0];
   return (
     <View>
-      <View style={{ flexDirection: "row", alignItems: "center", gap: 8, paddingVertical: 6, borderBottomWidth: 1, borderBottomColor: BD }}>
+      <View style={{ flexDirection: "row", alignItems: "center", gap: 8, paddingVertical: compact ? 3 : 6, borderBottomWidth: 1, borderBottomColor: BD }}>
         <View style={{ width: 5, height: 5, backgroundColor: ACCENT }} />
         <Text numberOfLines={1} style={{ flex: 1, fontFamily: SANS, fontSize: 12, color: INK2 }}>{last ?? "The market opens."}</Text>
         <Text style={{ fontFamily: SANS_SEMI, fontSize: 10.5, color: INK2 }}>Turn {game.turn + 1} · {game.pool.length} tiles</Text>
@@ -30,7 +30,7 @@ export function Ticker({ game }: { game: GameState }) {
           </Text>
         </View>
       ) : null}
-      <View style={{ marginBottom: 6 }} />
+      <View style={{ marginBottom: compact ? 2 : 6 }} />
     </View>
   );
 }

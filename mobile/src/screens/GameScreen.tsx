@@ -18,8 +18,15 @@ import { ActionsPanel, CoBar, HandBar, Holdings, SafeBanner, Ticker } from "../c
 const DESK_MIN = 300;
 const BOARD_MIN = 300;
 const COL_GAP = 18;
-/** Masthead, ticker and the sheet's own padding, above the two columns. */
+/**
+ * Masthead, ticker and the sheet's own padding, above the two columns —
+ * and what those come to once the page is asked to be compact, which a
+ * screen under this height gets. A phone held sideways is 390pt tall: the
+ * full nameplate and its rules are a third of it.
+ */
 const SHEET_CHROME = 132;
+const SHEET_CHROME_COMPACT = 88;
+const SHORT_SCREEN = 500;
 
 export function GameScreen({ game, act, onQuit, onRestart, unlocked = [] }: {
   game: GameState;
@@ -65,11 +72,12 @@ export function GameScreen({ game, act, onQuit, onRestart, unlocked = [] }: {
   const wide = width > height && width - DESK_MIN - COL_GAP >= BOARD_MIN;
   // What is left for the board after the sheet's own padding and the divider.
   const boardRoom = wide ? width - DESK_MIN - COL_GAP - 28 : width - 28;
+  const compact = height < SHORT_SCREEN;
   // Height of the two-column sheet: the viewport less the masthead and ticker.
   // Both columns stretch to it, which is what lets the divider run the full
   // height and the desk's footer sit on the bottom rule rather than wherever
   // the listings happen to end.
-  const sheetH = height - SHEET_CHROME;
+  const sheetH = height - (compact ? SHEET_CHROME_COMPACT : SHEET_CHROME);
   const place = (a: Action) => { setSel(null); act(a); };
   // "Your move" only when the human is actually the one deciding.
   const actor = game.players[currentActor(game)];
@@ -127,10 +135,10 @@ export function GameScreen({ game, act, onQuit, onRestart, unlocked = [] }: {
       ) : null}
       {game.phase === "mergerAnnounce" ? <FrontPage game={game} onDismiss={() => act({ type: "acknowledge" })} /> : null}
       {game.phase === "mergerResult" ? <MarketWrap game={game} onDismiss={() => act({ type: "acknowledge" })} /> : null}
-      <LedgerPage title="The Buyout Ledger" padding={14}>
-        <Ticker game={game} />
+      <LedgerPage title="The Buyout Ledger" padding={14} compact={compact}>
+        <Ticker game={game} compact={compact} />
         {wide ? (
-          <View style={{ flexDirection: "row", alignItems: "stretch", marginTop: 8, minHeight: sheetH }}>
+          <View style={{ flexDirection: "row", alignItems: "stretch", marginTop: compact ? 3 : 8, minHeight: sheetH }}>
             {boardCol}
             {deskCol}
           </View>
