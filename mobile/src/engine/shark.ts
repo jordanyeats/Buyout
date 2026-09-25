@@ -1,6 +1,8 @@
+import { MAJORITY_MULT, MINORITY_MULT } from "./constants";
+import { analyzePlacement } from "./board";
 import { applyAction, currentActor, playableTiles } from "./engine";
 import { policyAction } from "./ai";
-import { priceOf } from "./pricing";
+import { majorityMinority, priceOf } from "./pricing";
 import { derivedRng } from "./rng";
 import type { Action, GameState, Player, Tile } from "./types";
 
@@ -135,6 +137,43 @@ function rollout(start: GameState, me: number, salt: number): number {
   return score(g, me);
 }
 
+/**
+ * What placing here hands the opponents, before any rollout runs.
+ *
+ * A merger pays the majority and minority holders of every defunct company at
+ * once, and that transfer is certain and knowable now — no search required.
+ * Rollouts cannot see it: the horizon is about a third of a game, so all they
+ * observe is the bonus itself, which is well inside the variance of ten
+ * terminal net worths. Measured on the position `shark.test.ts` pins, taking
+ * such a merger cost the shark a mean margin of $1.1M and dropped it from
+ * 31 wins in 60 to 5 — while it chose that line about a third of the time at
+ * the shipped budget, and more rollouts did not help. A static term does,
+ * because the quantity was never uncertain.
+ *
+ * Returns what the opponents collect minus what this seat collects, so a
+ * merger the shark profits from is not penalised.
+ */
+function bonusHandedToOpponents(g: GameState, tile: Tile, idx: number): number {
+  const res = analyzePlacement(g, tile[0], tile[1]);
+  if (res.type !== "merger") return 0;
+  const sizes = new Map(res.cos.map((n) => [n, g.cos[n]!.size]));
+  const surv = res.cos.reduce((a, b) => (sizes.get(a)! >= sizes.get(b)! ? a : b));
+  const me = g.players[idx]!.name;
+  let handed = 0;
+  for (const dn of res.cos.filter((n) => n !== surv)) {
+    const price = priceOf(g, dn);
+    const { maj, min } = majorityMinority(g, dn);
+    if (!maj.length) continue;
+    const majEach = (price * MAJORITY_MULT) / maj.length;
+    // A sole holder takes the minority bonus as well.
+    const minEach = min.length ? (price * MINORITY_MULT) / min.length
+                               : (price * MINORITY_MULT) / maj.length;
+    for (const pl of maj) handed += pl.name === me ? -(majEach + (min.length ? 0 : minEach)) : majEach + (min.length ? 0 : minEach);
+    for (const pl of min) handed += pl.name === me ? -minEach : minEach;
+  }
+  return handed;
+}
+
 export function sharkPlace(g: GameState, idx: number): Action {
   const tiles = playableTiles(g, idx);
   if (tiles.length === 0) throw new Error("shark asked to place with no playable tiles");
@@ -151,7 +190,9 @@ export function sharkPlace(g: GameState, idx: number): Action {
     }
     let sum = 0;
     for (let k = 0; k < SHARK_CONFIG.rollouts; k++) sum += rollout(placed, idx, k * 7919 + t[0] * 97 + t[1]);
-    const score = sum / SHARK_CONFIG.rollouts;
+    // The rollout average, less what this placement is known to hand away.
+    // Both are in dollars of margin, so they add without a weight to tune.
+    const score = sum / SHARK_CONFIG.rollouts - bonusHandedToOpponents(g, t, idx);
     if (score > bestScore) {
       bestScore = score;
       best = t;
