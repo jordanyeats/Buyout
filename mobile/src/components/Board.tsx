@@ -110,7 +110,11 @@ export function Board({ game, sel, onSelect, maxHeight }: {
     Math.floor((room - 22) / (ROWS + GUTTER_AT)),
   ));
   const gutter = Math.round(cell * GUTTER_AT);
+  // Everything drawn inside a tile is a ratio of it, so a 70pt board on an
+  // iPad reads like the 34pt one it was drawn as rather than a phone board
+  // with the gaps stretched out.
   const k = cell / BASE_CELL;
+  const inset = 1.5 * k;
   const [stampW, setStampW] = useState(STAMP_W0);
   const human = game.players.findIndex((p) => p.kind === "human");
   const playable = new Set(
@@ -165,10 +169,10 @@ export function Board({ game, sel, onSelect, maxHeight }: {
               const safeCo = !!t && t !== SINGLE && game.cos[t]?.status === "safe";
               const inner = (
                 <View style={{
-                  width: cell - 3, height: cell - 3, margin: 1.5,
+                  width: cell - inset * 2, height: cell - inset * 2, margin: inset,
                   alignItems: "center", justifyContent: "center",
                   backgroundColor: cs ? cs.bg : t === SINGLE ? "#6E675E" : isSel ? INK : "transparent",
-                  borderWidth: isSel ? 2 : inHand ? 1.5 : placed ? 1 : 0,
+                  borderWidth: isSel ? 2 * k : inHand ? 1.5 * k : placed ? k : 0,
                   borderColor: isSel ? INK : inHand ? INK2 : "rgba(20,16,12,0.35)",
                 }}>
                   {placed || inHand ? (
@@ -179,7 +183,7 @@ export function Board({ game, sel, onSelect, maxHeight }: {
                       {cs ? cs.code : t === SINGLE ? "·" : label(r, c)}
                     </Text>
                   ) : (
-                    <View style={{ width: 2, height: 2, backgroundColor: BD2 }} />
+                    <View style={{ width: 2 * k, height: 2 * k, backgroundColor: BD2 }} />
                   )}
                 </View>
               );

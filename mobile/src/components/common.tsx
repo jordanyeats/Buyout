@@ -62,9 +62,14 @@ export function CountUp({ value, style, format = money, numberOfLines }: { value
 }
 
 /** Thick-thin rule pair with a small-caps section label. Rules, never cards. */
-export function SectionRule({ label, right }: { label: string; right?: string }) {
+export function SectionRule({ label, right, space = 16 }: {
+  label: string;
+  right?: string;
+  /** Room above the rule. Wider layouts have height to spare; phones do not. */
+  space?: number;
+}) {
   return (
-    <View style={{ marginTop: 16, marginBottom: 8 }}>
+    <View style={{ marginTop: space, marginBottom: 8 }}>
       <View style={{ borderTopWidth: 2.5, borderTopColor: INK }} />
       <View style={{ borderTopWidth: 1, borderTopColor: INK, marginTop: 2, marginBottom: 5 }} />
       <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
