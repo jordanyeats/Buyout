@@ -50,6 +50,11 @@ export function GameScreen({ game, act, onQuit, onRestart, unlocked = [] }: {
   const reveal = React.useCallback(() => { setAdBreak(false); setShowFinal(true); }, []);
   const runBreak = React.useCallback(() => { void runInterstitial().then(reveal); }, [reveal]);
   const { width, height } = useWindowDimensions();
+  // Even halves, so the divider falls on the centre line. On iPhone Duo that
+  // is where the fold is, which puts the board on one side of the hinge and
+  // the floor and listings on the other. Elsewhere it just reads as a
+  // broadsheet's gutter.
+  //
   // Side by side when the sheet is wider than it is tall, stacked when it is
   // taller than it is wide — Apple's own rule for a split arrangement, and
   // the reason their Duo guidance says to "steer clear of fixed widths or
@@ -71,7 +76,7 @@ export function GameScreen({ game, act, onQuit, onRestart, unlocked = [] }: {
   const yourTurn = game.over || (actor?.kind === "human" && game.phase !== "mergerAnnounce" && game.phase !== "mergerResult");
 
   const boardCol = (
-    <View style={wide ? { flex: 1.1, paddingRight: COL_GAP, justifyContent: "center" } : undefined}>
+    <View style={wide ? { flex: 1, paddingRight: COL_GAP, justifyContent: "center" } : undefined}>
       <SafeBanner game={game} />
       <Board
         game={game}
