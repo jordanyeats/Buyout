@@ -77,8 +77,17 @@ export function gcAuthenticate(): void {
   initGameCenter();
 }
 
-export async function gcShowLeaderboards(): Promise<void> {
-  await GC.showGameCenter();
+export type LeaderboardScope = "global" | "friends";
+
+/** The tables we post to, in the order they are worth reading. */
+export const LEADERBOARDS: { id: string; name: string; note: string }[] = [
+  { id: LB_BEST_FORTUNE, name: "Best fortune", note: "the largest single finish" },
+  { id: LB_CAREER_WINS, name: "Career wins", note: "games won, all time" },
+];
+
+/** Open one table directly rather than the list it is buried in. */
+export async function gcShowLeaderboard(id: string, scope: LeaderboardScope): Promise<boolean> {
+  return GC.showLeaderboard(id, scope === "friends");
 }
 
 /** Ask Game Center which of our IDs App Store Connect actually knows about. */

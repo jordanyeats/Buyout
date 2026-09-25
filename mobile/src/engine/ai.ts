@@ -1,5 +1,5 @@
 import { MAX_BUY, CONVERT_FROM, CONVERT_TO, SAFE_SIZE } from "./constants";
-import { analyzePlacement } from "./board";
+import { analyzePlacement, type PlacementResult } from "./board";
 import { convertCapacity, currentActor, playableTiles } from "./engine";
 import { majorityMinority, priceOf } from "./pricing";
 import { derivedRng } from "./rng";
@@ -45,6 +45,25 @@ function phaseOrdinal(g: GameState): number {
   return order.indexOf(g.phase) + (g.mergerCtx?.di ?? 0) * 10;
 }
 
+/**
+ * Greedy plays the board, not the register.
+ *
+ * It takes the biggest thing on offer this turn — found a company, grow the
+ * largest one it can reach, close the largest merger — and never asks who
+ * holds the shares. That is what the name promises, and until now it was not
+ * what the tier did: Greedy ran the same majority-aware placement as Sharp,
+ * and over 400 games the two were indistinguishable (49.3% ± 4.9). Placement
+ * is the decision that matters most, so sharing it collapsed the middle of
+ * the ladder into one AI with two labels.
+ */
+function greedyPlacementScore(g: GameState, res: PlacementResult, rng: () => number): number {
+  let s = rng() * 2;
+  if (res.type === "found") s += 40;
+  else if (res.type === "expand") s += 10 + g.cos[res.co]!.size;
+  else if (res.type === "merger") s += 15 + Math.max(...res.cos.map((n) => g.cos[n]!.size));
+  return s;
+}
+
 function pickTile(g: GameState, idx: number, rng: () => number): [number, number] {
   const p = g.players[idx]!;
   const tiles = playableTiles(g, idx);
@@ -55,6 +74,11 @@ function pickTile(g: GameState, idx: number, rng: () => number): [number, number
   let bestScore = -Infinity;
   for (const t of tiles) {
     const res = analyzePlacement(g, t[0], t[1]);
+    if (p.kind === "greedy") {
+      const gs = greedyPlacementScore(g, res, rng);
+      if (gs > bestScore) { bestScore = gs; best = t; }
+      continue;
+    }
     let s = rng() * 2;
     if (res.type === "found") s += 40;
     else if (res.type === "expand") {

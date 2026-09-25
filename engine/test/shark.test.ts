@@ -45,6 +45,24 @@ describe("shark (simulation AI)", () => {
     expect((a as unknown as { tile: [number, number] }).tile).toEqual([8, 8]);
   });
 
+  it("still takes a merger that pays itself", () => {
+    // The mirror of the trap above, and the thing a placement penalty could
+    // plausibly break: here the SHARK holds sole majority of the defunct
+    // company, so closing the deal pays it rather than the opponent. The
+    // penalty nets off what this seat collects, so it must not fire.
+    SHARK_CONFIG.rollouts = 10;
+    SHARK_CONFIG.maxActionsPerRollout = 90;
+    const g = scenario(["shark", "greedy"]);
+    putCompany(g, "Blink", [[0, 0], [1, 0], [2, 0], [3, 0], [4, 0]]);
+    putCompany(g, "Zap", [[0, 2], [1, 2], [2, 2]]);
+    grantShares(g, 0, "Zap", 5); // the shark holds it, not the rival
+    handTile(g, 0, [0, 1]);      // triggers the merger — a payday
+    handTile(g, 0, [8, 8]);      // neutral placement
+    const a = aiAction(g);
+    expect(a.type).toBe("place");
+    expect((a as unknown as { tile: [number, number] }).tile).toEqual([0, 1]);
+  });
+
   it("is deterministic: same state → same choice", () => {
     SHARK_CONFIG.rollouts = 5;
     SHARK_CONFIG.maxActionsPerRollout = 40;

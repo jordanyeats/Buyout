@@ -5,8 +5,21 @@ import { BD2, BG, INK, INK2, SANS_BLACK, SANS_SEMI } from "../theme";
 import { StampIn, companyStyle } from "./common";
 import { stampCentre } from "./stamp";
 
-/** Width of the row-number gutter to the left of the grid. */
-const GUTTER = 18;
+/** Width of the row-number gutter to the left of the grid, at base scale. */
+const GUTTER_AT = 18 / 34;
+
+/**
+ * The tile can be any size the space allows, within reason.
+ *
+ * It used to be capped at 40, which froze the board at 378pt on every screen
+ * from a large phone up to a 13-inch iPad — a quarter of the width, with the
+ * rest of the sheet blank. The cap is now a legibility floor and a
+ * don't-be-absurd ceiling; between them the board takes what it is given.
+ */
+const MIN_CELL = 26;
+const MAX_CELL = 74;
+/** The size the type and spacing in here were drawn against. */
+const BASE_CELL = 34;
 
 /**
  * The mark on a company that has grown past being taken over: two lines of
@@ -30,7 +43,7 @@ const STAMP = {
   padV: 3.5,
   padH: 9,
 };
-/** Two lines plus padding. Fixed, because the line height is set explicitly. */
+/** Two lines plus padding, at base scale. The line height is set explicitly. */
 const STAMP_H = STAMP.lead * 2 + STAMP.padV * 2;
 /** Stand-in width until the bar has measured itself; only the search reads it. */
 const STAMP_W0 = 72;
@@ -39,39 +52,69 @@ const STAMP_W0 = 72;
  * search picked. Sizing the box generously is what lets the bar be positioned
  * without the layout having to know how wide its own text came out.
  */
-const ANCHOR = { w: 180, h: 56 };
+const ANCHOR = { w: 260, h: 80 };
 
-const stampLine = {
-  fontFamily: SANS_BLACK,
-  fontSize: STAMP.size,
-  lineHeight: STAMP.lead,
-  letterSpacing: STAMP.track,
-  color: BG,
-  textAlign: "center" as const,
-  // Letterspacing trails the final glyph, so a centred line sits half a space
-  // to the left of true centre without this.
-  marginLeft: STAMP.track,
-};
-
-function Stamp({ onMeasure }: { onMeasure?: (w: number) => void }) {
+/**
+ * Every dimension of the bar scales by the same factor, so its width scales
+ * with it: measure once at base and multiply, rather than re-measuring each
+ * time the board resizes.
+ */
+function Stamp({ k, onMeasure }: { k: number; onMeasure?: (w: number) => void }) {
+  const line = {
+    fontFamily: SANS_BLACK,
+    fontSize: STAMP.size * k,
+    lineHeight: STAMP.lead * k,
+    letterSpacing: STAMP.track * k,
+    color: BG,
+    textAlign: "center" as const,
+    // Letterspacing trails the final glyph, so a centred line sits half a
+    // space to the left of true centre without this.
+    marginLeft: STAMP.track * k,
+  };
   return (
     <View
       onLayout={onMeasure ? (e) => onMeasure(e.nativeEvent.layout.width) : undefined}
-      style={{ backgroundColor: INK, paddingVertical: STAMP.padV, paddingHorizontal: STAMP.padH }}
+      style={{
+        backgroundColor: INK,
+        paddingVertical: STAMP.padV * k,
+        paddingHorizontal: STAMP.padH * k,
+      }}
     >
-      <Text style={stampLine}>{STAMP.line1}</Text>
-      <Text style={stampLine}>{STAMP.line2}</Text>
+      <Text style={line}>{STAMP.line1}</Text>
+      <Text style={line}>{STAMP.line2}</Text>
     </View>
   );
 }
 
-export function Board({ game, sel, onSelect }: {
+export function Board({ game, sel, onSelect, maxHeight }: {
   game: GameState;
   sel: Tile | null;
   onSelect: (t: Tile) => void;
+  /** Vertical room the grid may take, including its column headers. */
+  maxHeight?: number;
 }) {
-  const { width } = useWindowDimensions();
-  const cell = Math.min(40, Math.floor((Math.min(width, 540) - 64) / COLS));
+  const win = useWindowDimensions();
+  // The board measures the box it was actually given. Reading the window
+  // instead is wrong the moment it sits in a column rather than the whole
+  // sheet, and every large screen puts it in a column.
+  const [avail, setAvail] = useState(0);
+  const width = avail || win.width;
+  const room = maxHeight ?? win.height;
+
+  // Whichever axis runs out first decides the tile: nine rows and nine
+  // columns both have to fit, and a board you have to scroll to see is not a
+  // board you can play on.
+  const cell = Math.max(MIN_CELL, Math.min(
+    MAX_CELL,
+    Math.floor((width - 10) / (COLS + GUTTER_AT)),
+    Math.floor((room - 22) / (ROWS + GUTTER_AT)),
+  ));
+  const gutter = Math.round(cell * GUTTER_AT);
+  // Everything drawn inside a tile is a ratio of it, so a 70pt board on an
+  // iPad reads like the 34pt one it was drawn as rather than a phone board
+  // with the gaps stretched out.
+  const k = cell / BASE_CELL;
+  const inset = 1.5 * k;
   const [stampW, setStampW] = useState(STAMP_W0);
   const human = game.players.findIndex((p) => p.kind === "human");
   const playable = new Set(
@@ -87,20 +130,26 @@ export function Board({ game, sel, onSelect }: {
   const stamps = useMemo(
     () => safe.map((c) => ({
       name: c.name,
-      ...stampCentre(companyTiles(board, c.name), cell, stampW, STAMP_H),
+      ...stampCentre(companyTiles(board, c.name), cell, stampW * k, STAMP_H * k),
     })),
     // Placement depends only on which companies are safe and how large they
     // are: a company cannot change shape without changing size, so this skips
     // the search on every unrelated turn.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [safeKey, cell, stampW],
+    [safeKey, cell, stampW, k],
   );
 
   return (
-    <View style={{ alignItems: "center", paddingVertical: 6 }}>
-      <View style={{ flexDirection: "row", marginLeft: GUTTER }}>
+    <View
+      onLayout={(e) => {
+        const w = e.nativeEvent.layout.width;
+        if (w > 0 && Math.abs(w - avail) > 0.5) setAvail(w);
+      }}
+      style={{ alignItems: "center", paddingVertical: 6 }}
+    >
+      <View style={{ flexDirection: "row", marginLeft: gutter }}>
         {Array.from({ length: COLS }, (_, c) => (
-          <Text key={c} style={{ width: cell, textAlign: "center", fontFamily: SANS_SEMI, fontSize: 10, color: INK2 }}>
+          <Text key={c} style={{ width: cell, textAlign: "center", fontFamily: SANS_SEMI, fontSize: Math.round(10 * k), color: INK2 }}>
             {String.fromCharCode(65 + c)}
           </Text>
         ))}
@@ -109,7 +158,7 @@ export function Board({ game, sel, onSelect }: {
       <View>
         {Array.from({ length: ROWS }, (_, r) => (
           <View key={r} style={{ flexDirection: "row", alignItems: "center" }}>
-            <Text style={{ width: GUTTER, textAlign: "center", fontFamily: SANS_SEMI, fontSize: 10, color: INK2 }}>{r + 1}</Text>
+            <Text style={{ width: gutter, textAlign: "center", fontFamily: SANS_SEMI, fontSize: Math.round(10 * k), color: INK2 }}>{r + 1}</Text>
             {Array.from({ length: COLS }, (_, c) => {
               const t = game.board[r]![c];
               const key = r + "," + c;
@@ -120,21 +169,21 @@ export function Board({ game, sel, onSelect }: {
               const safeCo = !!t && t !== SINGLE && game.cos[t]?.status === "safe";
               const inner = (
                 <View style={{
-                  width: cell - 3, height: cell - 3, margin: 1.5,
+                  width: cell - inset * 2, height: cell - inset * 2, margin: inset,
                   alignItems: "center", justifyContent: "center",
                   backgroundColor: cs ? cs.bg : t === SINGLE ? "#6E675E" : isSel ? INK : "transparent",
-                  borderWidth: isSel ? 2 : inHand ? 1.5 : placed ? 1 : 0,
+                  borderWidth: isSel ? 2 * k : inHand ? 1.5 * k : placed ? k : 0,
                   borderColor: isSel ? INK : inHand ? INK2 : "rgba(20,16,12,0.35)",
                 }}>
                   {placed || inHand ? (
                     <Text style={{
-                      fontFamily: SANS_BLACK, fontSize: 9, letterSpacing: 0.4,
+                      fontFamily: SANS_BLACK, fontSize: Math.round(9 * k * 10) / 10, letterSpacing: 0.4 * k,
                       color: cs ? cs.tx : t === SINGLE ? "#CFC8BD" : isSel ? "#FAF6F0" : INK2,
                     }}>
                       {cs ? cs.code : t === SINGLE ? "·" : label(r, c)}
                     </Text>
                   ) : (
-                    <View style={{ width: 2, height: 2, backgroundColor: BD2 }} />
+                    <View style={{ width: 2 * k, height: 2 * k, backgroundColor: BD2 }} />
                   )}
                 </View>
               );
@@ -168,13 +217,13 @@ export function Board({ game, sel, onSelect }: {
             importantForAccessibility="no-hide-descendants"
             style={{
               position: "absolute",
-              left: GUTTER + s.cx - ANCHOR.w / 2,
+              left: gutter + s.cx - ANCHOR.w / 2,
               top: s.cy - ANCHOR.h / 2,
               width: ANCHOR.w, height: ANCHOR.h,
               alignItems: "center", justifyContent: "center",
             }}
           >
-            <Stamp />
+            <Stamp k={k} />
           </View>
         ))}
       </View>
@@ -183,7 +232,7 @@ export function Board({ game, sel, onSelect }: {
           before the first company ever reaches the threshold. */}
       <View pointerEvents="none" accessibilityElementsHidden importantForAccessibility="no-hide-descendants"
         style={{ position: "absolute", opacity: 0, left: -1000, top: 0 }}>
-        <Stamp onMeasure={(w) => { if (w > 0 && Math.abs(w - stampW) > 0.5) setStampW(w); }} />
+        <Stamp k={1} onMeasure={(w) => { if (w > 0 && Math.abs(w - stampW) > 0.5) setStampW(w); }} />
       </View>
     </View>
   );
