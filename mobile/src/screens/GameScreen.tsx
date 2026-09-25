@@ -135,7 +135,7 @@ export function GameScreen({ game, act, onQuit, onRestart, unlocked = [] }: {
       ) : null}
       {game.phase === "mergerAnnounce" ? <FrontPage game={game} onDismiss={() => act({ type: "acknowledge" })} /> : null}
       {game.phase === "mergerResult" ? <MarketWrap game={game} onDismiss={() => act({ type: "acknowledge" })} /> : null}
-      <LedgerPage title="The Buyout Ledger" padding={14} compact={compact}>
+      <LedgerPage title="The Buyout Ledger" padding={14} compact={compact} fullWidth>
         <Ticker game={game} compact={compact} />
         {wide ? (
           <View style={{ flexDirection: "row", alignItems: "stretch", marginTop: compact ? 3 : 8, minHeight: sheetH }}>

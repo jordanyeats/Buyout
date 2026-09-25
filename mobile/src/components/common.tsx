@@ -214,10 +214,22 @@ export function FadingMasthead({ scrollY, title, right, compact }: {
  * Full-screen Modals must wrap this in their own SafeAreaProvider so the
  * insets are measured for the modal's window.
  */
-export function LedgerPage({ title, right, padding = 16, compact, children }: {
+/**
+ * Widest a column of prose gets before it stops being readable. A broadsheet
+ * sets narrow columns for the same reason: the eye loses the start of the
+ * next line. At 1366pt an uncapped page runs about 190 characters a line.
+ */
+const MEASURE = 700;
+
+export function LedgerPage({ title, right, padding = 16, compact, fullWidth, children }: {
   title: string;
   right?: React.ReactNode;
   padding?: number;
+  /**
+   * Let the page use the whole sheet. The board wants this — it is a grid,
+   * not prose, and on a large screen it should grow. Reading screens do not.
+   */
+  fullWidth?: boolean;
   /**
    * Trims the page's own furniture on a screen with no height to spare —
    * a phone held sideways, or a short window on iPad. The nameplate and its
@@ -239,8 +251,10 @@ export function LedgerPage({ title, right, padding = 16, compact, children }: {
         onScroll={Animated.event([{ nativeEvent: { contentOffset: { y: scrollY } } }], { useNativeDriver: true })}
         scrollEventThrottle={16}
       >
-        <FadingMasthead scrollY={scrollY} title={title} right={right} compact={compact} />
-        {children}
+        <View style={fullWidth ? undefined : { width: "100%", maxWidth: MEASURE, alignSelf: "center" }}>
+          <FadingMasthead scrollY={scrollY} title={title} right={right} compact={compact} />
+          {children}
+        </View>
       </Animated.ScrollView>
     </View>
   );
