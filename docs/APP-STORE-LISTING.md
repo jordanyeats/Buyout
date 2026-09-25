@@ -259,8 +259,20 @@ Office, and one purchase retires them for good.
 
 ## Screenshots (in mobile/design/shots/ after pull)
 
-- iPhone 6.9"/6.7" (1290×2796): `panel-1.png` … `panel-6.png` — upload in that order
-- iPad 13"/12.9" (2048×2732): `ipad-panel-1.png` … `ipad-panel-4.png`
-
-Re-shot for 1.4.0 — the previous iPad set showed the board in a corner with
+All re-shot for 1.4.0. The previous iPad set showed the board in a corner with
 half the sheet blank, which is the bug this version fixes.
+
+| Slot | Pixels | Files |
+|---|---|---|
+| iPhone 6.9"/6.7" | 1290×2796 | `panel-1.png` … `panel-6.png` |
+| **iPhone 6.5"** (required) | 1284×2778 | `appstore-1284/panel-1.png` … `-6.png` |
+| iPad 13"/12.9" | 2048×2732 | `ipad-panel-1.png` … `ipad-panel-4.png` |
+| iPhone Duo, inner | 2853×2007 | `duo-panel-1.png`, `duo-panel-2.png` |
+
+Upload in numbered order. The 6.5" slot is the one App Store Connect rejects
+1290×2796 from — it takes 1284×2778 or 1242×2688 only.
+
+**The Duo panels cannot be uploaded yet.** Apple's screenshot specifications
+list iPhone Duo as "Coming Later — support for uploading assets for this
+device will be available later this year." They are built and sized correctly
+so they are ready when the slot opens.

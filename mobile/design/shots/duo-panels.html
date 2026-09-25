@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+  /* Same marketing language as panels.html and ipad-panels.html — company
+     ground, letterspaced kicker, Playfair headline, double rule, device.
+     Only the geometry differs: the Duo's inner display is landscape when
+     the book is open, so the head sits above a wide device rather than a
+     tall one. Inner display, landscape: 2853 x 2007. */
+  @font-face {
+    font-family: "Playfair";
+    src: url("../../node_modules/@expo-google-fonts/playfair-display/900Black/PlayfairDisplay_900Black.ttf");
+    font-weight: 900;
+  }
+  @font-face {
+    font-family: "SourceSans";
+    src: url("../../node_modules/@expo-google-fonts/source-sans-3/800ExtraBold/SourceSans3_800ExtraBold.ttf");
+    font-weight: 800;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: #222; }
+
+  .panel { width: 2853px; height: 2007px; position: relative; overflow: hidden; margin: 40px auto; }
+  .panel::after {
+    content: ""; position: absolute; inset: 0; pointer-events: none;
+    box-shadow: inset 0 60px 140px rgba(0,0,0,0.30), inset 0 -30px 90px rgba(255,255,255,0.06);
+  }
+
+  .head { position: absolute; top: 0; left: 0; right: 0; padding: 96px 140px 0; text-align: center; z-index: 2; }
+  .kicker { font-family: "SourceSans"; font-weight: 800; font-size: 36px;
+    letter-spacing: 14px; text-transform: uppercase; opacity: 0.75; }
+  .headline { font-family: "Playfair"; font-weight: 900; font-size: 116px;
+    line-height: 1.05; margin-top: 26px; letter-spacing: -1px; }
+  .rule { margin: 38px auto 0; width: 520px; }
+  .rule .thick { height: 7px; }
+  .rule .thin { height: 2.5px; margin-top: 7px; }
+
+  /* A folding phone, open: wide, thin bezel, and a seam down the centre
+     where the hinge is. The seam is drawn in the bezel and as the faintest
+     crease on the glass — the fold is the whole point of the shot. */
+  .device {
+    position: absolute; left: 50%; transform: translateX(-50%);
+    top: 470px; width: 2180px;
+    border-radius: 58px; padding: 22px; background: #14120F;
+    box-shadow: 0 70px 140px rgba(0,0,0,0.45), 0 20px 50px rgba(0,0,0,0.35);
+  }
+  .screen { border-radius: 40px; overflow: hidden; position: relative; background: #FAF6F0; }
+  .statusbar { height: 54px; background: #FAF6F0; display: flex; align-items: flex-end;
+    justify-content: space-between; padding: 0 48px 6px; }
+  .sb-time { font-family: "SourceSans"; font-weight: 800; font-size: 26px; color: #1A1715; }
+  .sb-icons { display: flex; align-items: center; gap: 12px; }
+  .screen img { display: block; width: 100%; }
+  .crease {
+    position: absolute; top: 0; bottom: 0; left: 50%; width: 3px; margin-left: -1.5px;
+    background: linear-gradient(90deg, rgba(20,16,12,0) 0%, rgba(20,16,12,0.09) 40%,
+      rgba(20,16,12,0.13) 50%, rgba(20,16,12,0.09) 60%, rgba(20,16,12,0) 100%);
+    pointer-events: none;
+  }
+  .hinge {
+    position: absolute; left: 50%; width: 10px; margin-left: -5px; height: 22px;
+    background: #2A2521; border-radius: 5px;
+  }
+  .hinge.top { top: 0; } .hinge.bot { bottom: 0; }
+
+  .pogo  { background: #3D3D99; } .pogo  .kicker, .pogo  .headline { color: #CDCDF5; } .pogo  .rule div { background: #CDCDF5; }
+  .spark { background: #9B2335; } .spark .kicker, .spark .headline { color: #F5CDD3; } .spark .rule div { background: #F5CDD3; }
+</style>
+</head>
+<body>
+
+<div class="panel pogo" id="p1">
+  <div class="head">
+    <div class="kicker">The Buyout Ledger</div>
+    <div class="headline">The fold splits the floor from the desk</div>
+    <div class="rule"><div class="thick"></div><div class="thin"></div></div>
+  </div>
+  <div class="device">
+    <div class="hinge top"></div><div class="hinge bot"></div>
+    <div class="screen">
+      <div class="statusbar"><span class="sb-time">9:41</span><span class="sb-icons"></span></div>
+      <img src="cap-board-duo.png">
+      <div class="crease"></div>
+    </div>
+  </div>
+</div>
+
+<div class="panel spark" id="p2">
+  <div class="head">
+    <div class="kicker">The Takeover</div>
+    <div class="headline">Every merger makes the front page</div>
+    <div class="rule"><div class="thick"></div><div class="thin"></div></div>
+  </div>
+  <div class="device">
+    <div class="hinge top"></div><div class="hinge bot"></div>
+    <div class="screen">
+      <div class="statusbar"><span class="sb-time">9:41</span><span class="sb-icons"></span></div>
+      <img src="cap-merger-duo.png">
+      <div class="crease"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+  const svg = `
+  <svg width="36" height="26" viewBox="0 0 23 16" fill="#1A1715" xmlns="http://www.w3.org/2000/svg">
+    <rect x="0" y="10" width="4" height="6" rx="1"/><rect x="6" y="7" width="4" height="9" rx="1"/>
+    <rect x="12" y="4" width="4" height="12" rx="1"/><rect x="18" y="1" width="4" height="15" rx="1"/>
+  </svg>
+  <svg width="34" height="26" viewBox="0 0 22 16" fill="#1A1715" xmlns="http://www.w3.org/2000/svg">
+    <path d="M11 13.5 L13.6 10.6 A4 4 0 0 0 8.4 10.6 Z"/>
+    <path d="M6.2 8.2 A7 7 0 0 1 15.8 8.2 L14.2 6.5 A5 5 0 0 0 7.8 6.5 Z" opacity="0.95"/>
+    <path d="M3.8 5.6 A10.5 10.5 0 0 1 18.2 5.6 L16.6 3.9 A8.5 8.5 0 0 0 5.4 3.9 Z" opacity="0.95"/>
+  </svg>
+  <svg width="42" height="26" viewBox="0 0 27 16" xmlns="http://www.w3.org/2000/svg">
+    <rect x="0.75" y="2.75" width="21.5" height="10.5" rx="3" fill="none" stroke="#1A1715" stroke-opacity="0.45" stroke-width="1.5"/>
+    <rect x="2.5" y="4.5" width="15" height="7" rx="1.6" fill="#1A1715"/>
+    <path d="M24.5 5.5 a3 3 0 0 1 0 5 Z" fill="#1A1715" fill-opacity="0.45"/>
+  </svg>`;
+  for (const el of document.querySelectorAll(".sb-icons")) el.innerHTML = svg;
+</script>
+</body>
+</html>
