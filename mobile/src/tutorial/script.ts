@@ -140,9 +140,9 @@ export const TUTORIAL: TutorialStep[] = [
   },
   {
     kicker: "Final lesson",
-    headline: "Safety, and the closing bell",
+    headline: "Safe from takeover, and the closing bell",
     body:
-      `At size ${SAFE_SIZE} a company is SAFE — it can never be taken over; it can only take over others. When any company reaches size ${WARN_SIZE}, the ticker warns you the closing bell is near; at ${END_SIZE} the game ends — final bonuses pay, every share liquidates, and the largest fortune wins. That's the whole game. The desk is yours.`,
+      `At size ${SAFE_SIZE} a company is SAFE FROM TAKEOVER — the board stamps it, and from then on the traffic runs one way: it can still absorb its neighbours, but nothing can ever absorb it. When any company reaches size ${WARN_SIZE}, the ticker warns you the closing bell is near; at ${END_SIZE} the game ends — final bonuses pay, every share liquidates, and the largest fortune wins. That's the whole game. The desk is yours.`,
     build: null,
     goal: null,
   },
