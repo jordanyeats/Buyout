@@ -148,7 +148,7 @@ export function CompanySheet({ game, name, onClose }: { game: GameState; name: s
                 {safe ? "Safe from takeover" : "Open to takeover"}
               </Text>
               <Text style={{ fontFamily: SANS, fontSize: 10.5, color: INK2, flex: 1, textAlign: "right" }}>
-                {safe ? `passed ${SAFE_SIZE} tiles` : `${toSafe} more to reach ${SAFE_SIZE}`}
+                {safe ? `reached ${SAFE_SIZE} tiles` : `${toSafe} more to reach ${SAFE_SIZE}`}
               </Text>
             </View>
 
@@ -176,7 +176,7 @@ export function CompanySheet({ game, name, onClose }: { game: GameState; name: s
             </View>
             <Text style={{ fontFamily: SANS, fontSize: 10.5, color: INK3, marginTop: 6 }}>
               {safe
-                ? "Safe companies are never absorbed, so these pay only at final scoring."
+                ? "A company this size is never absorbed, so these pay only at final scoring."
                 : "Paid whenever this company is absorbed in a merger, and again at final scoring."}
             </Text>
 
@@ -233,10 +233,10 @@ export function SafeBanner({ game }: { game: GameState }) {
     >
       <Wordmark name={shown} size={13} />
       <Text style={{ fontFamily: SANS_BLACK, fontSize: 10, letterSpacing: 1.8, textTransform: "uppercase", color: INK }}>
-        is safe
+        is safe from takeover
       </Text>
       <Text style={{ flex: 1, textAlign: "right", fontFamily: SERIF, fontSize: 11, color: INK2 }}>
-        {SAFE_SIZE} tiles — no longer a takeover target
+        {SAFE_SIZE} tiles — it can only take others over now
       </Text>
     </Animated.View>
   );
