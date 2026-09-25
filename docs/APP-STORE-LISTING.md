@@ -1,4 +1,4 @@
-# App Store Listing — Buyout 1.3.2
+# App Store Listing — Buyout 1.4.0
 
 Paste-ready copy for App Store Connect. Character limits verified.
 No references to any other board game, per naming rules.
@@ -22,9 +22,9 @@ Strategy board game of mergers
 ## Promo text (166/170 chars) — editable anytime without review
 
 ```
-Place tiles, found startups, and outfox the Shark in a paper-and-ink
-boardroom. Every merger makes the front page. Fully offline. One
-purchase removes ads forever.
+The board now takes the whole page — on iPad, in any orientation, and on
+iPhone Duo. Every merger still makes the front page. Fully offline. One
+purchase removes ads.
 ```
 
 ## Keywords (97/100 chars) — no need to repeat name/subtitle words
@@ -33,7 +33,7 @@ purchase removes ads forever.
 tile,stocks,shares,acquisition,tycoon,economy,finance,empire,offline,solo,ai,newspaper,broadsheet
 ```
 
-## Description (~2,300/4,000 chars)
+## Description (2,252/4,000 chars)
 
 ```
 The market opens with an empty grid. By the closing bell, every tile on
@@ -75,8 +75,10 @@ Career stats, win rates against every kind of rival, and a page of honors
 to earn. Best finishes are remembered.
 
 MADE LIKE A NEWSPAPER
-Playfair headlines, ink rules, and graph paper. Designed for iPhone and
-iPad — the iPad gets a full two-column trading desk.
+Playfair headlines, ink rules, and graph paper. Designed for iPhone,
+iPad, and iPhone Duo — the board takes whatever space the screen has,
+and any page wider than it is tall sets the floor and the trading desk
+in two columns.
 
 STRAIGHT DEALING
 Fully offline gameplay. No accounts. No analytics of our own. Your saves,
@@ -84,6 +86,49 @@ stats, and player names never leave your device. The free edition shows
 the occasional ad between games; one purchase removes them forever.
 
 The desk is yours.
+```
+
+## What's New (1.4.0)
+
+```
+THE BOARD TAKES THE WHOLE PAGE
+On iPad the grid sat in one corner with half the sheet left blank, no
+larger than it was on a phone. It now takes the space it is given: the
+tiles grow with the screen, and held sideways the floor and the trading
+desk sit across the page from one another.
+
+TURN THE PAPER ANY WAY YOU LIKE
+Every screen reads in both orientations. On iPad the paper keeps its
+place in Split View and Slide Over instead of demanding the whole
+display, and it redraws at whatever size it is handed.
+
+MADE FOR IPHONE DUO
+Opened, the fold divides the paper the way a broadsheet divides — the
+board on one side of the hinge, the floor and the market listings on the
+other. Closed, it is the same paper at a smaller size.
+
+SAFE FROM TAKEOVER, SAID PLAINLY
+A company beyond takeover was ruled off with a heavy border around its
+tiles. It is now stamped across the block instead. The state belongs to
+the company, not to the tiles it happens to stand on, and the mark now
+says so.
+
+THE LEADERBOARDS ARE ONE TAP AWAY
+The Record went three taps deep to reach a global table. It now opens
+straight onto one, with your friends' table a tap from there.
+
+THE TRAINING DESK TELLS THE TRUTH
+Lesson one said a tile may be placed anywhere. It may not, and the
+lesson now says what actually stops you. The lessons on majorities and
+on settlement have been rewritten to say what a bonus is worth in
+dollars, why converting is worth doing, and what holding defunct paper
+pays if the name never comes back.
+
+FOUR RIVALS, FOUR DIFFERENT PLAYERS
+Greedy and Sharp were the same desk under two names — over four hundred
+games neither could beat the other. Greedy now plays the board and never
+the register, and the gap between them is real. The Shark, meanwhile,
+has stopped handing rivals a bonus on its way past.
 ```
 
 ## What's New (1.3.2)
@@ -216,3 +261,6 @@ Office, and one purchase retires them for good.
 
 - iPhone 6.9"/6.7" (1290×2796): `panel-1.png` … `panel-6.png` — upload in that order
 - iPad 13"/12.9" (2048×2732): `ipad-panel-1.png` … `ipad-panel-4.png`
+
+Re-shot for 1.4.0 — the previous iPad set showed the board in a corner with
+half the sheet blank, which is the bug this version fixes.
