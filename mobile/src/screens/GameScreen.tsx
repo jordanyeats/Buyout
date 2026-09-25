@@ -10,6 +10,15 @@ import { AdBreak } from "../components/AdBreak";
 import { adBreakDue, runInterstitial } from "../store/monetize";
 import { ActionsPanel, CoBar, HandBar, Holdings, SafeBanner, Ticker } from "../components/panels";
 
+/**
+ * What the two columns need before a side-by-side layout is worth it: the
+ * Holdings table stops being readable under about 300pt, and a board below
+ * about 300pt square is not one you want to aim at with a thumb.
+ */
+const DESK_MIN = 300;
+const BOARD_MIN = 300;
+const COL_GAP = 18;
+
 export function GameScreen({ game, act, onQuit, onRestart, unlocked = [] }: {
   game: GameState;
   act: (a: Action) => void;
@@ -38,22 +47,38 @@ export function GameScreen({ game, act, onQuit, onRestart, unlocked = [] }: {
   // can both call it without fighting.
   const reveal = React.useCallback(() => { setAdBreak(false); setShowFinal(true); }, []);
   const runBreak = React.useCallback(() => { void runInterstitial().then(reveal); }, [reveal]);
-  const { width } = useWindowDimensions();
-  const wide = width >= 768; // iPad: board left, desk right
+  const { width, height } = useWindowDimensions();
+  // Side by side when the sheet is wider than it is tall, stacked when it is
+  // taller than it is wide — Apple's own rule for a split arrangement, and
+  // the reason their Duo guidance says to "steer clear of fixed widths or
+  // anything tied to a specific display". The old 768 was both too high and
+  // too low at once: it missed the Duo's inner display, and a purely
+  // width-based threshold splits a tall screen into two columns so narrow
+  // that the board ends up smaller than it would be on a phone.
+  const wide = width > height && width - DESK_MIN - COL_GAP >= BOARD_MIN;
+  // What is left for the board after the sheet's own padding and the divider.
+  const boardRoom = wide ? width - DESK_MIN - COL_GAP - 28 : width - 28;
   const place = (a: Action) => { setSel(null); act(a); };
   // "Your move" only when the human is actually the one deciding.
   const actor = game.players[currentActor(game)];
   const yourTurn = game.over || (actor?.kind === "human" && game.phase !== "mergerAnnounce" && game.phase !== "mergerResult");
 
   const boardCol = (
-    <View style={wide ? { flex: 1.1, paddingRight: 18 } : undefined}>
+    <View style={wide ? { flex: 1.1, paddingRight: COL_GAP } : undefined}>
       <SafeBanner game={game} />
-      <Board game={game} sel={sel} onSelect={setSel} />
+      <Board
+        game={game}
+        sel={sel}
+        onSelect={setSel}
+        // In one column the board shares the sheet with the desk below it, so
+        // it takes the upper part; in two it has the column's full height.
+        maxHeight={wide ? height - 120 : Math.min(height * 0.62, boardRoom)}
+      />
       <CoBar game={game} />
     </View>
   );
   const deskCol = (
-    <View style={wide ? { flex: 1, borderLeftWidth: 1, borderLeftColor: INK, paddingLeft: 18 } : undefined}>
+    <View style={wide ? { flex: 1, borderLeftWidth: 1, borderLeftColor: INK, paddingLeft: COL_GAP } : undefined}>
       {game.over && unlocked.length > 0 ? (
         <View style={{ borderWidth: 1, borderColor: ACCENT, padding: 10, marginTop: 12 }}>
           <Text style={{ fontFamily: SANS_BLACK, fontSize: 9, letterSpacing: 2, textTransform: "uppercase", color: ACCENT }}>■ Honors earned</Text>

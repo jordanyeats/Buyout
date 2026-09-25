@@ -10,7 +10,11 @@
       "bundleIdentifier": "com.jordanyeats.buyout",
       "supportsTablet": true,
       "infoPlist": {
-        "ITSAppUsesNonExemptEncryption": false
+        "ITSAppUsesNonExemptEncryption": false,
+        "UISupportedInterfaceOrientations~ipad": [
+          "UIInterfaceOrientationLandscapeLeft",
+          "UIInterfaceOrientationLandscapeRight"
+        ]
       },
       "entitlements": {
         "com.apple.developer.game-center": true
@@ -63,7 +67,8 @@
             ]
           }
         ]
-      }
+      },
+      "requireFullScreen": true
     },
     "android": {
       "adaptiveIcon": {
