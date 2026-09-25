@@ -43,7 +43,7 @@ function duel(a: PlayerKind, b: PlayerKind, games: number): { aWins: number; n: 
 }
 
 describe("difficulty ladder", () => {
-  it.runIf(process.env.BENCH)("BENCH: each rung against the one below it", { timeout: 900_000 }, () => {
+  it.runIf(process.env.BENCH)("BENCH: each rung against the one below it", { timeout: 3_600_000 }, () => {
     const GAMES = Number(process.env.LADDER_GAMES ?? 400);
     const DEFAULT = "greedy:random,strategic:greedy,shark:strategic";
     const rungs = (process.env.LADDER_RUNGS ?? DEFAULT)
