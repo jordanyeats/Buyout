@@ -17,6 +17,15 @@ const covered = (tiles: Tile[], w = W, h = H) => {
   const { cx, cy } = stampCentre(tiles, CELL, w, h);
   return coverage(tiles, CELL, cx, cy, w, h);
 };
+/** A company with a thin waist: several bands, none of them the centroid's. */
+const SPRAWL: Tile[] = [
+  [0, 0], [0, 1], [0, 2], [0, 3],
+  [1, 1],
+  [2, 1], [2, 2], [2, 3], [2, 4],
+  [3, 3],
+  [4, 2], [4, 3], [4, 4], [4, 5], [4, 6],
+  [5, 4], [5, 5], [5, 6],
+];
 const centroid = (tiles: Tile[]) => ({
   cx: (tiles.reduce((a, [, c]) => a + c + 0.5, 0) / tiles.length) * CELL,
   cy: (tiles.reduce((a, [r]) => a + r + 0.5, 0) / tiles.length) * CELL,
@@ -41,16 +50,27 @@ describe("stampCentre", () => {
     expect(covered(tiles)).toBeGreaterThan(0.999);
   });
 
+  it("centres on the L's arm, not on the centroid's column", () => {
+    // The arm is rows 4-5 across columns 0-4, so its middle is 2.5 cells in.
+    // The centroid sits well left of that, dragged over by the tall stack.
+    const tiles = [...rect(0, 3, 0, 1), ...rect(4, 5, 0, 4)];
+    const { cx } = stampCentre(tiles, CELL, W, H);
+    expect(cx).toBeCloseTo(2.5 * CELL, 1);
+    expect(centroid(tiles).cx).toBeLessThan(cx - CELL / 2);
+  });
+
   it("finds ink on a sprawl with a thin waist", () => {
-    const tiles: Tile[] = [
-      [0, 0], [0, 1], [0, 2], [0, 3],
-      [1, 1],
-      [2, 1], [2, 2], [2, 3], [2, 4],
-      [3, 3],
-      [4, 2], [4, 3], [4, 4], [4, 5], [4, 6],
-      [5, 4], [5, 5], [5, 6],
-    ];
-    expect(covered(tiles)).toBeGreaterThan(0.999);
+    expect(covered(SPRAWL)).toBeGreaterThan(0.999);
+  });
+
+  it("centres on the sprawl's run rather than splitting the difference", () => {
+    // Whichever band it lands on, the bar should sit in the middle of the
+    // tiles beneath it: equal slack to the left and to the right.
+    const { cx, cy } = stampCentre(SPRAWL, CELL, W, H);
+    let lo = cx, hi = cx;
+    while (coverage(SPRAWL, CELL, lo - 0.5, cy, W, H) > 0.999) lo -= 0.5;
+    while (coverage(SPRAWL, CELL, hi + 0.5, cy, W, H) > 0.999) hi += 0.5;
+    expect(cx - lo).toBeCloseTo(hi - cx, 1);
   });
 
   it("stays inside the company on every shape a real game produced", () => {
@@ -60,6 +80,7 @@ describe("stampCentre", () => {
       rect(0, 1, 0, 8),                                   // 2 x 9, full width
       [...rect(0, 2, 0, 4), ...rect(3, 3, 1, 3)],
       [...rect(0, 0, 2, 7), ...rect(1, 2, 0, 4), [3, 2]],
+      SPRAWL,
     ];
     for (const tiles of shapes) {
       const { cx, cy } = stampCentre(tiles, CELL, W, H);
