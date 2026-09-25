@@ -1,6 +1,19 @@
 import {
-  END_SIZE, SAFE_SIZE, WARN_SIZE, newGame, type Action, type GameState, type PlayerKind, type Tile,
+  CONVERT_FROM, CONVERT_TO, END_SIZE, MAJORITY_MULT, MINORITY_MULT, SAFE_SIZE, START_CASH,
+  WARN_SIZE, newGame, priceForSize, type Action, type GameState, type PlayerKind, type Tile,
 } from "../engine";
+
+const usd = (n: number) => "$" + n.toLocaleString("en-US");
+
+/**
+ * Lesson four's company and the holdings around it, named once so the copy
+ * and the board it describes cannot drift apart. The figures in that lesson
+ * are the real ones the engine would pay.
+ */
+const ZAP_TILES: Tile[] = [[2, 2], [2, 3], [3, 2], [3, 3], [2, 4]];
+const ZAP_YOU = 4;
+const ZAP_RIVAL = 3;
+const ZAP_PRICE = priceForSize(ZAP_TILES.length);
 
 /** ---- state builders (mirror the engine test helpers) ---- */
 
@@ -99,14 +112,14 @@ export const TUTORIAL: TutorialStep[] = [
   },
   {
     kicker: "Lesson four",
-    headline: "Majority is everything",
+    headline: "One share, and what it is worth",
     body:
-      "When a company is taken over, its top shareholder collects a bonus of 10× the share price; the runner-up collects 5×. An investor who holds a company alone collects both. Every merger is really a fight over these two seats. Holding one share more than a rival can be worth six figures. In the market listings, a filled square marks a company where you hold majority; an outlined square marks one you founded. Study the listings below — you outhold your rival in Zap — then read on.",
+      `Zap is ${ZAP_TILES.length} tiles, so a share costs ${usd(ZAP_PRICE)}. If it were taken over this minute its largest holder would collect ${MAJORITY_MULT}× that — ${usd(ZAP_PRICE * MAJORITY_MULT)}, more than the ${usd(START_CASH)} you opened the game with — and second place ${MINORITY_MULT}×, ${usd(ZAP_PRICE * MINORITY_MULT)}. Hold a company alone and you take both. You have ${ZAP_YOU} Zap to your rival's ${ZAP_RIVAL}: one share between you, and today it is worth the ${usd(ZAP_PRICE * (MAJORITY_MULT - MINORITY_MULT))} difference. More as the company grows, because both bonuses are charged at whatever the price has become. That is what every merger is a fight over. In the listings, a filled square marks a company where you hold majority; an outlined square marks one you founded.`,
     build: () => {
       const g = base(["human", "strategic"], 14);
-      putCompany(g, "Zap", [[2, 2], [2, 3], [3, 2], [3, 3], [2, 4]]);
-      grantShares(g, 0, "Zap", 4);
-      grantShares(g, 1, "Zap", 3);
+      putCompany(g, "Zap", ZAP_TILES);
+      grantShares(g, 0, "Zap", ZAP_YOU);
+      grantShares(g, 1, "Zap", ZAP_RIVAL);
       g.phase = "buy";
       return g;
     },
@@ -134,7 +147,7 @@ export const TUTORIAL: TutorialStep[] = [
     kicker: "Lesson six",
     headline: "Sell, convert, or hold",
     body:
-      "Your defunct shares must go somewhere. Sell for cash now; convert three-for-two into the survivor; or hold, betting the name gets refounded later. Converting keeps you in the majority race for the bigger company. Make your settlement.",
+      `Your shares in the company that just vanished have to go somewhere, and the three doors lead to very different places. Selling turns them into cash at its last price — certain, and the only one that pays you today. Converting trades ${CONVERT_FROM} of them for ${CONVERT_TO} of the survivor: you give up a third of your count, but the survivor is the larger company, and its ${MAJORITY_MULT}× is charged at its price rather than this one's. Convert when you mean to fight for majority there. Holding is a bet that the name comes back — its slot returns to the shelf, and shares you kept wake up at the new price if anyone founds it again. If nobody does before the closing bell they pay nothing at all, so hold while there is still game left for the name to return, and never at the end. Make your settlement.`,
     build: null, // continues the merger from lesson five
     goal: (a) => a.type === "mergerDecision",
   },
