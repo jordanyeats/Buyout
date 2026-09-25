@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from "react";
-import { Text, View } from "react-native";
+import { Pressable, Text, View } from "react-native";
 import { ACCENT, BD, BG, GRN, INK, INK2, INK3, SANS, SANS_BLACK, SANS_SEMI, SERIF, money } from "../theme";
 import { InkButton, LedgerPage, SectionRule } from "../components/common";
 import { ACHIEVEMENTS, loadStats, summarize, type GameRecord, type Stats } from "../store/stats";
 import { PACKS } from "../store/packs";
 import {
-  gcAlias, gcAuthenticate, gcAvailable, gcShowLeaderboards, gcSignedIn, onGameCenterChange,
+  LEADERBOARDS, gcAlias, gcAuthenticate, gcAvailable, gcShowLeaderboard, gcSignedIn,
+  onGameCenterChange, type LeaderboardScope,
 } from "../store/gamecenter";
 
 const KIND_LABEL: Record<string, string> = {
@@ -24,6 +25,9 @@ const deckOf = (r: GameRecord): string => (r.cards ? r.pack ?? "standard" : "non
 export function StatsScreen({ onExit }: { onExit: () => void }) {
   const [stats, setStats] = useState<Stats | null>(null);
   const [gc, setGc] = useState(gcSignedIn());
+  // Global first: the table most people open it to see is the whole field,
+  // not the two friends who also own the game.
+  const [scope, setScope] = useState<LeaderboardScope>("global");
   useEffect(() => {
     loadStats().then(setStats);
   }, []);
@@ -40,7 +44,19 @@ export function StatsScreen({ onExit }: { onExit: () => void }) {
             <Text style={{ fontFamily: SANS_SEMI, fontSize: 12.5, color: GRN, marginBottom: 10 }}>
               ■ Signed in{gcAlias() ? ` as ${gcAlias()}` : ""} — Standard fortunes and honors post automatically.
             </Text>
-            <InkButton label="View leaderboards" onPress={() => { void gcShowLeaderboards(); }} />
+            <Scope value={scope} onChange={setScope} />
+            {LEADERBOARDS.map((lb, i) => (
+              <InkButton
+                key={lb.id}
+                primary={i === 0}
+                label={lb.name}
+                onPress={() => { void gcShowLeaderboard(lb.id, scope); }}
+                style={{ marginTop: i === 0 ? 10 : 8 }}
+              />
+            ))}
+            <Text style={{ fontFamily: SANS, fontSize: 10.5, color: INK3, marginTop: 8 }}>
+              Opens straight to the table, {scope === "global" ? "the whole field" : "your friends only"}.
+            </Text>
           </View>
         ) : (
           <View style={{ paddingVertical: 6 }}>
@@ -128,6 +144,46 @@ export function StatsScreen({ onExit }: { onExit: () => void }) {
         <InkButton label="Back to the desk" onPress={onExit} />
         <View style={{ height: 40 }} />
       </LedgerPage>
+    </View>
+  );
+}
+
+/** Global / Friends, as a pair of boxes rather than a platform switch. */
+function Scope({ value, onChange }: {
+  value: LeaderboardScope;
+  onChange: (v: LeaderboardScope) => void;
+}) {
+  const opts: { id: LeaderboardScope; label: string }[] = [
+    { id: "global", label: "Global" },
+    { id: "friends", label: "Friends" },
+  ];
+  return (
+    <View style={{ flexDirection: "row", borderWidth: 1, borderColor: INK, alignSelf: "flex-start" }}>
+      {opts.map((o, i) => {
+        const on = o.id === value;
+        return (
+          <Pressable
+            key={o.id}
+            onPress={() => onChange(o.id)}
+            accessibilityRole="button"
+            accessibilityState={{ selected: on }}
+            accessibilityLabel={`${o.label} leaderboard`}
+            style={({ pressed }) => ({
+              paddingVertical: 7, paddingHorizontal: 18,
+              backgroundColor: on ? INK : "transparent",
+              borderLeftWidth: i === 0 ? 0 : 1, borderLeftColor: INK,
+              opacity: pressed ? 0.75 : 1,
+            })}
+          >
+            <Text style={{
+              fontFamily: SANS_BLACK, fontSize: 10, letterSpacing: 1.6,
+              textTransform: "uppercase", color: on ? BG : INK2,
+            }}>
+              {o.label}
+            </Text>
+          </Pressable>
+        );
+      })}
     </View>
   );
 }

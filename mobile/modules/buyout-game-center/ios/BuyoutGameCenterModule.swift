@@ -180,6 +180,28 @@ public class BuyoutGameCenterModule: Module {
       }
     }
 
+    /// Present one leaderboard directly, at a chosen scope.
+    ///
+    /// `showGameCenter` lands on the leaderboards *list*, so reaching a global
+    /// table takes a tap to open it, a tap to pick the board, and a tap on the
+    /// scope control. This lands on the board itself, already scoped.
+    AsyncFunction("showLeaderboard") { (leaderboardId: String, friendsOnly: Bool, promise: Promise) in
+      DispatchQueue.main.async {
+        guard GKLocalPlayer.local.isAuthenticated else {
+          promise.resolve(false)
+          return
+        }
+        let vc = GKGameCenterViewController(
+          leaderboardID: leaderboardId,
+          playerScope: friendsOnly ? .friendsOnly : .global,
+          timeScope: .allTime
+        )
+        vc.gameCenterDelegate = GameCenterDismisser.shared
+        self.rootViewController()?.present(vc, animated: true)
+        promise.resolve(true)
+      }
+    }
+
     /// Present the Game Center overlay (leaderboards tab).
     AsyncFunction("showGameCenter") { (promise: Promise) in
       DispatchQueue.main.async {

@@ -124,6 +124,18 @@ export async function diagnose(leaderboardIds: string[], achievementIds: string[
   }
 }
 
+/**
+ * Open one leaderboard straight at the chosen scope, skipping the list.
+ * Resolves false when the native module is absent or nobody is signed in.
+ */
+export async function showLeaderboard(id: string, friendsOnly: boolean): Promise<boolean> {
+  try {
+    return (await native()?.showLeaderboard(id, friendsOnly)) ?? false;
+  } catch {
+    return false;
+  }
+}
+
 export async function showGameCenter(): Promise<boolean> {
   try {
     return (await native()?.showGameCenter()) ?? false;
